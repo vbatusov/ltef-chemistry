@@ -1,0 +1,6 @@
+The following documentation from Accelrys contains formal specification of RXN/RD and Mol-file formats for representing reactions and molecules.
+
+              http://download.accelrys.com/freeware/ctfile-formats/ctfile-formats.zip
+
+A brief description of file formats and some history can be found in the following Wikipedia article:
+           http://en.wikipedia.org/wiki/Chemical_table_file
