@@ -1,5 +1,6 @@
 import copy
 import random
+import re
 
 
 class Atom:
@@ -255,9 +256,30 @@ class Reaction:
         fragmentsPseudo = {}
         for molecule in reactionInst.reactants:
             for atom in molecule.atomList:
+
+                # If atom's symbol is an RXN string list, select one symbol arbitrarily
+                atomSymbols = pseudoatomToList(atom.symbol)    # Is this a list atom?
+                if len(atomSymbols) > 1:
+                    symbol_tmp = random.choice(atomSymbols)
+                    print "Selected " + symbol_tmp + " out of " + str(atomSymbols)
+                    if symbol_tmp in LIST_TRANSLATION.keys():
+                        atom.symbol = LIST_TRANSLATION[symbol_tmp]
+                    else:
+                        atom.symbol = symbol_tmp
+                    print "Set atom.symbol to " + atom.symbol
+
+                # If atom's symbol is in pseudo, generate an actual fragment
                 if atom.symbol in PSEUDO.keys():
-                    print "A pseudoatom is found!"
+                    #print "A pseudoatom is found!"
                     fragmentsPseudo[str(atom.rxnAAM)] = getInstanceByName(atom)
+                else:
+                    molecule = Molecule()
+                    molecule.addAtom(atom)
+                    molecule.anchor = atom
+                    fragmentsPseudo[str(atom.rxnAAM)] = molecule
+
+
+
 
         # Iterate through fragments and assign aam to all atoms
         nextAAM = reactionInst.numberOfAtoms + 1
@@ -282,13 +304,20 @@ class Reaction:
         return reactionInst
 
 
+## m = re.findall('(?:([a-zA-Z]+),?)',s2)
 
+def pseudoatomToList(symbolList):
+    print "Unwrapping a symbol list " + symbolList
+    return re.findall('(?:([a-zA-Z]+),?)',symbolList)
 
-def getInstanceByName(atom): # TODO: fix signature everywhere
+def getInstanceByName(atom): 
     """ 
+        This method returns an actual instance of a pseudoatom.
     """
     return PSEUDO[atom.symbol](atom.rxnAAM)
 
+def buildMethyl(anchorAAM):
+    return buildAlkyl(anchorAAM, 1)
 
 def buildAlkyl(anchorAAM, size=2):
     """ Must return a molecule whose anchor is not None """
@@ -350,8 +379,10 @@ def splitThreeWays(number):
 def buildHalogen():
     return None
 
-PSEUDO = {"Alkyl" : buildAlkyl, "Halogen" : buildHalogen}
+PSEUDO = {"Alkyl" : buildAlkyl, "Halogen" : buildHalogen, "Methyl" : buildMethyl}
 
+# THis is a hack
+LIST_TRANSLATION = {"C" : "Methyl"}
 
 
 
