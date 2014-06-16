@@ -20,6 +20,9 @@ class Atom:
     def __str__(self):
         return "<Atom " + self.symbol + " at (" + ", ".join([str(self.x), str(self.y), str(self.z)]) + ") with AAM=" + str(self.rxnAAM) + " and attribs " + str(self.attribs) + " />"
 
+    def __eq__(self, other):
+        return type(self) == type(other) and self.symbol == other.symbol and self.rxnAAM == other.rxnAAM
+
 class Bond:
     'v3000 bond information container'
 
@@ -33,6 +36,13 @@ class Bond:
 
     def __str__(self):
         return "<Bond with order " + str(self.order) + " between AAM " + str(self.fromAtom.rxnAAM) + " and " + str(self.toAtom.rxnAAM) + " />"
+
+    def __eq__(self, other):
+        #print "(comparing bonds)"
+        #print "  self: " + str(self)
+        #print "  other: " + str(other)
+        
+        return type(self) == type(other) and self.order == other.order and ((self.fromAtom == other.fromAtom and self.toAtom == other.toAtom) or (self.fromAtom == other.toAtom and self.toAtom == other.fromAtom))
 
 class Molecule:
     """ A molecule can be either a complete molecule or a fragment.
@@ -68,7 +78,6 @@ class Molecule:
         return len(self.atomList)
 
     def getIndigoObject(self, indigo):
-        #print "CALLING getIndigoObject with indigo=" + str(indigo)
         indigo_mol = indigo.createMolecule()
         indigo_atoms = {}
         for atom in self.atomList:
@@ -120,7 +129,7 @@ class Molecule:
         for atom in newmol.atomList:
             #print "Looking at atom " + atom.symbol
             if atom.symbol in rgroups.keys():
-                print "An R-group is found! Replacing it with a sub-molecule..."
+                #print "An R-group is found! Replacing it with a sub-molecule..."
                 newmol.replaceAtomWithMolecule(atom, rgroups[atom.symbol])
             
         return newmol
@@ -136,7 +145,8 @@ class Reaction:
     rgroups is a dictionary "R1" : [R-molecule, R-molecule, ...]
     """
 
-    def __init__(self):
+    def __init__(self, name="unknown_reaction"):
+        self.name = name
         self.reactants = []
         self.agents = []
         self.products = []
@@ -219,7 +229,7 @@ class Reaction:
         """
 
         # DEBUG
-        print "Building a reaction instance..."
+        #print "Building a reaction instance..."
 
         # This will be returned 
         reactionInst = Reaction()
@@ -237,8 +247,8 @@ class Reaction:
         for molecule in self.products:
             reactionInst.addProduct(molecule.getInstance(fragmentsRG))
 
-        print "BEFORE ENUMERATION++++++++++++++"
-        print str(reactionInst)
+        #print "BEFORE ENUMERATION++++++++++++++"
+        #print str(reactionInst)
 
         # To finish with R-groups, assign AAM numbers where necessary
         # Note: it is enough to set AAM in reactants only, since they are
@@ -261,12 +271,12 @@ class Reaction:
                 atomSymbols = pseudoatomToList(atom.symbol)    # Is this a list atom?
                 if len(atomSymbols) > 1:
                     symbol_tmp = random.choice(atomSymbols)
-                    print "Selected " + symbol_tmp + " out of " + str(atomSymbols)
+                    #print "Selected " + symbol_tmp + " out of " + str(atomSymbols)
                     if symbol_tmp in LIST_TRANSLATION.keys():
                         atom.symbol = LIST_TRANSLATION[symbol_tmp]
                     else:
                         atom.symbol = symbol_tmp
-                    print "Set atom.symbol to " + atom.symbol
+                    #print "Set atom.symbol to " + atom.symbol
 
                 # If atom's symbol is in pseudo, generate an actual fragment
                 if atom.symbol in PSEUDO.keys():
@@ -307,7 +317,7 @@ class Reaction:
 ## m = re.findall('(?:([a-zA-Z]+),?)',s2)
 
 def pseudoatomToList(symbolList):
-    print "Unwrapping a symbol list " + symbolList
+    #print "Unwrapping a symbol list " + symbolList
     return re.findall('(?:([a-zA-Z]+),?)',symbolList)
 
 def getInstanceByName(atom): 
