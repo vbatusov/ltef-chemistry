@@ -154,8 +154,13 @@ def parse_rxn(rxn, fsm="rxn.fsm"):
     # Data is a list of TextFSM records
     data = re_table.ParseText(text)
 
+    # Generate a name for the reaction
+    reactionName = "_".join(os.path.basename(rxn).lower().split())
+    if reactionName[-4:] == '.rxn':
+        reactionName = reactionName[:-4]
+
     # This will be returned
-    reaction = chem.Reaction()
+    reaction = chem.Reaction(reactionName)
 
     # Reminder: each record stores a complete description of a single molecule
     for record in data:

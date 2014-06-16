@@ -7,15 +7,28 @@ import chem
 
 
 def gen_pddl(args):
-    print "Generating PDDL code for EVERYTHING."
+    print ".............Generating PDDL code for EVERYTHING.............."
     reaction = rxn.parse_rxn(args.rxn_file)
-    instance = reaction.getInstance()
-    print str(reaction)
-    pddl_domain = pddl.getDomain(reaction)
-
-    # THen, generate problem instances
     
 
+    print "\nThis is what I was able to get out of the RXN:"
+    print str(reaction)
+
+    pddl_domain = pddl.getDomain(reaction)
+
+    print "\nHere is the PDDL code:"
+    print pddl_domain
+
+    domain_file = args.output_dir + "/domain_" + reaction.name + ".pddl"
+    out = open(domain_file, 'w')
+    out.write(pddl_domain + "\n")
+    out.close()
+    print "PDDL code written to " + domain_file
+
+
+    # Then, generate problem instances
+    print "\nProblem instance generation not implemented yet."
+    #instance = reaction.getInstance()
 
 
 def gen_img(args):
