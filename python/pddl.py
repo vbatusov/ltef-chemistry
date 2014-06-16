@@ -1,5 +1,90 @@
+import chem
+
+""" The PDDL output is inspired by and modeled after Andrea's "domain_macro_V1.pddl" file.
+"""
+
 def get_pddl_atom_name_from_atom(atom):
-    return atom.symbol.lower() + str(atom.rxnAAM)
+    name = atom.symbol
+
+    atomSymbols = chem.pseudoatomToList(atom.symbol)
+    if len(atomSymbols) > 1:
+        name = ""
+        for s in atomSymbols:
+            if s in chem.LIST_TRANSLATION.keys():
+                name += chem.LIST_TRANSLATION[s]
+            else:
+                name += s
+
+    return name.lower() + str(atom.rxnAAM)
+
+def get_atom_description(reaction, atom):
+    """ Let a PDDL atom description consist of:
+        - atom name: c1, h3, alkyl5, r12, hmethyl4
+        - atom pddl type: carbon, hydrogen, atom, atom, atom
+        - atom description: "", "", "(alkyl ?alkyl5)", "(or (alkyl ?r12) (hydrogen ?r12))", "(or (hydrogen ?hmethyl4) (methyl ?hmethyl4))"
+        Note that, in case of hydrogen, there is a collision of type and predicate.
+        It may be necessary to create derived predicates "p_<name>", like
+
+        (:predicates ...
+            (p_hydrogen ?h - hydrogen)
+        ...)
+        (:derived (p_hydrogen ?h - hydrogen) (= ?h ?h)))
+
+        Ignore this for now; assume type can be used as a predicate.
+
+        A further problem is that an R-group may be a multi-atom molecule. Ignore this as well; assume it's a simple atom.
+    """
+    atomName = get_pddl_atom_name_from_atom(atom)
+    atomType = get_atom_pddl_type_from_symbol(atom.symbol)
+    atomDesc = ""
+
+    if atomType == "atom":  # Not a simple atom, begs a non-empty description
+        atomSymbols = chem.pseudoatomToList(atom.symbol)   
+        if len(atomSymbols) > 1:
+            # This is a "list" atom, yields a disjunction of possible atoms
+            atomDescList = []
+            for eachSymbol in atomSymbols:
+                actualSymbol = eachSymbol
+                if eachSymbol in chem.LIST_TRANSLATION.keys():
+                    actualSymbol = chem.LIST_TRANSLATION[eachSymbol]
+                actualType = get_atom_pddl_type_from_symbol(actualSymbol)
+                if actualType != "atom":
+                    atomDescList.append("(%s ?%s)" % (actualType, atomName))
+                else:
+                    atomDescList.append(get_complex_single_atom_desc(reaction, actualSymbol, atomName))
+            atomDesc = pddl_op("or", atomDescList)
+        else:
+            atomDesc = get_complex_single_atom_desc(reaction, atom.symbol, atomName)
+
+    return (atomName, atomType, atomDesc)
+
+
+def get_complex_single_atom_desc(reaction, atomSymbol, atomName):
+    print "The complex atom desciption for " + atomSymbol + " with name " + atomName
+    atomDesc = ""
+
+    # It's a single atom, possibly a pseudo-atom, possibly an r-group
+    if atomSymbol in chem.PSEUDO.keys():
+        # A pseudoatom description is simply a derived predicate;
+        # the PSEUDO list must be complete for this to work.
+        atomDesc = "(%s ?%s)" % (atomSymbol.lower(), atomName)
+    elif atomSymbol in reaction.rgroups.keys():
+        # An r-group description is a disjunction of the descriptions of
+        # the molecules forming the corresponding r-group in the reaction.
+        atomDescList = []
+        for mol in reaction.rgroups[atomSymbol]:
+            #print " looking at r-group " + str(mol) + " with anchor " + str(mol.anchor)
+            if mol.anchor.symbol in chem.PSEUDO.keys():
+                atomDescList.append("(%s ?%s)" % (mol.anchor.symbol.lower(), atomName))
+            else:
+                atomDescList.append("(%s ?%s)" % (get_atom_pddl_type_from_symbol(mol.anchor.symbol), atomName))
+
+        atomDesc = pddl_op("or", atomDescList)
+    else:
+        atomDesc = "(UNKNOWN)"
+
+    print "  ...is " + atomDesc
+    return atomDesc
 
 
 def pddl_op(op, myList):
@@ -11,7 +96,7 @@ def pddl_op(op, myList):
         return "You are doing it wrong."
 
 
-def get_atom_name_from_symbol(symbol):
+def get_atom_pddl_type_from_symbol(symbol):
     name = "atom"
 
     atomNames = {
@@ -88,8 +173,8 @@ def getDomain(reaction):
                 atomName1 = get_pddl_atom_name_from_atom(bond.fromAtom)
                 atomName2 = get_pddl_atom_name_from_atom(bond.toAtom)
 
-                parameters[atomName1] = get_atom_name_from_symbol(bond.fromAtom.symbol)
-                parameters[atomName2] = get_atom_name_from_symbol(bond.toAtom.symbol)
+                parameters[atomName1] = get_atom_pddl_type_from_symbol(bond.fromAtom.symbol)
+                parameters[atomName2] = get_atom_pddl_type_from_symbol(bond.toAtom.symbol)
 
                 if bondMatrixBefore[x][y] is not None:  # There is a bond that disappears
                     effects.append("(not (" + get_bond_name_from_order(bondMatrixBefore[x][y].order) + " ?" + atomName1 + " ?" + atomName2 + "))")
@@ -101,47 +186,50 @@ def getDomain(reaction):
 
 
     # Compute preconditions
-    # Precondition simply describes the reactants
+    # Precondition describes the reactants and catalysts
 
     # All reaction preconditions
     preconditions = []
 
     for mol in reaction.reactants:
         # Preconditions due to this particular molecule
-        prec = []
+        precMol = []
         nonparameters = {}
 
         for bond in mol.bondList:
 
             atom1 = bond.fromAtom
             atom2 = bond.toAtom
-            atomName1 = get_pddl_atom_name_from_atom(atom1)
-            atomName2 = get_pddl_atom_name_from_atom(atom2)
 
-            for (atomName, atom) in zip([atomName1, atomName2], [atom1, atom2]):
+            (atomName1, atomType1, atomDesc1) = get_atom_description(reaction, atom1)
+            (atomName2, atomType2, atomDesc2) = get_atom_description(reaction, atom2)
+
+
+            ##atomName1 = get_pddl_atom_name_from_atom(atom1)
+            ##atomName2 = get_pddl_atom_name_from_atom(atom2)
+
+            for (atomName, atomType, atomDesc) in zip([atomName1, atomName2], [atomType1, atomType2], [atomDesc1, atomDesc2]):
                 if atomName not in parameters.keys() and atomName not in nonparameters.keys():
-                    nonparameters[atomName] = atom
+                    nonparameters[atomName] = (atomType, atomDesc)
+                    #print "Added non-param " + atomName + " with type " + atomType + " and desc " + atomDesc
+                    # add the new nonparameter precondition if it is not a simple atom; simpe atoms are instead typed by "exists"
+                    if atomDesc != "":
+                        precMol.append(atomDesc)
 
-            prec.append("(" + get_bond_name_from_order(bond.order) + " ?" + atomName1 + " ?" + atomName2 + ")")
+            # Add the molecule structure to precondition
+            precMol.append("(" + get_bond_name_from_order(bond.order) + " ?" + atomName1 + " ?" + atomName2 + ")")
+        
 
-        prec_string = ""
-
+        # If there are atoms which are not explicitly mentioned by the action:
+        #   1. they need to be existentially quantified
+        #   2. unless they are simple atoms, they need to be described using derived predicates
+        # Also, different atoms of same type must be explicitly described as not equal: (not (= ?h1 ?h2))
+        precMol_str = pddl_op("and", precMol)
 
         if len(nonparameters.keys()) > 0:
-            for nonparam, atom in nonparameters.iteritems():
-                if atom.symbol in reaction.rgroups.keys():
-                    pass
-                    #print "This non-parameter is an r-group " + atom.symbol + " with " + str(len(reaction.rgroups[atom.symbol])) + " possible values"
-                #nonparam_prec = ""
-                #prec.append(nonparam_prec)
+            precMol_str = "(exists (%s) %s)" % (" ".join(["?%s - %s" % (key, nonparameters[key][0]) for key in nonparameters.keys()]), precMol_str)
 
-            prec_string = "(exists (?" + " - atom ?".join(nonparameters.keys()) + " - atom) " + pddl_op("and", prec) + ")"
-        else:
-            prec_string = pddl_op("and", prec)
-
-        preconditions.append(prec_string)
-
-
+        preconditions.append(precMol_str)
 
 
     pddl_domain = "(:action " + reaction.name
