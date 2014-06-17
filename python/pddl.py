@@ -1,5 +1,6 @@
 import chem
 import itertools
+import re
 
 """ The PDDL output is inspired by and modeled after Andrea's "domain_macro_V1.pddl" file.
 """
@@ -16,7 +17,7 @@ def get_pddl_atom_name_from_atom(atom):
             else:
                 name += s
 
-    return name.lower() + str(atom.rxnAAM)
+    return chem.sanitize_name(name) + str(atom.rxnAAM)
 
 def get_atom_description(reaction, atom):
     """ Let a PDDL atom description consist of:
@@ -35,12 +36,17 @@ def get_atom_description(reaction, atom):
 
         A further problem is that an R-group may be a multi-atom molecule. Ignore this as well; assume it's a simple atom.
     """
+    print "Invoking get_atom_description on symbol " + atom.symbol
+
     atomName = get_pddl_atom_name_from_atom(atom)
     atomType = get_atom_pddl_type_from_symbol(atom.symbol)
     atomDesc = ""
 
+    print "  atomName=" + atomName
+
     if atomType == "atom":  # Not a simple atom, begs a non-empty description
         atomSymbols = chem.pseudoatomToList(atom.symbol)   
+        print "  atomSymbols=" + str(atomSymbols)
         if len(atomSymbols) > 1:
             # This is a "list" atom, yields a disjunction of possible atoms
             atomDescList = []
@@ -61,21 +67,22 @@ def get_atom_description(reaction, atom):
 
 
 def get_complex_single_atom_desc(reaction, atomSymbol, atomName):
+    print "Invoking get_complex... on symbol " + atomSymbol
     atomDesc = ""
 
     # It's a single atom, possibly a pseudo-atom, possibly an r-group
-    if atomSymbol in chem.PSEUDO.keys():
+    if chem.sanitize_name(atomSymbol) in chem.PSEUDO.keys():
         # A pseudoatom description is simply a derived predicate;
         # the PSEUDO list must be complete for this to work.
-        atomDesc = "(%s ?%s)" % (atomSymbol.lower(), atomName)
+        atomDesc = "(%s ?%s)" % (chem.sanitize_name(atomSymbol), atomName)
     elif atomSymbol in reaction.rgroups.keys():
         # An r-group description is a disjunction of the descriptions of
         # the molecules forming the corresponding r-group in the reaction.
         atomDescList = []
         for mol in reaction.rgroups[atomSymbol]:
             #print " looking at r-group " + str(mol) + " with anchor " + str(mol.anchor)
-            if mol.anchor.symbol in chem.PSEUDO.keys():
-                atomDescList.append("(%s ?%s)" % (mol.anchor.symbol.lower(), atomName))
+            if chem.sanitize_name(mol.anchor.symbol) in chem.PSEUDO.keys():
+                atomDescList.append("(%s ?%s)" % (chem.sanitize_name(mol.anchor.symbol), atomName))
             else:
                 atomDescList.append("(%s ?%s)" % (get_atom_pddl_type_from_symbol(mol.anchor.symbol), atomName))
 
@@ -219,33 +226,56 @@ def getDomain(reaction):
     # All reaction preconditions
     preconditions = []
 
-    for mol in reaction.reactants:
+    for mol in reaction.reactants + reaction.agents:
+        #print "Processing molecule " + str(mol)
         # Preconditions due to this particular molecule
         precMol = []
         nonparameters = {}
         affectedByType = {}
 
-        for bond in mol.bondList:
+        # Go over bonds, access atoms, get their properties, describe in pddl
+        if len(mol.bondList) > 0:
+            for bond in mol.bondList:
 
-            atom1 = bond.fromAtom
-            atom2 = bond.toAtom
+                atom1 = bond.fromAtom
+                atom2 = bond.toAtom
 
-            (atomName1, atomType1, atomDesc1) = get_atom_description(reaction, atom1)
-            (atomName2, atomType2, atomDesc2) = get_atom_description(reaction, atom2)
+                (atomName1, atomType1, atomDesc1) = get_atom_description(reaction, atom1)
+                (atomName2, atomType2, atomDesc2) = get_atom_description(reaction, atom2)
 
-            for (atomName, atomType, atomDesc) in zip([atomName1, atomName2], [atomType1, atomType2], [atomDesc1, atomDesc2]):
-                
-                if atomName not in parameters.keys() and atomName not in nonparameters.keys():
-                    nonparameters[atomName] = (atomType, atomDesc)
-                    # add the new nonparameter precondition if it is not a simple atom; simpe atoms are instead typed by "exists"
-                    if atomDesc != "":
-                        precMol.append(atomDesc)
+                for (atomName, atomType, atomDesc) in zip([atomName1, atomName2], [atomType1, atomType2], [atomDesc1, atomDesc2]):
+                    
+                    if atomName not in parameters.keys() and atomName not in nonparameters.keys():
+                        #print "Adding non-parameter " + atomName + " with type " + atomType + " and desc " + atomDesc
+                        nonparameters[atomName] = (atomType, atomDesc)
+                        # add the new nonparameter precondition if it is not a simple atom; simpe atoms are instead typed by "exists"
+                        if atomDesc != "":
+                            precMol.append(atomDesc)
 
-                store_atom_in_type_dict(affectedByType, atomType, atomName)
+                    store_atom_in_type_dict(affectedByType, atomType, atomName)
 
 
-            # Add the molecule structure to precondition
-            precMol.append("(" + get_bond_name_from_order(bond.order) + " ?" + atomName1 + " ?" + atomName2 + ")")
+                # Add the molecule structure to precondition
+                precMol.append("(" + get_bond_name_from_order(bond.order) + " ?" + atomName1 + " ?" + atomName2 + ")")
+
+        elif len(mol.atomList) > 0: # Assume == 1, because it's meaningless otherwise
+            if len(mol.atomList) != 1:
+                raise Exception("A bondless molecule must have a single atom, no more, no less.")
+
+            atom = mol.atomList[0]
+            (atomName, atomType, atomDesc) = get_atom_description(reaction, atom)
+            if atomName not in parameters.keys() and atomName not in nonparameters.keys():
+                print "Adding non-parameter " + atomName + " with type " + atomType + " and desc " + atomDesc
+                nonparameters[atomName] = (atomType, atomDesc)
+                # add the new nonparameter precondition if it is not a simple atom; simpe atoms are instead typed by "exists"
+                if atomDesc != "":
+                    precMol.append(atomDesc)
+
+            store_atom_in_type_dict(affectedByType, atomType, atomName)
+
+        else:
+            raise Exception("Stumbled upon an empty molecule! No bonds, no atoms, no nothing.")
+
 
         # Derive inequalities for the molecule, remove ones already mentioned on reaction level
         affectedIneq = list(set(get_inequalities(affectedByType)) - set(paramIneq))
