@@ -155,9 +155,9 @@ def parse_rxn(rxn, fsm="rxn.fsm"):
     data = re_table.ParseText(text)
 
     # Generate a name for the reaction
-    reactionName = "_".join(os.path.basename(rxn).lower().split())
-    if reactionName[-4:] == '.rxn':
-        reactionName = reactionName[:-4]
+    reactionName = chem.sanitize_name("_".join(os.path.basename(rxn).split()))
+    if reactionName[-3:] == 'rxn':
+        reactionName = reactionName[:-3]
 
     # This will be returned
     reaction = chem.Reaction(reactionName)
