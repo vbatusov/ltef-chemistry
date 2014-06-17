@@ -174,14 +174,24 @@ class Reaction:
         return desc
 
     @property
-    def numberOfAtoms(self):
-        """ Counts all atoms (including pseudo and R) in reaction.
+    def numberOfAtomsInReagents(self):
+        """ Counts all atoms (including pseudo and R) in reagents.
         """
         num = 0
-        
-        # Assume agents don't participate and are irrelevant
 
         for mol in self.reactants:
+            num += mol.numberOfAtoms
+
+        return num
+
+    @property
+    def numberOfAtomsOverall(self):
+        """ Counts all atoms (including pseudo and R) in reaction,
+        including catalysts.
+        """
+        num = self.numberOfAtomsInReagents
+
+        for mol in self.agents:
             num += mol.numberOfAtoms
 
         return num
@@ -200,6 +210,17 @@ class Reaction:
         if rgroupName not in self.rgroups:
             self.rgroups[rgroupName] = []
         self.rgroups[rgroupName].append(molecule)
+
+    def finalize(self):
+        """ Only execute after everything has been added to reaction.
+        This assigns AAM to catalysts.
+        """
+        nextAAM = self.numberOfAtomsInReagents + 1
+        for mol in self.agents:
+            for atom in mol.atomList:
+                if atom.rxnAAM == 0:
+                    atom.rxnAAM = nextAAM
+                    nextAAM += 1
 
     def selectRGroups(self):
         """ For each unique R-group in reaction, select a single generic
@@ -253,7 +274,7 @@ class Reaction:
         # To finish with R-groups, assign AAM numbers where necessary
         # Note: it is enough to set AAM in reactants only, since they are
         # stored as references and will change across the entire reaction.
-        nextAAM = reactionInst.numberOfAtoms
+        nextAAM = reactionInst.numberOfAtomsInReagents
         for molecule in reactionInst.reactants:
             for atom in molecule.atomList:
                 if atom.rxnAAM == 0:
@@ -292,7 +313,7 @@ class Reaction:
 
 
         # Iterate through fragments and assign aam to all atoms
-        nextAAM = reactionInst.numberOfAtoms + 1
+        nextAAM = reactionInst.numberOfAtomsOverall + 1
         for frag in fragmentsPseudo.values():
             for atom in frag.atomList:
                 if atom.rxnAAM == 0:

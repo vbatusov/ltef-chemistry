@@ -16,14 +16,14 @@ def gen_pddl(args):
 
     pddl_domain = pddl.getDomain(reaction)
 
-    print "\nHere is the PDDL code:"
+    print "\nHere is the PDDL code:\n"
     print pddl_domain
 
     domain_file = args.output_dir + "/domain_" + reaction.name + ".pddl"
     out = open(domain_file, 'w')
     out.write(pddl_domain + "\n")
     out.close()
-    print "PDDL code written to " + domain_file
+    print "\nPDDL code written to " + domain_file
 
 
     # Then, generate problem instances
