@@ -17,7 +17,7 @@ def get_pddl_atom_name_from_atom(atom):
             else:
                 name += s
 
-    return chem.sanitize_name(name) + str(atom.rxnAAM)
+    return chem.sanitize_name(name) + "_" + str(atom.rxnAAM)
 
 def get_atom_description(reaction, atom):
     """ Let a PDDL atom description consist of:
@@ -36,17 +36,17 @@ def get_atom_description(reaction, atom):
 
         A further problem is that an R-group may be a multi-atom molecule. Ignore this as well; assume it's a simple atom.
     """
-    print "Invoking get_atom_description on symbol " + atom.symbol
+    #print "Invoking get_atom_description on symbol " + atom.symbol
 
     atomName = get_pddl_atom_name_from_atom(atom)
     atomType = get_atom_pddl_type_from_symbol(atom.symbol)
     atomDesc = ""
 
-    print "  atomName=" + atomName
+    #print "  atomName=" + atomName
 
     if atomType == "atom":  # Not a simple atom, begs a non-empty description
         atomSymbols = chem.pseudoatomToList(atom.symbol)   
-        print "  atomSymbols=" + str(atomSymbols)
+        #print "  atomSymbols=" + str(atomSymbols)
         if len(atomSymbols) > 1:
             # This is a "list" atom, yields a disjunction of possible atoms
             atomDescList = []
@@ -67,7 +67,7 @@ def get_atom_description(reaction, atom):
 
 
 def get_complex_single_atom_desc(reaction, atomSymbol, atomName):
-    print "Invoking get_complex... on symbol " + atomSymbol
+    #print "Invoking get_complex... on symbol " + atomSymbol
     atomDesc = ""
 
     # It's a single atom, possibly a pseudo-atom, possibly an r-group
@@ -162,7 +162,7 @@ def getDomain(reaction):
         This method is bound to be naive and inefficient...
     """
 
-    size = reaction.numberOfAtoms + 1   # To avoid messing with adding and subtracting
+    size = reaction.numberOfAtomsInReagents + 1   # To avoid messing with adding and subtracting
 
     # Compute parameters and effects
 

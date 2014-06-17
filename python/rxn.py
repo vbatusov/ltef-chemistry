@@ -184,6 +184,8 @@ def parse_rxn(rxn, fsm="rxn.fsm"):
         else:
             raise Exception("Unknown record type!")
 
+    reaction.finalize() # Enumerate catalysts!
+
     return reaction
 
 
