@@ -279,7 +279,7 @@ class Reaction:
                     #print "Set atom.symbol to " + atom.symbol
 
                 # If atom's symbol is in pseudo, generate an actual fragment
-                if atom.symbol in PSEUDO.keys():
+                if sanitize_name(atom.symbol) in PSEUDO.keys():
                     #print "A pseudoatom is found!"
                     fragmentsPseudo[str(atom.rxnAAM)] = getInstanceByName(atom)
                 else:
@@ -318,13 +318,17 @@ class Reaction:
 
 def pseudoatomToList(symbolList):
     #print "Unwrapping a symbol list " + symbolList
-    return re.findall('(?:([a-zA-Z]+),?)',symbolList)
+    if symbolList[0] == "[" and symbolList[-1] == "]":
+        return re.findall('(?:([a-zA-Z]+),?)', symbolList[1:-1])
+    else:
+        return [symbolList]
+
 
 def getInstanceByName(atom): 
     """ 
         This method returns an actual instance of a pseudoatom.
     """
-    return PSEUDO[atom.symbol](atom.rxnAAM)
+    return PSEUDO[sanitize_name(atom.symbol)](atom.rxnAAM)
 
 def buildMethyl(anchorAAM):
     return buildAlkyl(anchorAAM, 1)
@@ -389,13 +393,19 @@ def splitThreeWays(number):
 def buildHalogen():
     return None
 
-PSEUDO = {"Alkyl" : buildAlkyl, "Halogen" : buildHalogen, "Methyl" : buildMethyl}
+PSEUDO = {
+    "alkyl" : buildAlkyl, 
+    "halogen" : buildHalogen, 
+    "methyl" : buildMethyl,
+    "lindlarscatalyst" : None
+}
 
 # THis is a hack
 LIST_TRANSLATION = {"C" : "Methyl"}
 
 
-
+def sanitize_name(name):
+    return re.sub(r'\W+', '', name).lower()
 
 
 
