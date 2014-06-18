@@ -222,6 +222,24 @@ class Reaction:
                     atom.rxnAAM = nextAAM
                     nextAAM += 1
 
+        # Sanity check
+        aamList = []
+        for mol in self.reactants + self.agents:
+            for atom in mol.atomList:
+                if atom.rxnAAM == 0:
+                    raise Exception("Sanity check: reaction contains an atom with AAM = 0")
+                if atom.rxnAAM in aamList:
+                    raise Exception("Sanity check: reaction contains two atoms with the same AAM")
+                else:
+                    aamList.append(atom.rxnAAM)
+
+        if self.numberOfAtomsOverall != len(aamList):
+            raise Exception("Sanity check: self.numberOfAtomsOverall != len(aamList)")
+
+        print "(Sanity) AAM list: " + str(aamList)
+
+
+
     def selectRGroups(self):
         """ For each unique R-group in reaction, select a single generic
         fragment out of the set of possible ones. Do not unroll the pseudoatoms.
@@ -253,7 +271,7 @@ class Reaction:
         #print "Building a reaction instance..."
 
         # This will be returned 
-        reactionInst = Reaction()
+        reactionInst = Reaction(self.name + "_instance")
 
         # Select specific generic fragments to be used as R-groups
         fragmentsRG = self.selectRGroups()

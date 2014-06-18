@@ -162,7 +162,7 @@ def getDomain(reaction):
         This method is bound to be naive and inefficient...
     """
 
-    size = reaction.numberOfAtomsInReagents + 1   # To avoid messing with adding and subtracting
+    size = reaction.numberOfAtomsOverall + 1   # To avoid messing with adding and subtracting
 
     # Compute parameters and effects
 
@@ -265,7 +265,7 @@ def getDomain(reaction):
             atom = mol.atomList[0]
             (atomName, atomType, atomDesc) = get_atom_description(reaction, atom)
             if atomName not in parameters.keys() and atomName not in nonparameters.keys():
-                print "Adding non-parameter " + atomName + " with type " + atomType + " and desc " + atomDesc
+                #print "Adding non-parameter " + atomName + " with type " + atomType + " and desc " + atomDesc
                 nonparameters[atomName] = (atomType, atomDesc)
                 # add the new nonparameter precondition if it is not a simple atom; simpe atoms are instead typed by "exists"
                 if atomDesc != "":

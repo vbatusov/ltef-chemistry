@@ -6,7 +6,8 @@ is the command-line interface to everything.
 Usage
 ----
 Overall:
-```sh
+```
+[vitaliy@localhost python]$ python ltef.py --help
 usage: ltef.py [-h] {pddl,draw} ... rxn_file output_dir
 
 Reads an RXN v3000 file; depening on parameters, either renders the reaction
@@ -24,12 +25,15 @@ optional arguments:
 ```
 
 For pddl:
-```sh
-usage: ltef.py pddl [-h] [--all]
+```
+$ python ltef.py pddl --help
+usage: ltef.py pddl [-h] [--all] [--domain] [--instance]
 
 optional arguments:
   -h, --help  show this help message and exit
-  --all       Output all PDDL (currently the only option, so it's redundant).
+  --all       Equivalent to "--domain --instance"
+  --domain    Generate the PDDL domain description for reaction
+  --instance  Generate a randomized PDDL instance of the reaction
 ```
 
 Example. The following command generates whatever PDDL it can from the RXN file "alkyne_hydrogenation_with_lindlar\'s_catalyst.rxn" located in the directory "../reactions/corrected_chris/rxn_test" and puts the result in the directory "pddl_dir"

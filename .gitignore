@@ -36,3 +36,7 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Temp directories
+##################
+pddl_out
