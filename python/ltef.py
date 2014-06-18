@@ -7,28 +7,39 @@ import chem
 
 
 def gen_pddl(args):
-    print ".............Generating PDDL code for EVERYTHING.............."
+
+    # Parse the RXN file, get a generic reaction
     reaction = rxn.parse_rxn(args.rxn_file)
-    
 
-    print "\nThis is what I was able to get out of the RXN:"
-    print str(reaction)
+    if args.domain or args.all:
+        print "Generating PDDL domain description...\n"
+        
+        
+        #print "\nThis is what I was able to get out of the RXN:"
+        #print str(reaction)
 
-    pddl_domain = pddl.getDomain(reaction)
+        pddl_domain = pddl.getDomain(reaction)
 
-    print "\nHere is the PDDL code:\n"
-    print pddl_domain
+        print pddl_domain
 
-    domain_file = args.output_dir + "/domain_" + reaction.name + ".pddl"
-    out = open(domain_file, 'w')
-    out.write(pddl_domain + "\n")
-    out.close()
-    print "\nPDDL code written to " + domain_file
+        domain_file = args.output_dir + "/domain_" + reaction.name + ".pddl"
+        out = open(domain_file, 'w')
+        out.write(pddl_domain + "\n")
+        out.close()
+        print "\nPDDL domain description written to " + domain_file
 
+        if args.all:
+            print ""
 
-    # Then, generate problem instances
-    print "\nProblem instance generation not implemented yet."
-    #instance = reaction.getInstance()
+    if args.instance or args.all:
+        print "Generating a randomized PDDL instance..."
+        print "(Instance generation not implemented yet.)"
+
+        #instance = reaction.getInstance()
+
+        #pddl_domain = pddl.getDomain(instance)
+
+        #print pddl_domain
 
 
 def gen_img(args):
@@ -44,7 +55,9 @@ parser = argparse.ArgumentParser(description='Reads an RXN v3000 file; depening 
 subparsers = parser.add_subparsers()
 
 parser_pddl = subparsers.add_parser('pddl', help="Selects PDDL generation mode.")
-parser_pddl.add_argument('--all', action='store_const', const=1, default=0, dest='what', help='Output all PDDL (currently the only option, so it\'s redundant).')
+parser_pddl.add_argument('--all', action='store_const', const=True, default=False, help='Equivalent to "--domain --instance "')
+parser_pddl.add_argument('--domain', action='store_const', const=True, default=False, help='Generate the PDDL domain description for reaction')
+parser_pddl.add_argument('--instance', action='store_const', const=True, default=False, help='Generate a randomized PDDL instance of the reaction')
 parser_pddl.set_defaults(func=gen_pddl)
 
 parser_draw = subparsers.add_parser('draw', help="Selects .png drawing mode.")
@@ -56,8 +69,12 @@ parser.add_argument('output_dir', type=str, default='.', help='Output directory.
 
 args = parser.parse_args()
 
+
 # Debug
-print args
+#print args
+
+if args.func == gen_pddl and not (args.all or args.domain or args.instance):
+    parser_pddl.error('No action requested, add any of: {--all, --domain, --instance}')
 
 # Check if rxn file and output folder exist
 if not os.path.isfile(args.rxn_file):
