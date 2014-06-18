@@ -355,6 +355,9 @@ class Reaction:
 
 ## m = re.findall('(?:([a-zA-Z]+),?)',s2)
 
+def sanitize_name(name):
+    return re.sub(r'\W+', '', name).lower()
+
 def pseudoatomToList(symbolList):
     #print "Unwrapping a symbol list " + symbolList
     if symbolList[0] == "[" and symbolList[-1] == "]":
@@ -439,12 +442,89 @@ PSEUDO = {
     "lindlarscatalyst" : None
 }
 
+ATOM_NAMES = {
+        "H" : "hydrogen",
+        "He" : "helium",
+        "Li" : "lithium",
+        "Be" : "beryllium",
+        "B" : "boron",
+        "C" : "carbon",
+        "N" : "nitrogen",   
+        "O" : "oxygen",
+        "F" : "fluorine",
+        "Ne" : "neon",
+        "Na" : "sodium",
+        "Mg" : "magnesium",
+        "Al" : "aluminium",
+        "Si" : "silicon",
+        "P" : "phosphorus",
+        "S" : "sulphur",
+        "Cl" : "chlorine",
+        "Ar" : "argon",
+        "K" : "potassium",
+        "Ca" : "calcium",
+        "Sc" : "scandium",
+        "Ti" : "titanium",
+        "V" : "vanadium",
+        "Cr" : "chromium",
+        "Mg" : "manganese",
+        "Fe" : "iron",
+        "Co" : "cobalt",
+        "Ni" : "nickel",
+        "Cu" : "copper",
+        "Zn" : "zink",
+        "Ga" : "gallium",
+        "Ge" : "germanium",
+        "As" : "arsenic",
+        "Se" : "selenium",
+        "Br" : "bromine",
+        "Kr" : "krypton",
+        "Rb" : "rubidium",
+        "Sr" : "strontium",
+        "Y" : "yttrium",
+        "Zr" : "zirconium",
+        "Nb" : "niobium",
+        "Mo" : "molybdenum",
+        "Tc" : "technetium",
+        "Ru" : "ruthenium",
+        "Rh" : "rhodium",
+        "Pd" : "palladium",
+        "Ag" : "silver",
+        "Cd" : "cadmium",
+        "In" : "indium",
+        "Sn" : "tin",
+        "Sb" : "antimony",
+        "Te" : "tellurium",
+        "I" : "iodine",
+        "Xe" : "xenon",
+        "Cs" : "caesium",
+        "Ba" : "barium",
+        # Omitting lanthanoids (57-71)
+        "Hf" : "hafnium",
+        "Ta" : "tantalum",
+        "W" : "tungsten",
+        "Re" : "rhenium",
+        "Os" : "osmium",
+        "Ir" : "iridium",
+        "Pt" : "platinum",
+        "Au" : "gold",
+        "Hg" : "mercury",
+        "Tl" : "thallium",
+        "Pb" : "lead",
+        "Bi" : "bismuth",
+        "Po" : "polonium",
+        "At" : "astatine",
+        "Rn" : "radon",
+        "Fr" : "francium",
+        "Ra" : "radium"
+        # Omitting 89-118+
+    }
+
 # THis is a hack
 LIST_TRANSLATION = {"C" : "Methyl"}
 
 
-def sanitize_name(name):
-    return re.sub(r'\W+', '', name).lower()
+
 
 
 

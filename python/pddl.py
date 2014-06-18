@@ -109,16 +109,8 @@ def pddl_not_equal(name1, name2):
 def get_atom_pddl_type_from_symbol(symbol):
     name = "atom"
 
-    atomNames = {
-        "C" : "carbon",
-        "H" : "hydrogen",
-        "O" : "oxygen",
-        "N" : "nitrogen",
-        "K" : "potassium",
-    }
-
-    if symbol in atomNames.keys() :
-        name = atomNames[symbol]
+    if symbol in chem.ATOM_NAMES.keys() :
+        name = chem.ATOM_NAMES[symbol]
 
     return name
 
