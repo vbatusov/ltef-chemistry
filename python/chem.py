@@ -2,7 +2,6 @@ import copy
 import random
 import re
 
-
 class Atom:
     'This class is geared to store atom information supplied by v3000 molfiles'
 
@@ -77,17 +76,6 @@ class Molecule:
     @property
     def numberOfAtoms(self):
         return len(self.atomList)
-
-    def getIndigoObject(self, indigo):
-        indigo_mol = indigo.createMolecule()
-        indigo_atoms = {}
-        for atom in self.atomList:
-            indigo_atoms[atom.aam] = indigo_mol.addAtom(atom.symbol)
-            print "Added indigo atom " + indigo_atoms[atom.aam].symbol()
-        for bond in self.bondList:
-            indigo_atoms[bond.fromAtom.aam].addBond(indigo_atoms[bond.toAtom.aam], bond.order)
-
-        return indigo_mol
 
     def replaceAtomWithMolecule(self, oldatom, newmolecule):
         """ Used by Molecule.getInstance, this method alters 'self' by replacing a given atom
