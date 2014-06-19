@@ -370,10 +370,9 @@ class Reaction:
         return reactionInst
 
 
-## m = re.findall('(?:([a-zA-Z]+),?)',s2)
-
 def sanitize_name(name):
     return re.sub(r'\W+', '', name).lower()
+
 
 def pseudoatomToList(symbolList):
     #print "Unwrapping a symbol list " + symbolList
@@ -539,12 +538,3 @@ ATOM_NAMES = {
 
 # THis is a hack
 LIST_TRANSLATION = {"C" : "Methyl"}
-
-
-
-
-
-
-
-
-# Setting AAM to new atoms is very messy.
