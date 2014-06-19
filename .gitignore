@@ -39,4 +39,4 @@ Thumbs.db
 
 # Temp directories
 ##################
-pddl_out
+python/*_out

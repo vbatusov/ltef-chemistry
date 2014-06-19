@@ -13,8 +13,7 @@ def gen_pddl(args):
 
     if args.domain or args.all:
         print "Generating PDDL domain description...\n"
-        
-        
+                
         print "\nThis is what I was able to get out of the RXN:"
         print str(reaction)
 
@@ -22,7 +21,7 @@ def gen_pddl(args):
 
         print pddl_domain
 
-        domain_file = args.output_dir + "/domain_" + reaction.name + ".pddl"
+        domain_file = os.path.join(args.output_dir,  "domain_" + reaction.name + ".pddl")
         out = open(domain_file, 'w')
         out.write(pddl_domain + "\n")
         out.close()
