@@ -1,15 +1,13 @@
 import argparse
 import rxn
 import pddl
+import draw
 import os.path
 import sys
 import chem
 
 
-def gen_pddl(args):
-
-    # Parse the RXN file, get a generic reaction
-    reaction = rxn.parse_rxn(args.rxn_file)
+def gen_pddl(args, reaction):
 
     if args.domain or args.all:
         print "Generating PDDL domain description...\n"
@@ -27,6 +25,7 @@ def gen_pddl(args):
         out.close()
         print "\nPDDL domain description written to " + domain_file
 
+        # Insert an empty line for clarity
         if args.all:
             print ""
 
@@ -41,9 +40,19 @@ def gen_pddl(args):
         #print pddl_domain
 
 
-def gen_img(args):
-    print "Generating pictures of EVERYTHING."
-    print "Sorry, this feature is not implemented yet."
+def gen_img(args, reaction):
+    print "Generating pictures."
+
+    pic = draw.renderReactionToBuffer(reaction)
+
+    #print "Bytes:"
+    #print str(pic)
+    img_file = os.path.join(args.output_dir,  "reaction_" + reaction.name + ".png")
+    out = open(img_file, 'wb')
+    out.write(pic)
+    out.close()
+    print "\nReaction picture written to " + img_file
+    
 
 
 # Create the argparser
@@ -82,4 +91,7 @@ if not os.path.isfile(args.rxn_file):
 if not os.path.isdir(args.output_dir):
     raise IOError("Cannot open directory " + args.rxn_file)
 
-args.func(args)
+# Parse the RXN file, get a generic reaction
+reaction = rxn.parse_rxn(args.rxn_file)
+
+args.func(args, reaction)
