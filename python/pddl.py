@@ -17,7 +17,7 @@ def get_pddl_atom_name_from_atom(atom):
             else:
                 name += s
 
-    return chem.sanitize_name(name) + "_" + str(atom.rxnAAM)
+    return chem.sanitize_name(name) + "_" + str(atom.aam)
 
 def get_atom_description(reaction, atom):
     """ Let a PDDL atom description consist of:
@@ -166,14 +166,14 @@ def getDomain(reaction):
     bondMatrixBefore = [list(i) for i in [[None]*size]*size]
     for mol in reaction.reactants:
         for bond in mol.bondList:
-            bondMatrixBefore[bond.fromAtom.rxnAAM][bond.toAtom.rxnAAM] = bond
-            bondMatrixBefore[bond.toAtom.rxnAAM][bond.fromAtom.rxnAAM] = bond
+            bondMatrixBefore[bond.fromAtom.aam][bond.toAtom.aam] = bond
+            bondMatrixBefore[bond.toAtom.aam][bond.fromAtom.aam] = bond
 
     bondMatrixAfter = [list(i) for i in [[None]*size]*size]
     for mol in reaction.products:
         for bond in mol.bondList:
-            bondMatrixAfter[bond.fromAtom.rxnAAM][bond.toAtom.rxnAAM] = bond
-            bondMatrixAfter[bond.toAtom.rxnAAM][bond.fromAtom.rxnAAM] = bond
+            bondMatrixAfter[bond.fromAtom.aam][bond.toAtom.aam] = bond
+            bondMatrixAfter[bond.toAtom.aam][bond.fromAtom.aam] = bond
 
 
     #print bondMatrixBefore

@@ -6,8 +6,9 @@ import re
 class Atom:
     'This class is geared to store atom information supplied by v3000 molfiles'
 
-    def __init__(self, symbol, x, y, z, rxnIndex, rxnAAM, attribs={}):
+    def __init__(self, symbol, x, y, z, rxnIndex, rxnAAM, attribs={}, aam=0):
         self.symbol = symbol
+        self.aam = aam # This a working, sanitized AAM, doesn't have to be the same as rxnAAM
         self.x = x
         self.y = y
         self.z = z
@@ -18,10 +19,10 @@ class Atom:
         self.charge = 0
 
     def __str__(self):
-        return "<Atom " + self.symbol + " at (" + ", ".join([str(self.x), str(self.y), str(self.z)]) + ") with AAM=" + str(self.rxnAAM) + " and attribs " + str(self.attribs) + " />"
+        return "<Atom " + self.symbol + " at (" + ", ".join([str(self.x), str(self.y), str(self.z)]) + ") with AAM=" + str(self.aam) + " (old rxn " + str(self.rxnAAM) + ") and attribs " + str(self.attribs) + " />"
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.symbol == other.symbol and self.rxnAAM == other.rxnAAM
+        return type(self) == type(other) and self.symbol == other.symbol and self.aam == other.aam
 
 class Bond:
     'v3000 bond information container'
@@ -35,7 +36,7 @@ class Bond:
         self.attribs = attribs
 
     def __str__(self):
-        return "<Bond with order " + str(self.order) + " between AAM " + str(self.fromAtom.rxnAAM) + " and " + str(self.toAtom.rxnAAM) + " />"
+        return "<Bond with order " + str(self.order) + " between AAM " + str(self.fromAtom.aam) + " and " + str(self.toAtom.aam) + " />"
 
     def __eq__(self, other):
         #print "(comparing bonds)"
@@ -81,10 +82,10 @@ class Molecule:
         indigo_mol = indigo.createMolecule()
         indigo_atoms = {}
         for atom in self.atomList:
-            indigo_atoms[atom.rxnAAM] = indigo_mol.addAtom(atom.symbol)
-            print "Added indigo atom " + indigo_atoms[atom.rxnAAM].symbol()
+            indigo_atoms[atom.aam] = indigo_mol.addAtom(atom.symbol)
+            print "Added indigo atom " + indigo_atoms[atom.aam].symbol()
         for bond in self.bondList:
-            indigo_atoms[bond.fromAtom.rxnAAM].addBond(indigo_atoms[bond.toAtom.rxnAAM], bond.order)
+            indigo_atoms[bond.fromAtom.aam].addBond(indigo_atoms[bond.toAtom.aam], bond.order)
 
         return indigo_mol
 
@@ -97,7 +98,7 @@ class Molecule:
         if newmolecule.anchor is None:
             raise Exception("New molecule does not have an anchor!")
 
-        newmolecule.anchor.rxnAAM = oldatom.rxnAAM
+        newmolecule.anchor.aam = oldatom.aam
 
         # Correct the bonds to anchor of new molecule
         for bond in self.bondList:
@@ -174,8 +175,8 @@ class Reaction:
         return desc
 
     @property
-    def numberOfAtomsInReagents(self):
-        """ Counts all atoms (including pseudo and R) in reagents.
+    def numberOfAtomsInReactants(self):
+        """ Counts all atoms (including pseudoatoms and R-atoms) in reactants.
         """
         num = 0
 
@@ -189,7 +190,7 @@ class Reaction:
         """ Counts all atoms (including pseudo and R) in reaction,
         including catalysts.
         """
-        num = self.numberOfAtomsInReagents
+        num = self.numberOfAtomsInReactants
 
         for mol in self.agents:
             num += mol.numberOfAtoms
@@ -212,33 +213,49 @@ class Reaction:
         self.rgroups[rgroupName].append(molecule)
 
     def finalize(self):
-        """ Only execute after everything has been added to reaction.
-        This assigns AAM to catalysts.
+        """ Merely a sanity check
+        Only execute after everything has been added to reaction.
         """
-        nextAAM = self.numberOfAtomsInReagents + 1
+
+        aamReactants = []
+        aamAgents = []
+        aamProducts = []
+
+        for mol in self.reactants:
+            for atom in mol.atomList:
+                if atom.aam == 0:
+                    raise Exception("Sanity check: reaction contains a reactant atom with AAM = 0")
+                if atom.aam in aamReactants:
+                    raise Exception("Sanity check: reaction contains two reactant atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
+                else:
+                    aamReactants.append(atom.aam)
+
         for mol in self.agents:
             for atom in mol.atomList:
-                if atom.rxnAAM == 0:
-                    atom.rxnAAM = nextAAM
-                    nextAAM += 1
-
-        # Sanity check
-        aamList = []
-        for mol in self.reactants + self.agents:
-            for atom in mol.atomList:
-                if atom.rxnAAM == 0:
-                    raise Exception("Sanity check: reaction contains an atom with AAM = 0")
-                if atom.rxnAAM in aamList:
-                    raise Exception("Sanity check: reaction contains two atoms with the same AAM")
+                if atom.aam == 0:
+                    raise Exception("Sanity check: reaction contains a catalyst atom with AAM = 0")
+                if atom.aam in aamAgents:
+                    raise Exception("Sanity check: reaction contains two catalyst atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
                 else:
-                    aamList.append(atom.rxnAAM)
+                    aamAgents.append(atom.aam)
 
-        if self.numberOfAtomsOverall != len(aamList):
-            raise Exception("Sanity check: self.numberOfAtomsOverall != len(aamList)")
+        for mol in self.products:
+            for atom in mol.atomList:
+                if atom.aam == 0:
+                    raise Exception("Sanity check: reaction contains a product atom with AAM = 0")
+                if atom.aam in aamProducts:
+                    raise Exception("Sanity check: reaction contains two product atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
+                else:
+                    aamProducts.append(atom.aam)
 
-        print "(Sanity) AAM list: " + str(aamList)
+        if len(set(aamReactants).intersection(set(aamProducts))) != len(aamReactants):
+            raise Exception("Sanity check: mismatch between reactant and product atom sets")
 
+        if len(set(aamReactants).intersection(set(aamAgents))) != 0:
+            raise Exception("Sanity check: reactants and catalyst share some atoms")
 
+        if self.numberOfAtomsOverall != len(aamReactants + aamAgents):
+            raise Exception("Sanity check: self.numberOfAtomsOverall != len(aamReactants + aamAgents)")
 
     def selectRGroups(self):
         """ For each unique R-group in reaction, select a single generic
@@ -292,11 +309,11 @@ class Reaction:
         # To finish with R-groups, assign AAM numbers where necessary
         # Note: it is enough to set AAM in reactants only, since they are
         # stored as references and will change across the entire reaction.
-        nextAAM = reactionInst.numberOfAtomsInReagents
+        nextAAM = reactionInst.numberOfAtomsInReactants
         for molecule in reactionInst.reactants:
             for atom in molecule.atomList:
-                if atom.rxnAAM == 0:
-                    atom.rxnAAM = nextAAM
+                if atom.aam == 0:
+                    atom.aam = nextAAM
                     nextAAM -= 1
 
         # Now, unwrap the pseudoatoms.
@@ -320,12 +337,12 @@ class Reaction:
                 # If atom's symbol is in pseudo, generate an actual fragment
                 if sanitize_name(atom.symbol) in PSEUDO.keys():
                     #print "A pseudoatom is found!"
-                    fragmentsPseudo[str(atom.rxnAAM)] = getInstanceByName(atom)
+                    fragmentsPseudo[str(atom.aam)] = getInstanceByName(atom)
                 else:
                     molecule = Molecule()
                     molecule.addAtom(atom)
                     molecule.anchor = atom
-                    fragmentsPseudo[str(atom.rxnAAM)] = molecule
+                    fragmentsPseudo[str(atom.aam)] = molecule
 
 
 
@@ -334,21 +351,21 @@ class Reaction:
         nextAAM = reactionInst.numberOfAtomsOverall + 1
         for frag in fragmentsPseudo.values():
             for atom in frag.atomList:
-                if atom.rxnAAM == 0:
-                    atom.rxnAAM = nextAAM
+                if atom.aam == 0:
+                    atom.aam = nextAAM
                     nextAAM += 1
 
         # Iterate through both reactants and products,
         # replacing corresponding aam atom with fragment
         for molecule in reactionInst.reactants:
             for atom in molecule.atomList:
-                if str(atom.rxnAAM) in fragmentsPseudo.keys():
-                    molecule.replaceAtomWithMolecule(atom, fragmentsPseudo[str(atom.rxnAAM)])
+                if str(atom.aam) in fragmentsPseudo.keys():
+                    molecule.replaceAtomWithMolecule(atom, fragmentsPseudo[str(atom.aam)])
 
         for molecule in reactionInst.products:
             for atom in molecule.atomList:
-                if str(atom.rxnAAM) in fragmentsPseudo.keys():
-                    molecule.replaceAtomWithMolecule(atom, fragmentsPseudo[str(atom.rxnAAM)])
+                if str(atom.aam) in fragmentsPseudo.keys():
+                    molecule.replaceAtomWithMolecule(atom, fragmentsPseudo[str(atom.aam)])
 
         return reactionInst
 
@@ -370,7 +387,7 @@ def getInstanceByName(atom):
     """ 
         This method returns an actual instance of a pseudoatom.
     """
-    return PSEUDO[sanitize_name(atom.symbol)](atom.rxnAAM)
+    return PSEUDO[sanitize_name(atom.symbol)](atom.aam)
 
 def buildMethyl(anchorAAM):
     return buildAlkyl(anchorAAM, 1)
@@ -383,7 +400,7 @@ def buildAlkyl(anchorAAM, size=2):
 
     molecule = Molecule()
     root = Atom("C", 0, 0, 0, 0, 0)
-    root.rxnAAM = anchorAAM
+    root.aam = anchorAAM
     molecule.addAtom(root)
     molecule.anchor = root
     
