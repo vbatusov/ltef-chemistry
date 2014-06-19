@@ -1,14 +1,6 @@
-#Value Filldown Version (V\d\d\d\d)
-#Value Filldown NReactants (\d+)
-#Value Filldown NProducts (\d+)
-#Value Filldown NAgents (\d+)
 Value Filldown ActorType ((REACTANT)|(PRODUCT)|(AGENT)|(RGROUP))
 Value Filldown ActorArg (\d+)
 Value Filldown RLogic (.*)
-#Value ActorNAtoms (\d+)
-#Value ActorNBonds (\d+)
-#Value ActorNSGroups (\d+)
-#Value ActorN3D (\d+)
 Value ActorChiral (\d)
 Value List AtomIndex (\d+)
 # A hack around a MarvinSketch bug
@@ -29,6 +21,7 @@ Value List BondAttribs (.*)
 
 # WARNING: long lines are not handled (since it's such a trouble while
 # long lines appear in none of our 34 reaction files)
+# Update: long lines are now converted to regular lines by rxn.py before the TextFSM is invoked.
 
 # Note: 'CTAB' is synonymous to 'molecule'. What a preposterous format.
 

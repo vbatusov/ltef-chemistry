@@ -25,6 +25,23 @@ BOND_FROM,
 BOND_TO,
 BOND_ATTR) = range(16)
 
+# Initialize aam map to an empty map;
+# the integer indicates the largest new aam employed so far.
+aamMap = [0, {}]
+
+def get_working_aam(rxnAAM):
+    """ Use the global map to obtain a working aam number
+    which corresponds to a non-zero rxn aam number.
+    """
+    if rxnAAM == 0:
+        return 0
+
+    global aamMap
+    if rxnAAM not in aamMap[1].keys():
+        aamMap[0] += 1
+        aamMap[1][rxnAAM] = aamMap[0]
+
+    return aamMap[1][rxnAAM]
 
 def parse_attribs(attribs):
     """ Parse the silly RXNv3000 atom/bond parameter string 
@@ -59,21 +76,35 @@ def parse_record(record, rgroup=False):
     molecule = chem.Molecule()
 
     # A map from rxn index to the corresponding atom object,
-    # necessary for creating bonds later
+    # necessary for creating bonds later, since in RXN bonds
+    # identify atoms by rxn index
     indexToAtom = {}
 
     # Extract the defining properties of each atom from the record using pre-defined position indeces
-    for (index, symbol, x, y, z, aam, attr) in zip(record[ATOM_INDEX], record[ATOM_TYPE], record[ATOM_X], record[ATOM_Y], record[ATOM_Z], record[ATOM_AAM], record[ATOM_ATTR]):
+    for (index, symbol, x, y, z, rxnAAM, attr) in zip(record[ATOM_INDEX], record[ATOM_TYPE], record[ATOM_X], record[ATOM_Y], record[ATOM_Z], record[ATOM_AAM], record[ATOM_ATTR]):
         
         # Convert the attribute string to a dictionary
         attrDict = parse_attribs(attr)
 
-        # Correct the symbol if it is an R-group
+        # Correct the symbol if it is an R-group atom
+        # Warning: the rgroup flag indicates that we are parsing an **R-group record**. This is 
+        #          different from processing an atom which happens to denote an R-group
         if symbol == "R#":
             symbol = "R" + attrDict["RGROUPS"][0]
         
+        # Prepare the new aam for atom based on the old one        
+        aam = get_working_aam(int(rxnAAM))
+        if aam == 0 and not rgroup:
+            # If rxnAAM is zero, assign the next available number to it
+            # Assumption: only catalysts and r-groups contain unnumbered atoms, but since we are excluding r-groups
+            # in this conditional, we should not be bothered with tracking down these (catalyst) atoms on either side of reaction.
+            # As for r-group records, leave them unnumbered until reaction instantiation.
+            global aamMap
+            aamMap[0] += 1
+            aam = aamMap[0]
+
         # Create an atom object
-        atom = chem.Atom(symbol, float(x), float(y), float(z), int(index), int(aam), attrDict)
+        atom = chem.Atom(symbol, float(x), float(y), float(z), int(index), int(rxnAAM), attrDict, aam)
         indexToAtom[index] = atom
 
         # Add atom to molecule
@@ -162,6 +193,10 @@ def parse_rxn(rxn, fsm="rxn.fsm"):
     # This will be returned
     reaction = chem.Reaction(reactionName)
 
+    # Make sure new aam map is clear before using it in parse_record
+    global aamMap
+    aamMap = [0, {}]
+
     # Reminder: each record stores a complete description of a single molecule
     for record in data:
         #print record
@@ -184,7 +219,7 @@ def parse_rxn(rxn, fsm="rxn.fsm"):
         else:
             raise Exception("Unknown record type!")
 
-    reaction.finalize() # Enumerate catalysts!
+    reaction.finalize()
 
     return reaction
 

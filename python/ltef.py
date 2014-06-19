@@ -15,8 +15,8 @@ def gen_pddl(args):
         print "Generating PDDL domain description...\n"
         
         
-        #print "\nThis is what I was able to get out of the RXN:"
-        #print str(reaction)
+        print "\nThis is what I was able to get out of the RXN:"
+        print str(reaction)
 
         pddl_domain = pddl.getDomain(reaction)
 
