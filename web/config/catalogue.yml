@@ -1,0 +1,37 @@
+rxn_dir: /home/vitaliy/ltef_project/ltef-chemistry/reactions/corrected_chris/rxn_test/
+descriptions_dir: /home/vitaliy/ltef_project/ltef-chemistry/reactions/corrected_chris/descriptions/
+reactions:
+- {basename: grignard_reagent_formation, name: Grignard reagent formation}
+- {basename: esterification_of_alcohols, name: Esterification of alcohols}
+- {basename: hydroboration_oxidation, name: Hydroboration oxidation}
+- {basename: corey-kim_oxidation_of_alcohols, name: Corey-Kim oxidation of alcohols}
+- {basename: sn2_substitution_of_alkyl_halides_not_standardized, name: SN2 substitution of alkyl halides}
+- {basename: e2_anti-zaitsev, name: E2 anti-Zaitsev}
+- {basename: deprotonation_of_alcohol, name: Deprotonation of alcohols}
+- {basename: ozonolysis_of_alkenes, name: Ozonolysis of alkenes}
+- {basename: swern_oxidation_of_alcohols, name: Swern oxidation of alcohols}
+- {basename: hydrolysis_of_esters_to_carboxylic_acids, name: Hydrolysis of esters to carboxylic acids}
+- {basename: deprotonation_terminal_alkyne, name: Deprotonation terminal alkyne}
+- {basename: sn1_substitution_of_alkyl_halides_not_standardized, name: SN1 substitution of alkyl halides}
+- {basename: halohydrin_formation_from_alkene, name: Halohydrin formation from alkenes}
+- {basename: milas_olefin_hydroxylation, name: Milas olefin hydroxylation}
+- {basename: alkyne_hydrogenation_with_lindlars_catalyst, name: Alkyne hydrogenation with Lindlar's catalyst}
+- {basename: disolving_metal_reduction_of_alkyne, name: Disolving metal reduction of alkyne}
+- {basename: hydrogen_bromide_addition_to_alkenes_(anti-markovnikov), name: Hydrogen bromide addition to alkenes (anti-Markovnikov)}
+- {basename: oxidation_of_alkenes_with_peracids, name: Oxidation of alkenes with peracids}
+- {basename: halogen_addition_to_alkenes, name: Halogen addition to alkenes}
+- {basename: dess-martin_oxidation_of_alcohols, name: Dess-Martin oxidation of alcohols}
+- {basename: catalytic_hydrogenation_of_alkene, name: Catalytic hydrogenation of alkene}
+- {basename: e2_zaitsev, name: E2 Zaitsev}
+- {basename: dehydration_of_alcohols_to_alkenes_not_standardized, name: Dehydration of alcohols to alkenes}
+- {basename: amide_synthesis_from_carboxylic_acid, name: Amide synthesis from carboxylic acid}
+- {basename: fischer_esterification, name: Fischer esterification}
+- {basename: hydration_of_alkenes_(markovnikov), name: Hydration of alkenes (Markovnikov)}
+- {basename: tosylation, name: Tosylation}
+- {basename: bromination_of_alkanes_(uv_light), name: Bromination of alkanes with UV light}
+- {basename: bromination_of_alkanes_with_heat, name: Bromination of alkanes with heat}
+- {basename: catalytic_hydrogenation_of_alkyne, name: Catalytic hydrogenation of alkyne}
+- {basename: hydrogen_halide_addition_to_alkenes_(markovnikov), name: Hydrogen halide addition to alkenes (Markovnikov)}
+- {basename: sn2_with_leaving_group, name: SN2 with leaving group}
+- {basename: sn1_with_leaving_group, name: SN1 with leaving group}
+- {basename: synthesis_of_acid_chlorides, name: Synthesis of acid chlorides}

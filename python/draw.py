@@ -7,6 +7,17 @@ sys.path.append('/home/vitaliy/chemistry/indigo-python-1.1.12/')
 from indigo import *
 from indigo_renderer import *
 
+def get_indigo():
+    indigo = Indigo()
+    renderer = IndigoRenderer(indigo)
+    indigo.setOption("render-output-format", "png")
+    indigo.setOption("render-margins", 10, 10)
+    indigo.setOption("render-coloring", True)
+    indigo.setOption("render-bond-length",50)
+    indigo.setOption("render-atom-ids-visible", False)
+    indigo.setOption("render-aam-color", 0.5, 0.5, 1.0)
+    return (indigo, renderer)
+
 def add_actors_to_ireaction(indigo, actors, func):
     aam_to_iatom = {}
     for mol in actors:
@@ -23,16 +34,8 @@ def add_actors_to_ireaction(indigo, actors, func):
         func(imol)
 
 def renderReactionToBuffer(reaction):
-    indigo = Indigo()
-    renderer = IndigoRenderer(indigo)
-    outputFormat = "png"
-    indigo.setOption("render-output-format", outputFormat)
-    indigo.setOption("render-margins", 10, 10)
-    indigo.setOption("render-coloring", True)
-    indigo.setOption("render-bond-length",50)
-    indigo.setOption("render-atom-ids-visible", False)
-    indigo.setOption("render-aam-color", 0.5, 0.5, 1.0)
 
+    (indigo, renderer) = get_indigo()
     # First, re-create the reaction as an Indigo object
     ireaction = indigo.createReaction()
 
@@ -43,6 +46,13 @@ def renderReactionToBuffer(reaction):
     buf = renderer.renderToBuffer(ireaction)
 
     return buf
+
+def renderRGroupsToBuffer():
+    (indigo, renderer) = get_indigo()
+
+    bufR = {} # "r1" : [buffer1, ...]
+
+    return bufR
 
 
 
