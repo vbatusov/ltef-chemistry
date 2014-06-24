@@ -1,0 +1,93 @@
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+
+      .container-molecules {
+        margin: 0 auto;
+        max-width: 700px;
+      }
+
+      .show-grid {
+        margin-top: 10px;
+        margin-bottom: 20px;
+      }
+      .show-grid [class*="span"] {
+        background-color: #eee;
+        text-align: center;
+        -webkit-border-radius: 3px;
+           -moz-border-radius: 3px;
+                border-radius: 3px;
+        min-height: 40px;
+        line-height: 40px;
+      }
+      .show-grid [class*="span"]:hover {
+        background-color: #ddd;
+      }
+      .show-grid .show-grid {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      .show-grid .show-grid [class*="span"] {
+        margin-top: 5px;
+      }
+      .show-grid [class*="span"] [class*="span"] {
+        background-color: #ccc;
+      }
+      .show-grid [class*="span"] [class*="span"] [class*="span"] {
+        background-color: #999;
+      }
+
+      div.row-fluid [class*="span"] .center-in-span { 
+         float: none; 
+         margin: 0 auto; 
+         text-align: center; 
+         display: block; 
+         width: auto; 
+         height: auto;
+      }
+
+      div.blah {
+        display: inline-block;
+        margin:20px;
+        border:solid 1px;
+        -webkit-border-radius: 7px;
+           -moz-border-radius: 7px;
+                border-radius: 7px;
+        border-color:#bbbbbb;
+        min-height: 40px;
+        line-height: 40px;
+        width: 220px; 
+        height:119px; 
+        background-size:220px 119px; 
+        background-repeat:no-repeat;
+      }
+
+      div.blah:hover {
+        background-color: #ddd;
+      }
+    </style>
+
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+    <div class="container">
+
+      <h1 tal:content="full_name"></h1>
+
+      <p>Generic reaction:</p>
+      <img tal:attributes="src request.route_url('home') + 'img/generic_' + basename + '.png'">
+
+      <p>R-groups: (TODO)</p>
+
+      <p tal:content="reaction_description"></p>
+
+      <p>Instance:</p>
+      <img tal:attributes="src request.route_url('home') + 'img/instance_' + basename + '.png'">
+
+
+    </div> <!-- /container -->
+  </div>
+</div>
