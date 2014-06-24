@@ -3,7 +3,7 @@
 
 import chem
 import sys
-sys.path.append('/home/vitaliy/chemistry/indigo-python-1.1.12/')
+sys.path.append('indigo-python-1.1.12/')
 from indigo import *
 from indigo_renderer import *
 

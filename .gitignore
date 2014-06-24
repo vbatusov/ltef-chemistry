@@ -40,4 +40,5 @@ Thumbs.db
 # Temp directories
 ##################
 python/*_out
-web/ltefServer/ltefServer.egg-info
+ltefServer/ltefServer.egg-info
+ltefServer/indigo-python-1.1.12
