@@ -40,3 +40,4 @@ Thumbs.db
 # Temp directories
 ##################
 python/*_out
+web/ltefServer/ltefServer.egg-info
