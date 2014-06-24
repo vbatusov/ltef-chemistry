@@ -237,6 +237,8 @@ class Reaction:
                     aamProducts.append(atom.aam)
 
         if len(set(aamReactants).intersection(set(aamProducts))) != len(aamReactants):
+            print "Reactants: " + str(aamReactants)
+            print "Products: " + str(aamProducts)
             raise Exception("Sanity check: mismatch between reactant and product atom sets")
 
         if len(set(aamReactants).intersection(set(aamAgents))) != 0:
