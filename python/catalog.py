@@ -9,7 +9,7 @@ import sys
 import rxn
 import chem
 
-YAML_PATH = "/home/vitaliy/ltef_project/ltef-chemistry/web/config/catalogue.yml"
+YAML_PATH = "ltefserver/catalogue.yml"
 YAML_OBJ = None
 
 def get_reactions_info_from_files(folder):
