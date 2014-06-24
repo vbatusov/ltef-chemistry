@@ -6,10 +6,11 @@ Read YAML, return paths to RXN and descriptions
 import yaml
 import os
 import sys
+sys.path.append('../python')
 import rxn
 import chem
 
-YAML_PATH = "ltefserver/catalogue.yml"
+YAML_PATH = "reactions/catalogue.yml"
 YAML_OBJ = None
 
 def get_reactions_info_from_files(folder):
