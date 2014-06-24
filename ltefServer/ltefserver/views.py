@@ -4,6 +4,8 @@ from pyramid.response import FileResponse, Response
 
 import os
 import sys
+sys.path.append('../python')
+sys.path.append('./indigo-python-1.1.12')
 import rxn
 import chem
 import draw
@@ -48,7 +50,7 @@ def pic_generic_view(request):
     print "A request for a picture of a generic reaction"
     path = os.path.join(catalog.get_path_to_rxn(), request.matchdict["basename"] + ".rxn")
     print "Will parse file " + path
-    reaction = rxn.parse_rxn(path, "ltefserver/rxn.fsm")
+    reaction = rxn.parse_rxn(path)
     print "Parsed successfully, rendering to picture"
     buf = draw.renderReactionToBuffer(reaction)
     print "Picture ready for generic " + path
@@ -59,7 +61,7 @@ def pic_instance_view(request):
     print "A request for a picture of a specific reaction"
     path = os.path.join(catalog.get_path_to_rxn(), request.matchdict["basename"] + ".rxn")
     print "Will parse file " + path
-    reaction = rxn.parse_rxn(path, "ltefserver/rxn.fsm")
+    reaction = rxn.parse_rxn(path)
     print "Parsed successfully, getting an instance"
     instance = reaction.getInstance()
     print "Computed instance, rendering to picture"

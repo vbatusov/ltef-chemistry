@@ -127,7 +127,7 @@ def parse_record(record, rgroup=False):
     
     return molecule
 
-def parse_rxn(rxn, fsm="rxn.fsm"):
+def parse_rxn(rxn, fsm=os.path.join(os.path.dirname(os.path.abspath(__file__)), "rxn.fsm")):
     """ Parses the silly RXNv3000 and creates a generic reaction as a result.
     Hack: (TODO) when reading raw data, merge lines on dash. This will elegantly (in some sense)
     handle the silly RXNv3000 80-char ugliness without making a mess out of the FSM.
