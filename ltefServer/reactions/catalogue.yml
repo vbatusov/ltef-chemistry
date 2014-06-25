@@ -11,7 +11,7 @@ reactions:
 - {basename: ozonolysis_of_alkenes, name: Ozonolysis of alkenes}
 - {basename: swern_oxidation_of_alcohols, name: Swern oxidation of alcohols}
 - {basename: hydrolysis_of_esters_to_carboxylic_acids, name: Hydrolysis of esters to carboxylic acids}
-- {basename: deprotonation_terminal_alkyne, name: Deprotonation terminal alkyne}
+- {basename: deprotonation_terminal_alkyne, name: Deprotonation of terminal alkynes}
 - {basename: sn1_substitution_of_alkyl_halides_not_standardized, name: SN1 substitution of alkyl halides}
 - {basename: halohydrin_formation_from_alkene, name: Halohydrin formation from alkenes}
 - {basename: milas_olefin_hydroxylation, name: Milas olefin hydroxylation}
