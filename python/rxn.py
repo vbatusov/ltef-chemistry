@@ -79,9 +79,12 @@ def parse_record(record, rgroup=False):
 
     # Extract the defining properties of each atom from the record using pre-defined position indeces
     for (index, symbol, x, y, z, rxnAAM, attr) in zip(record[ATOM_INDEX], record[ATOM_TYPE], record[ATOM_X], record[ATOM_Y], record[ATOM_Z], record[ATOM_AAM], record[ATOM_ATTR]):
-        
         # Convert the attribute string to a dictionary
         attrDict = parse_attribs(attr)
+
+        # Strip quotes
+        if symbol[0] == "\"" and symbol[-1] == "\"":
+            symbol = symbol[1:-1]
 
         # Correct the symbol if it is an R-group atom
         # Warning: the rgroup flag indicates that we are parsing an **R-group record**. This is 

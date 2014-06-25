@@ -77,14 +77,18 @@
 
       <h1 tal:content="full_name"></h1>
 
-      <p>Generic reaction:</p>
+      <p><strong>Generic reaction</strong></p>
       <img tal:attributes="src request.route_url('home') + 'img/generic_' + basename + '.png'">
 
-      <p>R-groups: (TODO)</p>
+      <p><strong>R-groups</strong></p>
+      <div tal:repeat="num rgroupNums">
+        <strong><span tal:content="num"></span></strong>
+        <img tal:attributes="src request.route_url('home') + 'img/rgroup_' + basename + '.' + num + '.png'">
+      </div>
 
       <p tal:content="reaction_description"></p>
 
-      <p>Instance:</p>
+      <p><strong>Examples</strong></p>
       <img tal:attributes="src request.route_url('home') + 'img/instance_' + basename + '.png'">
 
 

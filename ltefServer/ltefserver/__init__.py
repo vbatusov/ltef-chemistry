@@ -20,5 +20,6 @@ def main(global_config, **settings):
     config.add_route('learning_reaction', '/tools/learning/{basename}')
     config.add_route('pic_generic', '/img/generic_{basename}.png')
     config.add_route('pic_instance', '/img/instance_{basename}.png')
+    config.add_route('pic_rgroup', '/img/rgroup_{basename}.{params}.png')
     config.scan()
     return config.make_wsgi_app()

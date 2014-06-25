@@ -23,7 +23,14 @@ def add_actors_to_ireaction(indigo, actors, func):
     for mol in actors:
         imol = indigo.createMolecule()
         for atom in mol.atomList:
-            iatom = imol.addAtom(atom.symbol)
+            iatom = None
+            if atom.symbol[0]=="R":
+                iatom = imol.addRSite(atom.symbol)
+            else:
+                iatom = imol.addAtom(atom.symbol)
+            # Set charge if there is one
+            if "CHG" in atom.attribs.keys():
+                iatom.setCharge(int(atom.attribs["CHG"]))
             aam_to_iatom[atom.aam] = iatom 
         for bond in mol.bondList:
             iatom1 = aam_to_iatom[bond.fromAtom.aam]
@@ -31,7 +38,11 @@ def add_actors_to_ireaction(indigo, actors, func):
             ibond = iatom1.addBond(iatom2, bond.order)
         imol.layout()
 
+        # Add indigo molecule to indigo reaction
+        # This, unfortunately, copies the molecule to reaction object and returns 1 on success.
+        # No standard way to get a reference to that copy to set the mapping numbers.
         func(imol)
+
 
 def renderReactionToBuffer(reaction):
 
@@ -47,12 +58,61 @@ def renderReactionToBuffer(reaction):
 
     return buf
 
-def renderRGroupsToBuffer():
+def renderMoleculeToBuffer(mol):
     (indigo, renderer) = get_indigo()
 
-    bufR = {} # "r1" : [buffer1, ...]
+    aam_to_iatom = {}
+    imol = indigo.createMolecule()
+    for atom in mol.atomList:
+        iatom = None
+        if atom.symbol[0]=="R":
+            iatom = imol.addRSite(atom.symbol)
+        else:
+            iatom = imol.addAtom(atom.symbol)
+        # Set charge if there is one
+        if "CHG" in atom.attribs.keys():
+            iatom.setCharge(int(atom.attribs["CHG"]))
+        aam_to_iatom[atom.aam] = iatom 
+    for bond in mol.bondList:
+         iatom1 = aam_to_iatom[bond.fromAtom.aam]
+         iatom2 = aam_to_iatom[bond.toAtom.aam]
+         ibond = iatom1.addBond(iatom2, bond.order)
+    imol.layout()
 
-    return bufR
+    buf = renderer.renderToBuffer(imol)
+
+    return buf
+
+def renderRGroupToBuffer(reaction, num):
+    (indigo, renderer) = get_indigo()
+    
+    if num not in reaction.rgroups.keys():
+        return None
+
+    mol = reaction.rgroups[num][0]
+
+    aam_to_iatom = {}
+    imol = indigo.createMolecule()
+    for atom in mol.atomList:
+        iatom = imol.addAtom(atom.symbol)
+        # Show that anchor is connected to molecule
+        if mol.anchor == atom:
+            #ref = imol.addAtom("*")
+            #ref.addBond(iatom, 1)
+            iatom.highlight()
+        # Set charge if there is one
+        if "CHG" in atom.attribs.keys():
+            iatom.setCharge(int(atom.attribs["CHG"]))
+        aam_to_iatom[atom.aam] = iatom 
+    for bond in mol.bondList:
+         iatom1 = aam_to_iatom[bond.fromAtom.aam]
+         iatom2 = aam_to_iatom[bond.toAtom.aam]
+         ibond = iatom1.addBond(iatom2, bond.order)
+    imol.layout()
+
+    buf = renderer.renderToBuffer(imol)
+
+    return buf
 
 
 
