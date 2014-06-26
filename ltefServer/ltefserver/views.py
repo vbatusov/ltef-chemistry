@@ -1,6 +1,7 @@
 from pyramid.view import view_config
 from pyramid.renderers import get_renderer
 from pyramid.response import FileResponse, Response
+from pyramid.httpexceptions import HTTPNotFound
 
 import os
 import sys
@@ -31,7 +32,7 @@ def synthesis_view(request):
 
 @view_config(route_name='learning', renderer='templates/learning.pt')
 def learning_view(request):
-    print "A request for learning page - list of reactions"
+    #print "A request for learning page - list of reactions"
     return {"layout" : site_layout(), "reactions" : catalog.get_reaction_names_sorted()}
 
 @view_config(route_name='learning_reaction', renderer='templates/learning_reaction.pt')
@@ -42,40 +43,32 @@ def learning_reaction_view(request):
     full_name = catalog.get_reaction_dict()[basename]
     path = os.path.join(catalog.get_path_to_rxn(), basename + ".rxn")
     reaction = rxn.parse_rxn(path)
-    rgroupNums = reaction.rgroups.keys()
     #print "Got full name: " + full_name
     desc = catalog.get_reaction_description(basename)
     #print "Got description: " + desc
-    return {"layout" : site_layout(), "basename" : basename, "full_name" : full_name, "reaction_description" : desc, "rgroupNums" : rgroupNums}
+    return {"layout" : site_layout(), "basename" : basename, "full_name" : full_name, "reaction_description" : desc, "rgroups" : reaction.rgroups}
 
-@view_config(route_name='pic_generic')
-def pic_generic_view(request):
-    #print "A request for a picture of a generic reaction"
-    path = os.path.join(catalog.get_path_to_rxn(), request.matchdict["basename"] + ".rxn")
-    #print "Will parse file " + path
-    reaction = rxn.parse_rxn(path)
-    #print "Parsed successfully, rendering to picture"
-    buf = draw.renderReactionToBuffer(reaction)
-    #print "Picture ready for generic " + path
-    return Response(content_type='image/png', body=buf.tostring())
-
-@view_config(route_name='pic_instance')
-def pic_instance_view(request):
-    print "A request for a picture of a specific reaction"
-    path = os.path.join(catalog.get_path_to_rxn(), request.matchdict["basename"] + ".rxn")
-    print "Will parse file " + path
-    reaction = rxn.parse_rxn(path)
-    print "Parsed successfully, getting an instance"
-    instance = reaction.getInstance()
-    print "Computed instance, rendering to picture"
-    buf = draw.renderReactionToBuffer(instance)
-    print "Picture ready for instance " + path
-    return Response(content_type='image/png', body=buf.tostring())
-
-@view_config(route_name='pic_rgroup')
-def pic_rgroup_view(request):
+@view_config(route_name='img')
+def img_view(request):
+    param_str = request.matchdict["filename"]
+    mode = request.matchdict["what"]
     path = os.path.join(catalog.get_path_to_rxn(), request.matchdict["basename"] + ".rxn")
     reaction = rxn.parse_rxn(path)
-    params = request.matchdict["params"].split(",")
-    buf = draw.renderRGroupToBuffer(reaction, params[0])
-    return Response(content_type='image/png', body=buf.tostring())
+    response = HTTPNotFound()
+
+    if mode == "generic":
+        response = Response(content_type='image/png', body=draw.renderReactionToBuffer(reaction).tostring())
+    elif mode == "instance":
+        instance = reaction.getInstance()
+        response = Response(content_type='image/png', body=draw.renderReactionToBuffer(instance).tostring())
+    elif mode == "rgroup":
+        params = param_str.split(",")
+        # first arg is "R1", "R2", etc.
+        # second arg is the list index of specific molecule which the group could be
+        # e.g. "...?R1,0" is for the first choice of R1
+        if len(params) == 2:
+            buf = draw.renderRGroupToBuffer(reaction, params[0].upper(), int(params[1]))
+            if buf is not None:
+                response = Response(content_type='image/png', body=buf.tostring())
+
+    return response

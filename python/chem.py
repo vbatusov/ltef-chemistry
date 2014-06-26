@@ -307,17 +307,20 @@ class Reaction:
                     nextAAM -= 1
 
         # Now, unwrap the pseudoatoms.
-        # In each reactant, for each pseudoatom, generate a fragment
+        # In each reactant and agent, for each pseudoatom, generate a fragment
         # and substitute with it every occurence of the pseudoatom in the products.
+        #print "........Unwrapping pseudoatoms.........."
         fragmentsPseudo = {}
-        for molecule in reactionInst.reactants:
+        for molecule in reactionInst.reactants + reactionInst.agents:
             for atom in molecule.atomList:
+                #print "Looking at atom " + atom.symbol
 
                 # If atom's symbol is an RXN string list, select one symbol arbitrarily
                 atomSymbols = pseudoatomToList(atom.symbol)    # Is this a list atom?
+                #print "  result of unwrapping: " + str(atomSymbols)
                 if len(atomSymbols) > 1:
                     symbol_tmp = random.choice(atomSymbols)
-                    #print "Selected " + symbol_tmp + " out of " + str(atomSymbols)
+                    #print "  selected " + symbol_tmp + " out of " + str(atomSymbols)
                     if symbol_tmp in LIST_TRANSLATION.keys():
                         atom.symbol = LIST_TRANSLATION[symbol_tmp]
                     else:
@@ -325,10 +328,11 @@ class Reaction:
                     #print "Set atom.symbol to " + atom.symbol
 
                 # If atom's symbol is in pseudo, generate an actual fragment
-                if sanitize_name(atom.symbol) in PSEUDO.keys():
-                    #print "A pseudoatom is found!"
+                if sanitize_symbol(atom.symbol) in PSEUDO.keys():
+                    #print "A pseudoatom is found! " + sanitize_symbol(atom.symbol)
                     fragmentsPseudo[str(atom.aam)] = getInstanceByName(atom)
                 else:
+                    #print "Not a pseudoatom, make a singleton molecule"
                     molecule = Molecule()
                     molecule.addAtom(atom)
                     molecule.anchor = atom
@@ -347,12 +351,7 @@ class Reaction:
 
         # Iterate through both reactants and products,
         # replacing corresponding aam atom with fragment
-        for molecule in reactionInst.reactants:
-            for atom in molecule.atomList:
-                if str(atom.aam) in fragmentsPseudo.keys():
-                    molecule.replaceAtomWithMolecule(atom, fragmentsPseudo[str(atom.aam)])
-
-        for molecule in reactionInst.products:
+        for molecule in reactionInst.reactants + reactionInst.agents + reactionInst.products:
             for atom in molecule.atomList:
                 if str(atom.aam) in fragmentsPseudo.keys():
                     molecule.replaceAtomWithMolecule(atom, fragmentsPseudo[str(atom.aam)])
@@ -363,20 +362,25 @@ class Reaction:
 def sanitize_name(name):
     return re.sub(r'\W+', '', name).lower()
 
+def sanitize_symbol(name):
+    return re.sub(r'[^a-zA-Z0-9_-]+', '', name).lower()
 
-def pseudoatomToList(symbolList):
-    #print "Unwrapping a symbol list " + symbolList
-    if symbolList[0] == "[" and symbolList[-1] == "]":
-        return re.findall('(?:([a-zA-Z]+),?)', symbolList[1:-1])
+def pseudoatomToList(string):
+    #print "Unwrapping a symbol list " + string
+    if string[0] == "[" and string[-1] == "]":
+        #print "  success"
+        return re.findall('(?:([a-zA-Z0-9-]+),?)', string[1:-1])
     else:
-        return [symbolList]
+        #print "  failure"
+        return [string]
 
 
 def getInstanceByName(atom): 
     """ 
         This method returns an actual instance of a pseudoatom.
     """
-    return PSEUDO[sanitize_name(atom.symbol)](atom.aam)
+    #print "Getting instance of " + sanitize_symbol(atom.symbol)
+    return PSEUDO[sanitize_symbol(atom.symbol)](atom.aam)
 
 def buildMethyl(anchorAAM):
     return buildAlkyl(anchorAAM, 1)
@@ -438,15 +442,117 @@ def splitThreeWays(number):
 
 
 
-def buildHalogen():
-    return None
+def buildHalogen(anchorAAM):
+    halogens = ["F", "Cl", "Br", "I"]
+
+    molecule = Molecule()
+    root = Atom(random.choice(halogens), 0, 0, 0, 0, 0)
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+
+    return molecule
+
+def buildLindlarsCatalyst(anchorAAM):
+    molecule = Molecule()
+    root = Atom("Lindlar's catalyst", 0, 0, 0, 0, 0)
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+
+    return molecule
+
+def buildTosylate(anchorAAM):
+    molecule = Molecule()
+    root = Atom("Ts", 0, 0, 0, 0, 0)
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+    oxygen = Atom("O", 0, 0, 0, 0, 0, {"CHG" : "-1"})
+    molecule.addAtom(oxygen)
+    molecule.addBond(Bond(0, 1, root, oxygen))
+
+    return molecule
+
+def buildBromineAnion(anchorAAM):
+    molecule = Molecule()
+    root = Atom("Br", 0, 0, 0, 0, 0, {"CHG" : "-1"})
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+
+    return molecule
+
+def buildIodineAnion(anchorAAM):
+    molecule = Molecule()
+    root = Atom("I", 0, 0, 0, 0, 0, {"CHG" : "-1"})
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+
+    return molecule
+
+def buildROH(anchorAAM):
+    molecule = Molecule()
+    root = Atom("smthng", 0, 0, 0, 0, 0)
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+    oxygen = Atom("O", 0, 0, 0, 0, 0)
+    hydrogen = Atom("H", 0, 0, 0, 0, 0)
+    molecule.addAtom(oxygen)
+    molecule.addAtom(hydrogen)
+    molecule.addBond(Bond(0, 1, root, oxygen))
+    molecule.addBond(Bond(0, 1, hydrogen, oxygen))
+    return molecule
+
+def buildAmmonia(anchorAAM):
+    molecule = Molecule()
+    root = Atom("N", 0, 0, 0, 0, 0)
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+    h1 = Atom("H", 0, 0, 0, 0, 0)
+    h2 = Atom("H", 0, 0, 0, 0, 0)
+    h3 = Atom("H", 0, 0, 0, 0, 0)
+    molecule.addAtom(h1)
+    molecule.addAtom(h2)
+    molecule.addAtom(h3)
+    molecule.addBond(Bond(0, 1, root, h1))
+    molecule.addBond(Bond(0, 1, root, h2))
+    molecule.addBond(Bond(0, 1, root, h3))
+    
+    return molecule
+
+def buildWater(anchorAAM):
+    molecule = Molecule()
+    root = Atom("O", 0, 0, 0, 0, 0)
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+    h1 = Atom("H", 0, 0, 0, 0, 0)
+    h2 = Atom("H", 0, 0, 0, 0, 0)
+    molecule.addAtom(h1)
+    molecule.addAtom(h2)
+    molecule.addBond(Bond(0, 1, root, h1))
+    molecule.addBond(Bond(0, 1, root, h2))
+    
+    return molecule
+
 
 PSEUDO = {
-    "alkyl" : buildAlkyl, 
-    "halogen" : buildHalogen, 
-    "methyl" : buildMethyl,
-    "lindlarscatalyst" : None
-}
+        "alkyl" : buildAlkyl, 
+        "halogen" : buildHalogen, 
+        "methyl" : buildMethyl,
+        "lindlarscatalyst" : buildLindlarsCatalyst,
+        "tso-" : buildTosylate,
+        "nh3" : buildAmmonia,
+        "i-" : buildIodineAnion,
+        "h2o" : buildWater,
+        "roh" : buildROH,
+        "br-" : buildBromineAnion,
+        "x" : buildHalogen,
+    }
 
 ATOM_NAMES = {
         "H" : "hydrogen",
@@ -527,4 +633,6 @@ ATOM_NAMES = {
     }
 
 # THis is a hack
-LIST_TRANSLATION = {"C" : "Methyl"}
+LIST_TRANSLATION = {
+        "C" : "Methyl",
+    }
