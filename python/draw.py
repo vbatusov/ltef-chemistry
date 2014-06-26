@@ -83,13 +83,13 @@ def renderMoleculeToBuffer(mol):
 
     return buf
 
-def renderRGroupToBuffer(reaction, num):
+def renderRGroupToBuffer(reaction, rname, nmol):
     (indigo, renderer) = get_indigo()
     
-    if num not in reaction.rgroups.keys():
+    if rname not in reaction.rgroups.keys() or nmol >= len(reaction.rgroups[rname]):
         return None
 
-    mol = reaction.rgroups[num][0]
+    mol = reaction.rgroups[rname][nmol]
 
     aam_to_iatom = {}
     imol = indigo.createMolecule()
