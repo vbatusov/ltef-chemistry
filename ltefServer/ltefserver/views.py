@@ -31,7 +31,7 @@ cat = catalog.Catalog()
 # A dictionary from a unique identifying string (timestamp?) to an object
 # containing the reaction image without reactants, and a set of possible answer images,
 # complete with boolean flags to indicate whether they are right or wrong
-quiz_reactants_problems = {}
+quiz_problems = {}
 
 
 def site_layout():
@@ -127,11 +127,11 @@ def img_by_id_view(request):
 
     response = None
 
-    if problem_id in quiz_reactants_problems.keys():
+    if problem_id in quiz_problems.keys():
         if which == "reaction":
-            response = Response(content_type='image/png', body=quiz_reactants_problems[problem_id][0])
+            response = Response(content_type='image/png', body=quiz_problems[problem_id][0])
         elif which.isdigit():
-            response = Response(content_type='image/png', body=quiz_reactants_problems[problem_id][1][int(which)][0])
+            response = Response(content_type='image/png', body=quiz_problems[problem_id][1][int(which)][0])
         else:
             response = HTTPNotFound()
     else:
@@ -142,12 +142,13 @@ def img_by_id_view(request):
 
 @view_config(route_name='quiz_random')
 def quiz_random_view(request):
-    subreq = Request.blank(random.choice(['/tools/quiz/reactants', '/tools/quiz/products', '/tools/quiz/reaction']))
+    subreq = Request.blank(random.choice(['/tools/quiz/reactants', '/tools/quiz/products'])) #, '/tools/quiz/reaction']))
     return request.invoke_subrequest(subreq)
 
 
 @view_config(route_name='quiz_reactants', renderer='templates/quiz_reactants.pt')
 def quiz_reactants_view(request):
+    global quiz_problems
     session = request.session
 
     problem_id = ""
@@ -159,7 +160,7 @@ def quiz_reactants_view(request):
 
 
     # Generate a problem, store the objects, present to user
-    if 'quiz_type' not in session or session['problem_id'] not in quiz_reactants_problems.keys():
+    if 'quiz_type' not in session or session['problem_id'] not in quiz_problems.keys():
         session.invalidate()
         problem_id = str(uuid.uuid4())
         session['quiz_type'] = 'reactants'
@@ -176,7 +177,11 @@ def quiz_reactants_view(request):
         fullImage = draw.renderReactionToBuffer(instance).tostring()
 
         reactants = instance.reactants
-        instance.reactants = []
+
+        molecule = chem.Molecule()
+        molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
+
+        instance.reactants = [molecule]
 
         # Reaction image without reactants
         mainImage = draw.renderReactionToBuffer(instance).tostring()
@@ -193,8 +198,7 @@ def quiz_reactants_view(request):
 
         random.shuffle(reactantImages)
 
-        global quiz_reactants_problems
-        quiz_reactants_problems[problem_id] = [mainImage, reactantImages, fullImage]
+        quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
 
         session['basename'] = basename
         print "Started a quiz (reactants) session for " + basename + ", id = " + problem_id
@@ -222,8 +226,8 @@ def quiz_reactants_view(request):
 
             # Check if given answer is correct
             correctAnswers = []
-            for index in range(0, len(quiz_reactants_problems[problem_id][1])):
-                val = quiz_reactants_problems[problem_id][1][index][1]
+            for index in range(0, len(quiz_problems[problem_id][1])):
+                val = quiz_problems[problem_id][1][index][1]
                 if val:
                     correctAnswers.append(str(index))
             #print "Correct answer is " + str(set(correctAnswers))
@@ -238,8 +242,7 @@ def quiz_reactants_view(request):
                 result = True
 
             # Once user has made a choice, replace cut reaction with a full one
-            global quiz_reactants_problems
-            quiz_reactants_problems[problem_id][0] = quiz_reactants_problems[problem_id][2]
+            quiz_problems[problem_id][0] = quiz_problems[problem_id][2]
 
     # prepare styles
     style_t = (
@@ -253,7 +256,7 @@ def quiz_reactants_view(request):
             "basename" : basename,
             "full_name" : full_name,
             "problem_id" : problem_id,
-            "indeces" : range(0, len(quiz_reactants_problems[problem_id][1])),
+            "indeces" : range(0, len(quiz_problems[problem_id][1])),
             "style_t" : style_t,
             "message" : message,
             "result" : result,
@@ -263,7 +266,121 @@ def quiz_reactants_view(request):
 
 @view_config(route_name='quiz_products', renderer='templates/quiz_products.pt')
 def quiz_products_view(request):
-    return {"layout": site_layout()}
+    global quiz_problems
+    session = request.session
+
+    problem_id = ""
+    basename = ""
+    full_name = ""
+    message = ""
+    result = False
+    state = "ask"
+
+
+    # Generate a problem, store the objects, present to user
+    if 'quiz_type' not in session or session['problem_id'] not in quiz_problems.keys():
+        session.invalidate()
+        problem_id = str(uuid.uuid4())
+        session['quiz_type'] = 'products'
+        session['problem_id'] = problem_id
+        state = "ask"
+        
+        # select a reaction randomly
+        basename = random.choice(cat.get_sorted_basenames())
+        reaction = cat.get_reaction_by_basename(basename)
+        full_name = reaction.full_name
+
+        # prepare instance, cut off products
+        instance = reaction.getInstance()
+        fullImage = draw.renderReactionToBuffer(instance).tostring()
+
+        products = instance.products
+
+        molecule = chem.Molecule()
+        molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
+
+        instance.products = [molecule]
+
+        # Reaction image without products
+        mainImage = draw.renderReactionToBuffer(instance).tostring()
+
+        reactantImages = []
+        for mol in products:
+            image = draw.renderMoleculeToBuffer(mol).tostring()
+            reactantImages.append([image, True])    # indicate that these are correct answers
+
+
+        # Generate wrong answers here, add to reactantImages
+        #
+        #
+
+        random.shuffle(reactantImages)
+
+        quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
+
+        session['basename'] = basename
+        print "Started a quiz (products) session for " + basename + ", id = " + problem_id
+
+    # Depending on request parameters, either
+    #   - continue session, or
+    #   - present the answer to problem and a show a button to get a new problem
+    else:
+        problem_id = session['problem_id']
+        basename = session['basename']
+        quiz_type = session['quiz_type']
+        print "Resuming a quiz (products) session for " + basename + ", id = " + problem_id
+        reaction = cat.get_reaction_by_basename(basename)
+        full_name = reaction.full_name
+
+        if "answer" in request.GET:
+
+            #print "Literally: " + str(request.GET)
+            ans = request.GET["answer"].split(",")
+            #print "Answer given is " + str(ans)
+
+            # Invalidate the session
+            state = "tell"
+            session.invalidate()
+
+            # Check if given answer is correct
+            correctAnswers = []
+            for index in range(0, len(quiz_problems[problem_id][1])):
+                val = quiz_problems[problem_id][1][index][1]
+                if val:
+                    correctAnswers.append(str(index))
+            #print "Correct answer is " + str(set(correctAnswers))
+
+            if set(ans) != set(correctAnswers):
+                message = "Wrong!"
+                result = False
+                #print "Your set: " + str(set(ans))
+                #print "Good set: " + str(set(correctAnswers))
+            else:
+                message = "Correct!"
+                result = True
+
+            # Once user has made a choice, replace cut reaction with a full one
+            
+            quiz_problems[problem_id][0] = quiz_problems[problem_id][2]
+
+    # prepare styles
+    style_t = (
+            "background-image: url('" + request.route_url("home") + "img/q_" + problem_id + "/",
+            ".png');"
+        )
+
+     
+    return {
+            "layout": site_layout(),
+            "basename" : basename,
+            "full_name" : full_name,
+            "problem_id" : problem_id,
+            "indeces" : range(0, len(quiz_problems[problem_id][1])),
+            "style_t" : style_t,
+            "message" : message,
+            "result" : result,
+            "state" : state,
+        }
 
 
 @view_config(route_name='quiz_reaction', renderer='templates/quiz_reaction.pt')

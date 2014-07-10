@@ -115,7 +115,7 @@
       </span>
 
       <div tal:condition="state == 'ask'">
-        <p tal:condition="state == 'ask'" >What should the reactants be? Select those (and only those) molecules that would complete and balance the reaction. You can select and deselect molecules by clicking on them.</p>
+        <p tal:condition="state == 'ask'" >What would the products be? Select those (and only those) molecules that would complete and balance the reaction. You can select and de-select molecules by clicking on them.</p>
 
         <div tal:condition="state == 'ask'" id="molContainer" class="row-fluid">
           <div tal:condition="state == 'ask'" class="span12">
