@@ -12,6 +12,10 @@ requires = [
     'pyramid',
     'pyramid_chameleon',
     'pyramid_debugtoolbar',
+    'pyramid_tm',
+    'SQLAlchemy',
+    'transaction',
+    'zope.sqlalchemy',
     'waitress',
     ]
 
@@ -38,5 +42,7 @@ setup(name='ltefServer',
       entry_points="""\
       [paste.app_factory]
       main = ltefserver:main
+      [console_scripts]
+      initialize_ltefServer_db = ltefserver.scripts.initializedb:main
       """,
       )

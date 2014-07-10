@@ -17,6 +17,20 @@
       }
       }
     </style>
+    <script>
+      // Executed by jQuery when the DOM is ready
+      $( document ).ready(function() {
+        //console.log( "ready!" );
+
+        // Link behaviour
+        //$("#quizbox").hover(function() {
+        //  $("#quizselect").show();
+        //}, function() {
+        //  $("#quizselect").hide();
+        //});
+      });
+
+    </script>
 
     <div class="container-narrow">
 
@@ -34,9 +48,10 @@
       </div>
 
       <div class="row">
-        <div class="span9">
-          <a href="#"><h3>Mix and Match</h3></a>
-          <p>Match reagents with their products</p>
+        <div id="quizbox" class="span9">
+          <a href="${request.route_url('quiz_random')}" title="Click here for an arbitrary unknown"><h3>Complete the reaction</h3></a>
+          <p>Fill-in the missing information about the reaction.</p>
+          <p>You can focus on a specific kind of missing knowledge: <a href="${request.route_url('quiz_reactants')}">Reactants</a>, <a href="${request.route_url('quiz_products')}">Products</a>, or <a href="${request.route_url('quiz_reaction')}">Reaction type</a>.</p>
         </div>
       </div>
 
