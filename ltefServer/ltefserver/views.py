@@ -462,6 +462,7 @@ def quiz_reaction_view(request):
             "message" : message,
             "result" : result,
             "state" : state,
+            "base_to_full" : cat.base_to_full,
         }
 
 
