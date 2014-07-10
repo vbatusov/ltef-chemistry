@@ -123,8 +123,8 @@
 
       <div>
         <form tal:condition="state == 'ask'" action="${request.current_route_url()}">
-          <div class="radio row-fluid" tal:repeat="base sorted(base_to_full.keys())">
-            <label class="span4"><input type="radio" name="choice" tal:attributes="value base"/>${base_to_full[base]}</label>
+          <div tal:condition="state == 'ask'" class="radio row-fluid" tal:repeat="base sorted(base_to_full.keys())">
+            <label tal:condition="state == 'ask'" class="span4"><input tal:condition="state == 'ask'" type="radio" name="choice" tal:attributes="value base"/>${base_to_full[base]}</label>
           </div>
           <button tal:condition="state == 'ask'" id="checkButton" type="submit" class="btn btn-primary btn-outline btn-m">Check</button>
         <form>
