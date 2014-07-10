@@ -16,6 +16,7 @@ def get_indigo():
     indigo.setOption("render-bond-length",50)
     indigo.setOption("render-atom-ids-visible", False)
     indigo.setOption("render-aam-color", 0.5, 0.5, 1.0)
+    
     return (indigo, renderer)
 
 def add_actors_to_ireaction(indigo, actors, func):
@@ -45,8 +46,8 @@ def add_actors_to_ireaction(indigo, actors, func):
 
 
 def renderReactionToBuffer(reaction):
-
     (indigo, renderer) = get_indigo()
+    indigo.setOption("render-image-size", 940, -1)
     # First, re-create the reaction as an Indigo object
     ireaction = indigo.createReaction()
 
@@ -60,6 +61,7 @@ def renderReactionToBuffer(reaction):
 
 def renderMoleculeToBuffer(mol):
     (indigo, renderer) = get_indigo()
+    indigo.setOption("render-image-size", 220, 119)
 
     aam_to_iatom = {}
     imol = indigo.createMolecule()

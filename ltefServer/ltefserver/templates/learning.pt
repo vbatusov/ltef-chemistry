@@ -79,9 +79,9 @@
       <p>Please select a reaction from the list</p>
 
 
-      <div class="row" tal:repeat="reaction reactions">
+      <div class="row" tal:repeat="base sorted(base_to_full.keys())">
         <div class="span9">
-          <p><a tal:content="reaction['name']" tal:attributes="href request.route_url('learning') + '/' + reaction['basename']"></a></p>
+          <p><a tal:content="base_to_full[base]" tal:attributes="href request.route_url('learning') + '/' + base"></a></p>
         </div>
       </div>
 

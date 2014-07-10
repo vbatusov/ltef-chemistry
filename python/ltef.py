@@ -1,7 +1,7 @@
 import argparse
 import rxn
 import pddl
-import draw
+#import draw
 import os.path
 import sys
 import chem

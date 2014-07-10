@@ -1,15 +1,33 @@
+# Basics
 from pyramid.config import Configurator
-
-#from pyramid.httpexceptions import HTTPUnauthorized
 from pyramid.response import Response
 
-#def myviewfunction(request):
-#    return HTTPUnauthorized()
+# Sessions
+from pyramid.session import SignedCookieSessionFactory
+
+# DB
+from sqlalchemy import engine_from_config
+
+from .models import (
+    DBSession,
+    Base,
+    )
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    # Set up DB
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
+
+    # Create config
     config = Configurator(settings=settings)
+
+    # Set up sessions
+    my_session_factory = SignedCookieSessionFactory('itsaseekreet')
+    config.set_session_factory(my_session_factory)
+    
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
 
@@ -19,5 +37,10 @@ def main(global_config, **settings):
     config.add_route('learning', '/tools/learning')
     config.add_route('learning_reaction', '/tools/learning/{basename}')
     config.add_route('img', '/img/{basename}/{what}/{filename}.png')
+    config.add_route('img_by_id', '/img/q_{id}/{which}.png')
+    config.add_route('quiz_random', '/tools/quiz/random')
+    config.add_route('quiz_reactants', '/tools/quiz/reactants')
+    config.add_route('quiz_products', '/tools/quiz/products')
+    config.add_route('quiz_reaction', '/tools/quiz/reaction')
     config.scan()
     return config.make_wsgi_app()
