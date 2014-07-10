@@ -233,12 +233,12 @@ def quiz_reactants_view(request):
             #print "Correct answer is " + str(set(correctAnswers))
 
             if set(ans) != set(correctAnswers):
-                message = "Wrong!"
+                message = "<strong>Wrong!</strong> We should show you your answers here, but we can't yet."
                 result = False
                 #print "Your set: " + str(set(ans))
                 #print "Good set: " + str(set(correctAnswers))
             else:
-                message = "Correct!"
+                message = "<strong>Correct!</strong> You selected what's necessary and nothing else."
                 result = True
 
             # Once user has made a choice, replace cut reaction with a full one
@@ -351,12 +351,12 @@ def quiz_products_view(request):
             #print "Correct answer is " + str(set(correctAnswers))
 
             if set(ans) != set(correctAnswers):
-                message = "Wrong!"
+                message = "<strong>Wrong!</strong> We should show you your answers here, but we can't yet."
                 result = False
                 #print "Your set: " + str(set(ans))
                 #print "Good set: " + str(set(correctAnswers))
             else:
-                message = "Correct!"
+                message = "<strong>Correct!</strong> You selected what's necessary and nothing else."
                 result = True
 
             # Once user has made a choice, replace cut reaction with a full one
@@ -385,7 +385,84 @@ def quiz_products_view(request):
 
 @view_config(route_name='quiz_reaction', renderer='templates/quiz_reaction.pt')
 def quiz_reaction_view(request):
-    return {"layout": site_layout()}
+    global quiz_problems
+    session = request.session
+
+    problem_id = ""
+    basename = ""
+    full_name = ""
+    message = ""
+    result = False
+    state = "ask"
+
+
+    # Generate a problem, store the objects, present to user
+    if 'quiz_type' not in session or session['problem_id'] not in quiz_problems.keys():
+        session.invalidate()
+        problem_id = str(uuid.uuid4())
+        session['quiz_type'] = 'reaction'
+        session['problem_id'] = problem_id
+        state = "ask"
+        
+        # select a reaction randomly
+        basename = random.choice(cat.get_sorted_basenames())
+        reaction = cat.get_reaction_by_basename(basename)
+        full_name = reaction.full_name
+
+        # prepare instance, cut off products
+        instance = reaction.getInstance()
+        mainImage = draw.renderReactionToBuffer(instance).tostring()
+
+        # Generate wrong answers here, add to reactantImages
+        #
+        #
+
+
+        quiz_problems[problem_id] = (mainImage, basename, full_name)
+
+        session['basename'] = "unknown"
+        print "Started a quiz (reaction) session for " + basename + ", id = " + problem_id
+
+    # Depending on request parameters, either
+    #   - continue session, or
+    #   - present the answer to problem and a show a button to get a new problem
+    else:
+        problem_id = session['problem_id']
+        print "Resuming a quiz (reaction) session for " + problem_id
+
+        if "choice" in request.GET:
+
+            print "Literally: " + str(request.GET)
+            ans = request.GET["choice"]
+            print "Answer given is " + str(ans)
+
+            # Invalidate the session
+            state = "tell"
+            session.invalidate()
+
+            # Check if given answer is correct
+            correctAnswer = quiz_problems[problem_id][1]
+
+            print "Correct answer is " + correctAnswer
+
+            if correctAnswer != ans:
+                message = "Wrong! This is actually " + quiz_problems[problem_id][2]
+                result = False
+                #print "Your set: " + str(set(ans))
+                #print "Good set: " + str(set(correctAnswers))
+            else:
+                message = "Correct! This indeed is " + quiz_problems[problem_id][2]
+                result = True
+
+    return {
+            "layout": site_layout(),
+            "basename" : "unknown_reaction",
+            "full_name" : "Unknown Reaction",
+            "problem_id" : problem_id,
+            "message" : message,
+            "result" : result,
+            "state" : state,
+        }
 
 
 @view_config(route_name='synthesis', renderer='templates/synthesis.pt')
