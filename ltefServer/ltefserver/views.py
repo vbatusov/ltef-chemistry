@@ -160,7 +160,7 @@ def quiz_reactants_view(request):
 
 
     # Generate a problem, store the objects, present to user
-    if 'quiz_type' not in session or session['problem_id'] not in quiz_problems.keys():
+    if 'quiz_type' not in session or session['quiz_type'] != 'reactants' or session['problem_id'] not in quiz_problems.keys():
         session.invalidate()
         problem_id = str(uuid.uuid4())
         session['quiz_type'] = 'reactants'
@@ -278,7 +278,7 @@ def quiz_products_view(request):
 
 
     # Generate a problem, store the objects, present to user
-    if 'quiz_type' not in session or session['problem_id'] not in quiz_problems.keys():
+    if 'quiz_type' not in session or session['quiz_type'] != 'products' or session['problem_id'] not in quiz_problems.keys():
         session.invalidate()
         problem_id = str(uuid.uuid4())
         session['quiz_type'] = 'products'
@@ -397,7 +397,7 @@ def quiz_reaction_view(request):
 
 
     # Generate a problem, store the objects, present to user
-    if 'quiz_type' not in session or session['problem_id'] not in quiz_problems.keys():
+    if 'quiz_type' not in session or session['quiz_type'] != 'reaction' or session['problem_id'] not in quiz_problems.keys():
         session.invalidate()
         problem_id = str(uuid.uuid4())
         session['quiz_type'] = 'reaction'
