@@ -204,9 +204,11 @@ def getDomain(reaction):
 
                 if bondMatrixBefore[x][y] is not None:  # There is a bond that disappears
                     effects.append("(not (" + get_bond_name_from_order(bondMatrixBefore[x][y].order) + " ?" + atomName1 + " ?" + atomName2 + "))")
+                    effects.append("(not (" + get_bond_name_from_order(bondMatrixBefore[x][y].order) + " ?" + atomName2 + " ?" + atomName1 + "))")
 
                 if bondMatrixAfter[x][y] is not None:  # There is a bond that is created
                     effects.append("(" + get_bond_name_from_order(bondMatrixAfter[x][y].order) + " ?" + atomName1 + " ?" + atomName2 + ")")
+                    effects.append("(" + get_bond_name_from_order(bondMatrixAfter[x][y].order) + " ?" + atomName2 + " ?" + atomName1 + ")")
 
 
     # Derive a list of parameter inequalities
