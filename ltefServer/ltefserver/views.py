@@ -47,7 +47,7 @@ def home_view(request):
 
 @view_config(route_name='tools', renderer='templates/tools.pt')
 def tools_view(request):
-    return {"layout": site_layout()}
+    return {"layout" : site_layout(), "base_to_full" : cat.base_to_full}
 
 
 @view_config(route_name='learning', renderer='templates/learning.pt')
@@ -140,10 +140,10 @@ def img_by_id_view(request):
     return response
 
 
-@view_config(route_name='quiz_random')
-def quiz_random_view(request):
-    subreq = Request.blank(random.choice(['/tools/quiz/reactants', '/tools/quiz/products'])) #, '/tools/quiz/reaction']))
-    return request.invoke_subrequest(subreq)
+# @view_config(route_name='quiz_random')
+# def quiz_random_view(request):
+#     subreq = Request.blank(random.choice(['/tools/quiz/reactants', '/tools/quiz/products'])) #, '/tools/quiz/reaction']))
+#     return request.invoke_subrequest(subreq)
 
 
 @view_config(route_name='quiz_reactants', renderer='templates/quiz_reactants.pt')
@@ -151,6 +151,7 @@ def quiz_reactants_view(request):
     global quiz_problems
     session = request.session
 
+    mode = request.matchdict["basename"]
     problem_id = ""
     basename = ""
     full_name = ""
@@ -168,7 +169,10 @@ def quiz_reactants_view(request):
         state = "ask"
         
         # select a reaction randomly
-        basename = random.choice(cat.get_sorted_basenames())
+        if mode == "random":
+            basename = random.choice(cat.get_sorted_basenames())
+        else:
+            basename = mode
         reaction = cat.get_reaction_by_basename(basename)
         full_name = reaction.full_name
 
@@ -233,12 +237,12 @@ def quiz_reactants_view(request):
             #print "Correct answer is " + str(set(correctAnswers))
 
             if set(ans) != set(correctAnswers):
-                message = "<strong>Wrong!</strong> We should show you your answers here, but we can't yet."
+                message = "Wrong!"
                 result = False
                 #print "Your set: " + str(set(ans))
                 #print "Good set: " + str(set(correctAnswers))
             else:
-                message = "<strong>Correct!</strong> You selected what's necessary and nothing else."
+                message = "Correct! You selected what's necessary and nothing else."
                 result = True
 
             # Once user has made a choice, replace cut reaction with a full one
@@ -269,6 +273,8 @@ def quiz_products_view(request):
     global quiz_problems
     session = request.session
 
+    mode = request.matchdict["basename"]
+    #print "Mode: " + mode
     problem_id = ""
     basename = ""
     full_name = ""
@@ -286,7 +292,10 @@ def quiz_products_view(request):
         state = "ask"
         
         # select a reaction randomly
-        basename = random.choice(cat.get_sorted_basenames())
+        if mode == "random":
+            basename = random.choice(cat.get_sorted_basenames())
+        else:
+            basename = mode
         reaction = cat.get_reaction_by_basename(basename)
         full_name = reaction.full_name
 
@@ -351,12 +360,12 @@ def quiz_products_view(request):
             #print "Correct answer is " + str(set(correctAnswers))
 
             if set(ans) != set(correctAnswers):
-                message = "<strong>Wrong!</strong> We should show you your answers here, but we can't yet."
+                message = "Wrong!"
                 result = False
                 #print "Your set: " + str(set(ans))
                 #print "Good set: " + str(set(correctAnswers))
             else:
-                message = "<strong>Correct!</strong> You selected what's necessary and nothing else."
+                message = "Correct! You selected what's necessary and nothing else."
                 result = True
 
             # Once user has made a choice, replace cut reaction with a full one

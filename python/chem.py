@@ -689,3 +689,75 @@ ATOM_NAMES = {
 LIST_TRANSLATION = {
         "C" : "Methyl",
     }
+
+def getSubmolecule(mol, size):
+    """
+    Returns a submolecule of mol. Size of submolecule is parametrized. If there are not
+    enough molecules, returns the largest submolecule by stripping one atom from mol.
+    """
+    if size >= len(mol.atoms):
+        size = len(mol.atoms) - 1
+
+    startMol = copy.deepcopy(mol)
+
+    # start atom must be a leaf
+    startAtom = None
+    foundAnotherBondToIt = True
+    while foundAnotherBondToIt:
+        bond = random.choice(startMol.bonds)
+        startAtom = random.choice([bond.toAtom, bond.fromAtom])
+        # for all other bonds in molecule...
+        foundAnotherBondToIt = False
+        for b in startMol.bonds:
+            if b is not bond and (b.toAtom is atom or b.fromAtom is atom):
+                foundAnotherBondToIt = True
+                break
+
+    random.choice(tmpMol.atoms)
+    endMol = Molecule()
+
+    return getSubmRec(startMol, startAtom, size, endMol)
+
+def getSubmRec(mol, atom, size, latestMol):
+    if size == len(latestMol.atoms):
+        return latestMol
+    else:
+        # find the outgoing bond
+        for bond in mol.bonds:            
+            if bond.fromAtom == atom and bond.toAtom not in latestMol.atoms:
+                # store bond and atom it leads to, repeat for the latter
+                latestMol.atoms.append(bond.toAtom)
+                latestMol.bonds.append(bond)
+                return getSubmRec(mol, bond.toAtom, size, latestMol)
+
+            elif bond.toAtom == atom and bond.fromAtom not in latestMol.atoms:
+                latestMol.atoms.append(bond.fromAtom)
+                latestMol.bonds.append(bond)
+                latest
+                return getSubmRec(mol, bond.fromAtom, size, latestMol)
+
+def mutate_cross(mol1, mol2):
+
+    pass
+
+def mutateMolecules(molecules, number=0):
+    """
+    This shall take a list of molecules and return a new list of new molecules
+    derived from the original ones. Also takes the length of the return list as a parameter.
+    """
+
+    result = []
+
+    # By default, return as many as given
+    if number == 0:
+        number = len(molecules)
+
+    for i in range(0, number):
+
+
+        mol1 = copy.deepcopy(random.choice(molecules))
+        mol2 = copy.deepcopy(random.choice(molecules))
+
+
+
+    return result
