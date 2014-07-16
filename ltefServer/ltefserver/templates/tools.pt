@@ -1,69 +1,150 @@
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">
         
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-        padding-bottom: 40px;
-      }
+      <style>
+        body {
+          padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+          padding-bottom: 40px;
+        }
 
-      /* Custom container */
-      .container-narrow {
-        margin: 0 auto;
-        max-width: 700px;
-      }
-      .container-narrow > hr {
-        margin: 30px 0;
-      }
-      }
-    </style>
-    <script>
-      // Executed by jQuery when the DOM is ready
-      $( document ).ready(function() {
-        //console.log( "ready!" );
+        /* Custom container */
+        .container-narrow {
+          margin: 0 auto;
+          max-width: 700px;
+        }
+        .container-narrow > hr {
+          margin: 30px 0;
+        }
+        
+        .comment{
+          display: none;
+        }
+      </style>
+      <script>
+        // Executed by jQuery when the DOM is ready
+        $( document ).ready(function() {
+          //console.log( "ready!" );
 
-        // Link behaviour
-        //$("#quizbox").hover(function() {
-        //  $("#quizselect").show();
-        //}, function() {
-        //  $("#quizselect").hide();
-        //});
-      });
+          $(".comment").hide();
+          $(".reac").show();
+          $(".rsel").show();
 
-    </script>
+          $('#btnQuiz').click(function() {
 
-    <div class="container-narrow">
+            var path = '';
 
-      <h1>LTEF Chemistry Tools</h1>
-      <p>Please select a tool. None of them are actually implemented, but some will be, eventually.</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            if($('input:radio[name="quizType"]:checked').val()=="reactants"){
+                path = "${request.route_url('quiz_reactants', basename='')}" + $('#reacSelector').find(":selected").val();              
+            }
+            else if($('input:radio[name="quizType"]:checked').val()=="products"){
+                path = "${request.route_url('quiz_products', basename='')}" + $('#reacSelector').find(":selected").val();
+            }
+            else if($('input:radio[name="quizType"]:checked').val()=="reaction"){
+                path = "${request.route_url('quiz_reaction')}";
+            }
 
-      
+            $('#frmQuiz').attr('action', path);
+            $('#frmQuiz').submit();
 
-      <div class="row">
-        <div class="span9">
-          <a href="${request.route_url('learning')}"><h3>Learning by example</h3></a>
-          <p>Browse through arbitrary instances of reactions</p>
+          });
+
+          $('input[name="quizType"]').click(function(){
+            if($(this).attr("value")=="reactants"){
+                $(".comment").hide();
+                $(".reac").show();
+                $(".rsel").show();
+            }
+            if($(this).attr("value")=="products"){
+                $(".comment").hide();
+                $(".prod").show();
+                $(".rsel").show();
+            }
+            if($(this).attr("value")=="reaction"){
+                $(".comment").hide();
+                $(".rname").show();
+            }
+          });
+        });
+
+      </script>
+
+      <div class="container-narrow">
+
+        <h1>LTEF Chemistry Tools</h1>
+        <p>Please select a tool. "Learning by example" and "Complete the reaction" are nearing completion; "Multistep synthesis" is very non-trivial and should be expected by the end of year.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+
+        <div class="row">
+          <div class="span9">
+            <a href="${request.route_url('learning')}"><h3>Learning by example</h3></a>
+            <p>Browse through arbitrary instances of reactions</p>
+          </div>
         </div>
-      </div>
 
-      <div class="row">
-        <div id="quizbox" class="span9">
-          <a href="${request.route_url('quiz_random')}" title="Click here for an arbitrary unknown"><h3>Complete the reaction</h3></a>
-          <p>Fill-in the missing information about the reaction.</p>
-          <p>You can focus on a specific kind of missing knowledge: <a href="${request.route_url('quiz_reactants')}">Reactants</a>, <a href="${request.route_url('quiz_products')}">Products</a>, or <a href="${request.route_url('quiz_reaction')}">Reaction type</a>.</p>
+        <div class="row">
+          <div id="quizbox" class="span9">
+            <a href="#myModal" role="button" data-toggle="modal"><h3>Complete the reaction</h3></a>
+            <p>Fill-in the missing information about the reaction and get immediate feedback.</p>
+          </div>
         </div>
-      </div>
 
-      <div class="row">
-        <div class="span9">
-          <a href="${request.route_url('synthesis')}"><h3>Multistep Synthesis</h3></a>
-          <p>Design a synthesis with multiple reactions and get immediate feedback.</p>
+        <div class="row">
+          <div class="span9">
+            <a href="${request.route_url('synthesis')}"><h3>Multistep Synthesis</h3></a>
+            <p>(in development) Design a synthesis with multiple reactions and get immediate feedback.</p>
+          </div>
         </div>
-      </div>
-
-
-    </div> 
+      </div> 
 
     </div>
+</div>
+
+
+<div id="myModal" class="modal hide" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">What is the quiz about?</h3>
+  </div>
+  <div class="modal-body">
+    <form id="frmQuiz" role="form" method="GET" class="form-horizontal">
+    <div class="control-group">
+      <label class="radio inline">
+        <input type="radio" name="quizType" value="reactants" checked>
+        Reactants
+      </label>
+      <label class="radio inline">
+        <input type="radio" name="quizType" value="products">
+        Products
+      </label>
+      <label class="radio inline">
+        <input type="radio" name="quizType" value="reaction">
+        Reaction Name
+      </label>
+    </div>
+
+    <div id="tab1" class="comment reac">
+      <p>Reactants are unknown. You need to fill them in.</p>
+    </div>
+    <div id="tab2" class="comment prod">
+      <p>Products are unknown. You need to fill them in.</p>
+    </div>
+    <div id="tab3" class="comment rname">
+      <p>You are given a complete reaction. You need to identify it.</p>
+    </div>
+    <div id="tabReaction" class="comment rsel">
+      <label class="inline">
+      Select a reaction:
+      <select class="form-control" name="reacSelector" id="reacSelector" style="width: 370px;">
+        <option value="random">[Random]</option>
+        <option tal:repeat="base sorted(base_to_full.keys())" tal:content="base_to_full[base]" tal:attributes="value base">Reaction name</option>
+      </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    <button class="btn btn-primary" id="btnQuiz">OK</button>
+  </div>
+  
 </div>
