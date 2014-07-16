@@ -94,6 +94,14 @@
             <p>(in development) Design a synthesis with multiple reactions and get immediate feedback.</p>
           </div>
         </div>
+
+        <div class="row">
+          <div class="span9">
+            <a href="${request.route_url('synthesis')}"><h3>Add new reaction</h3></a>
+            <p>(in development) Add a new reaction to the knowledge base. After review, it will be appear in all other tools.</p>
+          </div>
+        </div>
+
       </div> 
 
     </div>
