@@ -97,7 +97,7 @@
 
         <div class="row">
           <div class="span9">
-            <a href="${request.route_url('synthesis')}"><h3>Add new reaction</h3></a>
+            <a href="${request.route_url('addreaction')}"><h3>Add new reaction</h3></a>
             <p>(in development) Add a new reaction to the knowledge base. After review, it will be appear in all other tools.</p>
           </div>
         </div>

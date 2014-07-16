@@ -480,6 +480,10 @@ def quiz_reaction_view(request):
 def synthesis_view(request):
     return {"layout": site_layout()}
 
+@view_config(route_name='addreaction', renderer='templates/addreaction.pt')
+def addreaction_view(request):
+    return {"layout": site_layout()}
+
 
 @view_config(route_name='about', renderer='templates/about.pt')
 def about_view(request):
