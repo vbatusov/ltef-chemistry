@@ -42,3 +42,4 @@ Thumbs.db
 python/*_out
 ltefServer/ltefServer.egg-info
 ltefServer/indigo-python-1.1.12
+ltefServer/contact.txt

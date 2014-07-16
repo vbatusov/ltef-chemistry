@@ -85,11 +85,16 @@
 
 
     <div class="container">
-
-      <h1>Multistep Synthesis</h1>
-      <p>This tool in not functional yet. When it is, you will be able to draw, type in, or otherwise input a set of reactants and a desired product. We will then try to find a multi-step synthesis that yields the desired product from the given reactants. This task is computationally non-trivial and we are currently conducting experiments to find the best way to do it.</p>
-      <p>Once implemented, this functionality will allow us to create quizzes that involve multistep synthesis. The essential benefit over existing systems would be that the path the synthesis takes is not hard-coded and is limited only by the ever-expanding chemical knowledge of our expert system.</p>
-
-    </div> <!-- /container -->
+      <h1>About</h1>
+      <p>This project is developed by the <a href="http://www.ryerson.ca">Ryerson University</a> <a href="http://scs.ryerson.ca/">Computer Science Department</a> under the LTEF grant from the <a href="http://www.ryerson.ca/lt">Learning and Teaching office</a>.</p>
+      <h3>People</h3>
+      <p>Vitaliy Batusov - lead developer</p>
+      <p>Dr. Mikhail Soutchanski - idea, requirements specification</p>
+      <p>Dr. Andrew McWilliams - requirements specification</p>
+      <h3>Technology</h3>
+      <p>The back-end logic is developed in Python. The website is served by <a href="http://www.pylonsproject.org/projects/pyramid/about">Pyramid</a>. The source code for the project is open and available as a <a href="https://github.com/vbatusov/ltef-chemistry">GitHub repository</a>.</p>
+      <p><a href="http://ggasoftware.com">GGA Software</a> - chemical object rendering via <a href="http://ggasoftware.com/opensource/indigo">Indigo Toolkit</a></p>
+      <p><a href="http://www.chemaxon.com">ChemAxon</a> - initial reaction descriptions</p>
+    </div>
   </div>
 </div>

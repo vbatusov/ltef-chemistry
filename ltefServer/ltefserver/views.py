@@ -15,6 +15,7 @@ import sys
 import random
 import uuid
 import base64
+import datetime
 sys.path.append('../python')
 sys.path.append('./indigo-python-1.1.12')
 import rxn
@@ -479,6 +480,26 @@ def quiz_reaction_view(request):
 def synthesis_view(request):
     return {"layout": site_layout()}
 
+
+@view_config(route_name='about', renderer='templates/about.pt')
+def about_view(request):
+    return {"layout": site_layout()}
+
+
+@view_config(route_name='contact', renderer='templates/contact.pt')
+def contact_view(request):
+    state = "new form"
+    if "txtComment" in request.POST:
+        #print request.POST["txtComment"]
+        state = "sent"        
+        with open("contact.txt", "a") as myfile:
+            myfile.write(str(datetime.datetime.now()) + "\n")
+            myfile.write("-------MESSAGE--------\n")
+            myfile.write(request.POST["txtComment"] + "\n")
+            myfile.write("----END OF MESSAGE----\n\n")
+
+
+    return {"layout": site_layout(), "state" : state}
 
 
 # def my_view(request):

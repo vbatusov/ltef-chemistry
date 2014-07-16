@@ -86,10 +86,16 @@
 
     <div class="container">
 
-      <h1>Multistep Synthesis</h1>
-      <p>This tool in not functional yet. When it is, you will be able to draw, type in, or otherwise input a set of reactants and a desired product. We will then try to find a multi-step synthesis that yields the desired product from the given reactants. This task is computationally non-trivial and we are currently conducting experiments to find the best way to do it.</p>
-      <p>Once implemented, this functionality will allow us to create quizzes that involve multistep synthesis. The essential benefit over existing systems would be that the path the synthesis takes is not hard-coded and is limited only by the ever-expanding chemical knowledge of our expert system.</p>
+      <h1>Contact Us</h1>
 
+      <form method="POST" action="${request.current_route_url()}" tal:condition="state != 'sent'">
+        <p>You can use this form to send us a message.</p>
+        <div>
+          <textarea name="txtComment" rows="7" cols="80" class="span10"></textarea>
+        </div>
+        <button id="btnSubmit" type="submit" class="btn btn-primary btn-outline btn-m">Send</button>
+      </form>
+      <div tal:condition="state == 'sent'" class="alert alert-info">Your message has been sent.</div>
     </div> <!-- /container -->
   </div>
 </div>
