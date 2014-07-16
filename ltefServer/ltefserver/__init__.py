@@ -34,6 +34,7 @@ def main(global_config, **settings):
     config.add_route('home', '/')
     config.add_route('tools', '/tools')
     config.add_route('synthesis', '/tools/synthesis')
+    config.add_route('addreaction', '/tools/addreaction')
     config.add_route('about', '/about')
     config.add_route('contact', '/contact')
     config.add_route('learning', '/tools/learning')
