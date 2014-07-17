@@ -198,8 +198,9 @@ def quiz_reactants_view(request):
 
 
         # Generate wrong answers here, add to reactantImages
-        #
-        #
+        for mol in chem.mutateMolecules(reactants):
+            image = draw.renderMoleculeToBuffer(mol).tostring()
+            reactantImages.append([image, False])    # indicate that these are wrong answers
 
         random.shuffle(reactantImages)
 
@@ -321,8 +322,9 @@ def quiz_products_view(request):
 
 
         # Generate wrong answers here, add to reactantImages
-        #
-        #
+        for mol in chem.mutateMolecules(products):
+            image = draw.renderMoleculeToBuffer(mol).tostring()
+            reactantImages.append([image, False])    # indicate that these are wrong answers
 
         random.shuffle(reactantImages)
 
