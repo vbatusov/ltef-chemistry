@@ -73,6 +73,20 @@ class Molecule:
         desc += "\n</Molecule>"
         return desc
 
+    def inferAtomsFromBonds(self):
+        """
+        discards self.atomList, replaces it with an array of atoms gathered from bonds
+        """
+        self.atomList = []
+        #print "Recomputing atoms"
+        for b in self.bondList:
+            if b.toAtom not in self.atomList:
+                self.atomList.append(b.toAtom)
+                #print "Adding atom with aam " + str(b.toAtom.aam)
+            if b.fromAtom not in self.atomList:
+                self.atomList.append(b.fromAtom)
+                #print "Adding atom with aam " + str(b.fromAtom.aam)
+
     @property
     def numberOfAtoms(self):
         return len(self.atomList)
@@ -690,51 +704,51 @@ LIST_TRANSLATION = {
         "C" : "Methyl",
     }
 
-def getSubmolecule(mol, size):
-    """
-    Returns a submolecule of mol. Size of submolecule is parametrized. If there are not
-    enough molecules, returns the largest submolecule by stripping one atom from mol.
-    """
-    if size >= len(mol.atoms):
-        size = len(mol.atoms) - 1
+# def getSubmolecule(mol, size):
+#     """
+#     Returns a submolecule of mol. Size of submolecule is parametrized. If there are not
+#     enough molecules, returns the largest submolecule by stripping one atom from mol.
+#     """
+#     if size >= len(mol.atoms):
+#         size = len(mol.atoms) - 1
 
-    startMol = copy.deepcopy(mol)
+#     startMol = copy.deepcopy(mol)
 
-    # start atom must be a leaf
-    startAtom = None
-    foundAnotherBondToIt = True
-    while foundAnotherBondToIt:
-        bond = random.choice(startMol.bonds)
-        startAtom = random.choice([bond.toAtom, bond.fromAtom])
-        # for all other bonds in molecule...
-        foundAnotherBondToIt = False
-        for b in startMol.bonds:
-            if b is not bond and (b.toAtom is atom or b.fromAtom is atom):
-                foundAnotherBondToIt = True
-                break
+#     # start atom must be a leaf
+#     startAtom = None
+#     foundAnotherBondToIt = True
+#     while foundAnotherBondToIt:
+#         bond = random.choice(startMol.bonds)
+#         startAtom = random.choice([bond.toAtom, bond.fromAtom])
+#         # for all other bonds in molecule...
+#         foundAnotherBondToIt = False
+#         for b in startMol.bonds:
+#             if b is not bond and (b.toAtom is atom or b.fromAtom is atom):
+#                 foundAnotherBondToIt = True
+#                 break
 
-    random.choice(tmpMol.atoms)
-    endMol = Molecule()
+#     random.choice(tmpMol.atoms)
+#     endMol = Molecule()
 
-    return getSubmRec(startMol, startAtom, size, endMol)
+#     return getSubmRec(startMol, startAtom, size, endMol)
 
-def getSubmRec(mol, atom, size, latestMol):
-    if size == len(latestMol.atoms):
-        return latestMol
-    else:
-        # find the outgoing bond
-        for bond in mol.bonds:            
-            if bond.fromAtom == atom and bond.toAtom not in latestMol.atoms:
-                # store bond and atom it leads to, repeat for the latter
-                latestMol.atoms.append(bond.toAtom)
-                latestMol.bonds.append(bond)
-                return getSubmRec(mol, bond.toAtom, size, latestMol)
+# def getSubmRec(mol, atom, size, latestMol):
+#     if size == len(latestMol.atoms):
+#         return latestMol
+#     else:
+#         # find the outgoing bond
+#         for bond in mol.bonds:            
+#             if bond.fromAtom == atom and bond.toAtom not in latestMol.atoms:
+#                 # store bond and atom it leads to, repeat for the latter
+#                 latestMol.atoms.append(bond.toAtom)
+#                 latestMol.bonds.append(bond)
+#                 return getSubmRec(mol, bond.toAtom, size, latestMol)
 
-            elif bond.toAtom == atom and bond.fromAtom not in latestMol.atoms:
-                latestMol.atoms.append(bond.fromAtom)
-                latestMol.bonds.append(bond)
-                latest
-                return getSubmRec(mol, bond.fromAtom, size, latestMol)
+#             elif bond.toAtom == atom and bond.fromAtom not in latestMol.atoms:
+#                 latestMol.atoms.append(bond.fromAtom)
+#                 latestMol.bonds.append(bond)
+#                 latest
+#                 return getSubmRec(mol, bond.fromAtom, size, latestMol)
 
 def mutate_cross(mol1, mol2):
 
@@ -746,6 +760,12 @@ def mutateMolecules(molecules, number=0):
     derived from the original ones. Also takes the length of the return list as a parameter.
     """
 
+    # Ideas:
+    # 1. Take one molecule, break an arbitrary bond and put hydrogens on both ends, yielding two molecules
+    # 2. Take two molecules, find a hydrogen in both, remove them, connect two molecules into one
+    # 3. Take one molecule, find two bonds, swap fragments at end of each bond (requires structure recognition)
+    # 4. Take two molecules, pick a bond in each, swap fragments
+
     result = []
 
     # By default, return as many as given
@@ -754,10 +774,37 @@ def mutateMolecules(molecules, number=0):
 
     for i in range(0, number):
 
-
+        # 4
         mol1 = copy.deepcopy(random.choice(molecules))
         mol2 = copy.deepcopy(random.choice(molecules))
+        random.shuffle(mol1.bondList)
+        random.shuffle(mol2.bondList)
+        b1 = None
+        b2 = None
+        order = random.choice([1,2])
+        for b in mol1.bondList:
+            if b.order == order:
+                b1 = b
+                break
+        for b in mol2.bondList:
+            if b.order == order:
+                b2 = b
+                break
+        if b1 is None or b2 is None:
+            continue
+        # swap fragments
+        tmp = b1.fromAtom
+        b1.fromAtom = b2.fromAtom
+        b2.fromAtom = tmp
 
+        # put atoms in order in each molecule
+        mol1.inferAtomsFromBonds()
+        mol2.inferAtomsFromBonds()
 
+        print "Added two bastards:"
+        print str(mol1)
+        print str(mol2)
+        result.append(mol1)
+        result.append(mol2) # Note: this loop will yield twice as many molecules as given
 
-    return result
+    return result[:number] # cut off the excess; inefficient
