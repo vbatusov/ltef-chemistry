@@ -86,6 +86,12 @@ class Molecule:
             if b.fromAtom not in self.atomList:
                 self.atomList.append(b.fromAtom)
                 #print "Adding atom with aam " + str(b.fromAtom.aam)
+    def isDiatomicHalogen(self):
+        if (len(self.bondList) == 1 and len(self.atomList) == 2 and 
+                self.atomList[0].symbol == "X" and self.atomList[1].symbol == "X"):
+            #print "This molecule is a diatomic halogen: " + str(self)
+            return True
+        return False
 
     @property
     def numberOfAtoms(self):
@@ -366,34 +372,47 @@ class Reaction:
         # Now, unwrap the pseudoatoms.
         # In each reactant and agent, for each pseudoatom, generate a fragment
         # and substitute with it every occurence of the pseudoatom in the products.
+        # Keep a lookout for diatomic halogens!
         #print "........Unwrapping pseudoatoms.........."
         fragmentsPseudo = {}
         for molecule in reactionInst.reactants + reactionInst.agents:
-            for atom in molecule.atomList:
-                #print "Looking at atom " + atom.symbol
 
-                # If atom's symbol is an RXN string list, select one symbol arbitrarily
-                atomSymbols = pseudoatomToList(atom.symbol)    # Is this a list atom?
-                #print "  result of unwrapping: " + str(atomSymbols)
-                if len(atomSymbols) > 1:
-                    symbol_tmp = random.choice(atomSymbols)
-                    #print "  selected " + symbol_tmp + " out of " + str(atomSymbols)
-                    if symbol_tmp in LIST_TRANSLATION.keys():
-                        atom.symbol = LIST_TRANSLATION[symbol_tmp]
+            # Special case #1
+            if molecule.isDiatomicHalogen():
+                atom1 = molecule.atomList[0]
+                atom2 = molecule.atomList[1]
+                frag1 = getInstanceByName(atom1)  # standard way
+                frag2 = buildHalogen(atom2.aam, {"symbol" : [frag1.anchor.symbol] })  # enforce same chemical element
+                fragmentsPseudo[str(atom1.aam)] = frag1
+                fragmentsPseudo[str(atom2.aam)] = frag2
+
+            # General case
+            else:
+                for atom in molecule.atomList:
+                    #print "Looking at atom " + atom.symbol
+
+                    # If atom's symbol is an RXN string list, select one symbol arbitrarily
+                    atomSymbols = pseudoatomToList(atom.symbol)    # Is this a list atom?
+                    #print "  result of unwrapping: " + str(atomSymbols)
+                    if len(atomSymbols) > 1:
+                        symbol_tmp = random.choice(atomSymbols)
+                        #print "  selected " + symbol_tmp + " out of " + str(atomSymbols)
+                        if symbol_tmp in LIST_TRANSLATION.keys():
+                            atom.symbol = LIST_TRANSLATION[symbol_tmp]
+                        else:
+                            atom.symbol = symbol_tmp
+                        #print "Set atom.symbol to " + atom.symbol
+
+                    # If atom's symbol is in pseudo, generate an actual fragment
+                    if sanitize_symbol(atom.symbol) in PSEUDO.keys():
+                        #print "A pseudoatom is found! " + sanitize_symbol(atom.symbol)
+                        fragmentsPseudo[str(atom.aam)] = getInstanceByName(atom)
                     else:
-                        atom.symbol = symbol_tmp
-                    #print "Set atom.symbol to " + atom.symbol
-
-                # If atom's symbol is in pseudo, generate an actual fragment
-                if sanitize_symbol(atom.symbol) in PSEUDO.keys():
-                    #print "A pseudoatom is found! " + sanitize_symbol(atom.symbol)
-                    fragmentsPseudo[str(atom.aam)] = getInstanceByName(atom)
-                else:
-                    #print "Not a pseudoatom, make a singleton molecule"
-                    molecule = Molecule()
-                    molecule.addAtom(atom)
-                    molecule.anchor = atom
-                    fragmentsPseudo[str(atom.aam)] = molecule
+                        #print "Not a pseudoatom, make a singleton molecule"
+                        molecule = Molecule()
+                        molecule.addAtom(atom)
+                        molecule.anchor = atom
+                        fragmentsPseudo[str(atom.aam)] = molecule
 
 
 
@@ -444,13 +463,15 @@ def getInstanceByName(atom):
 
     return build_function(anchor_aam, args)
 
-def buildMethyl(anchorAAM, args):
-    return buildAlkyl(anchorAAM, {"size" : 1})
+#def buildMethyl(anchorAAM, args):
+#    return buildAlkyl(anchorAAM, {"size" : [1]})
 
 def buildAlkyl(anchorAAM, args):
     """ Must return a molecule whose anchor is not None """
 
-    size = int(args["size"])
+    # args["size"] is a list of integers
+    # must select a size arbitrarily from list
+    size = int(random.choice(args["size"]))
 
     if size < 1:
         raise Exception("Alkyl size cannot be less than one!")
@@ -507,10 +528,11 @@ def splitThreeWays(number):
 
 
 def buildHalogen(anchorAAM, args):
-    halogens = ["F", "Cl", "Br", "I"]
+    #print "Invoked buildHalogen with args = " + str(args)
+    symbol = random.choice(args["symbol"])
 
     molecule = Molecule()
-    root = Atom(random.choice(halogens), 0, 0, 0, 0, 0)
+    root = Atom(symbol, 0, 0, 0, 0, 0)
     root.aam = anchorAAM
     molecule.addAtom(root)
     molecule.anchor = root
@@ -607,10 +629,11 @@ def buildWater(anchorAAM, args):
 PSEUDO = {
         "alkyl" : (
                 buildAlkyl,     # function that builds it
-                { "size" : 2 }     # arguments the function takes
+                { "size" : [1,2,3,4] }     # arguments the function takes
             ), 
         "halogen" : (buildHalogen, {}), 
-        "methyl" : (buildMethyl, {}),
+        #"methyl" : (buildMethyl, {}),
+        "methyl" : (buildAlkyl, { "size" : [1] }),
         "lindlarscatalyst" : (buildLindlarsCatalyst, {}),
         "tso-" : (buildTosylate, {}),
         "nh3" : (buildAmmonia, {}),
@@ -618,7 +641,7 @@ PSEUDO = {
         "h2o" : (buildWater, {}),
         "roh" : (buildROH, {}),
         "br-" : (buildBromineAnion, {}),
-        "x" : (buildHalogen, {}),
+        "x" : (buildHalogen, { "symbol" : ["F", "Cl", "Br", "I"] }),
     }
 
 ATOM_NAMES = {
