@@ -15,7 +15,7 @@ def get_indigo():
     indigo.setOption("render-coloring", True)
     indigo.setOption("render-bond-length",50)
     indigo.setOption("render-atom-ids-visible", False)
-    indigo.setOption("render-aam-color", 0.5, 0.5, 1.0)
+    #indigo.setOption("render-aam-color", 0.5, 0.5, 1.0)
     
     return (indigo, renderer)
 
