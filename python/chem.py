@@ -140,6 +140,9 @@ class Molecule:
             if atom.symbol in rgroups.keys():
                 #print "An R-group is found! Replacing it with a sub-molecule..."
                 newmol.replaceAtomWithMolecule(atom, rgroups[atom.symbol])
+
+        #print "molecule.getInstance: ORIGINAL\n" + str(self)
+        #print "molecule.getInstance: RESULT\n" + str(newmol)
             
         return newmol
 
@@ -341,7 +344,8 @@ class Reaction:
         """
 
         # DEBUG
-        #print "Building a reaction instance..."
+        #print "Building a reaction instance...\n"
+        #print "Generic / source:\n" + str(self)
 
         # This will be returned 
         reactionInst = Reaction(self.name + "_instance")
@@ -373,8 +377,8 @@ class Reaction:
         # In each reactant and agent, for each pseudoatom, generate a fragment
         # and substitute with it every occurence of the pseudoatom in the products.
         # Keep a lookout for diatomic halogens!
-        #print "........Unwrapping pseudoatoms.........."
         fragmentsPseudo = {}
+
         for molecule in reactionInst.reactants + reactionInst.agents:
 
             # Special case #1
@@ -389,31 +393,35 @@ class Reaction:
             # General case
             else:
                 for atom in molecule.atomList:
-                    #print "Looking at atom " + atom.symbol
+
+                    # Indicates that the atom is a list pseudoatom
+                    listPseudo = False
 
                     # If atom's symbol is an RXN string list, select one symbol arbitrarily
                     atomSymbols = pseudoatomToList(atom.symbol)    # Is this a list atom?
-                    #print "  result of unwrapping: " + str(atomSymbols)
+
                     if len(atomSymbols) > 1:
+
+                        listPseudo = True
                         symbol_tmp = random.choice(atomSymbols)
-                        #print "  selected " + symbol_tmp + " out of " + str(atomSymbols)
+
+                        # Rename the atom according to the choice and list translation rules
                         if symbol_tmp in LIST_TRANSLATION.keys():
                             atom.symbol = LIST_TRANSLATION[symbol_tmp]
                         else:
                             atom.symbol = symbol_tmp
-                        #print "Set atom.symbol to " + atom.symbol
 
                     # If atom's symbol is in pseudo, generate an actual fragment
                     if sanitize_symbol(atom.symbol) in PSEUDO.keys():
                         #print "A pseudoatom is found! " + sanitize_symbol(atom.symbol)
                         fragmentsPseudo[str(atom.aam)] = getInstanceByName(atom)
-                    else:
-                        #print "Not a pseudoatom, make a singleton molecule"
+
+                    # If atom is not real pseudo, but was obtained from a list, still store it as a fragment
+                    elif listPseudo:
                         molecule = Molecule()
                         molecule.addAtom(atom)
                         molecule.anchor = atom
                         fragmentsPseudo[str(atom.aam)] = molecule
-
 
 
 
@@ -431,6 +439,10 @@ class Reaction:
             for atom in molecule.atomList:
                 if str(atom.aam) in fragmentsPseudo.keys():
                     molecule.replaceAtomWithMolecule(atom, fragmentsPseudo[str(atom.aam)])
+
+        #print "Instance: \n" + str(reactionInst)
+
+        reactionInst.finalize()
 
         return reactionInst
 
@@ -629,7 +641,7 @@ def buildWater(anchorAAM, args):
 PSEUDO = {
         "alkyl" : (
                 buildAlkyl,     # function that builds it
-                { "size" : [1,2,3,4] }     # arguments the function takes
+                { "size" : [1, 2, 3] }     # arguments the function takes
             ), 
         "halogen" : (buildHalogen, {}), 
         #"methyl" : (buildMethyl, {}),
