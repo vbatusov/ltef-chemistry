@@ -61,15 +61,19 @@
 
     <div class="container">
 
-      <form class="form-signin" action="${request.route_url('tools')}">
+      <form class="form-signin" action="${url}" method="post">
         <h2 class="form-signin-heading">LTEF Chemistry</h2>
-        <p>Please sign in</p>
-        <input type="text" class="input-block-level" placeholder="Username">
-        <input type="password" class="input-block-level" placeholder="Password">
-        <label class="checkbox">
+        <p>Please sign in.</p>
+        <p>You can use the username <strong>guest</strong> and an empty password to log in in guest mode.</p>
+        <!--span tal:replace="message"/-->
+        <div tal:condition="message" class="alert alert-danger" role="alert">${message}</div>
+        <input type="hidden" name="came_from" value="${came_from}"/>
+        <input type="text" class="input-block-level" placeholder="Username" name="login" value="${login}">
+        <input type="password" class="input-block-level" placeholder="Password" name="password" value="${password}">
+        <!--label class="checkbox">
           <input type="checkbox" value="remember-me"> Remember me
-        </label>
-        <button class="btn btn-large btn-primary" type="submit">Sign in</button>
+        </label-->
+        <button class="btn btn-large btn-primary" type="submit" name="form.submitted">Sign in</button>
       </form>
 
     </div> <!-- /container -->

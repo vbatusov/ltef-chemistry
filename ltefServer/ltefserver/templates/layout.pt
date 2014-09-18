@@ -46,14 +46,24 @@
               <a class="brand" href="${request.route_url('home')}">LTEF Chemistry</a>
               <div class="nav-collapse collapse">
                 <ul class="nav">
-                  <li class="active"><a href="${request.route_url('tools')}">Tools</a></li>
+                  <li class="active"><a href="${request.route_url('home')}">Home</a></li>
                   <li><a href="${request.route_url('about')}">About</a></li>
                   <li><a href="${request.route_url('contact')}">Contact</a></li>
                 </ul>
               </div><!--/.nav-collapse -->
+              <div class="nav-collapse collapse pull-right" tal:condition="logged_in">
+                <ul class="nav">
+                  <li><a href="#">Logged in as <strong>${logged_in}</strong></a></li>
+                  <li><a href="${request.application_url}/logout">Log out</a></li>
+                </ul>
+
+                <!--span class="label label-inverse">
+                  
+                </span-->        
+              </div>
             </div>
           </div>
-        </div>
+        </div>       
     </div>
     <div metal:define-slot="content"></div>
   </body>

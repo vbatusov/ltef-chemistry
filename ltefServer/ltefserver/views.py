@@ -1,14 +1,21 @@
-from pyramid.view import view_config
+from pyramid.view import (view_config, forbidden_view_config)
 from pyramid.renderers import get_renderer
 from pyramid.response import FileResponse, Response
 from pyramid.request import Request
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import (HTTPFound, HTTPNotFound)
 
 from sqlalchemy.exc import DBAPIError
 from .models import (
     DBSession,
     MyModel,
     )
+
+from pyramid.security import (
+    remember,
+    forget,
+    )
+
+from .security import USERS
 
 import os
 import sys
@@ -41,22 +48,22 @@ def site_layout():
     return layout
 
 
-@view_config(route_name='home', renderer='templates/index.pt')
+@view_config(route_name='home', renderer='templates/home.pt', permission='view')
 def home_view(request):
-    return {'project': 'MyProject'}
+    #print "Home view fired up, authenticated_userid is " + str(request.authenticated_userid)
+    return {"layout" : site_layout(), 
+            "base_to_full" : cat.base_to_full, 
+            "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='tools', renderer='templates/tools.pt')
-def tools_view(request):
-    return {"layout" : site_layout(), "base_to_full" : cat.base_to_full}
-
-
-@view_config(route_name='learning', renderer='templates/learning.pt')
+@view_config(route_name='learning', renderer='templates/learning.pt', permission='view')
 def learning_view(request):
-    return {"layout" : site_layout(), "base_to_full" : cat.base_to_full}
+    return {"layout" : site_layout(), 
+            "base_to_full" : cat.base_to_full, 
+            "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='learning_reaction', renderer='templates/learning_reaction.pt')
+@view_config(route_name='learning_reaction', renderer='templates/learning_reaction.pt', permission='view')
 def learning_reaction_view(request):
     # Sessions experiment; ignore
     # session = request.session
@@ -73,10 +80,15 @@ def learning_reaction_view(request):
     basename = request.matchdict["basename"]
     reaction = cat.get_reaction_by_basename(basename)
 
-    return {"layout" : site_layout(), "basename" : basename, "full_name" : reaction.full_name, "reaction_description" : reaction.desc, "rgroups" : reaction.rgroups}
+    return {"layout" : site_layout(),
+            "basename" : basename, 
+            "full_name" : reaction.full_name, 
+            "reaction_description" : reaction.desc, 
+            "rgroups" : reaction.rgroups, 
+            "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='img')
+@view_config(route_name='img', permission='view')
 def img_view(request):
 
     param_str = request.matchdict["filename"]
@@ -120,7 +132,7 @@ def img_view(request):
     return response
 
 
-@view_config(route_name='img_by_id')
+@view_config(route_name='img_by_id', permission='view')
 def img_by_id_view(request):
 
     problem_id = request.matchdict["id"]
@@ -141,13 +153,8 @@ def img_by_id_view(request):
     return response
 
 
-# @view_config(route_name='quiz_random')
-# def quiz_random_view(request):
-#     subreq = Request.blank(random.choice(['/tools/quiz/reactants', '/tools/quiz/products'])) #, '/tools/quiz/reaction']))
-#     return request.invoke_subrequest(subreq)
 
-
-@view_config(route_name='quiz_reactants', renderer='templates/quiz_reactants.pt')
+@view_config(route_name='quiz_reactants', renderer='templates/quiz_reactants.pt', permission='view')
 def quiz_reactants_view(request):
     global quiz_problems
     session = request.session
@@ -267,10 +274,11 @@ def quiz_reactants_view(request):
             "message" : message,
             "result" : result,
             "state" : state,
+            "logged_in" : request.authenticated_userid 
         }
 
 
-@view_config(route_name='quiz_products', renderer='templates/quiz_products.pt')
+@view_config(route_name='quiz_products', renderer='templates/quiz_products.pt', permission='view')
 def quiz_products_view(request):
     global quiz_problems
     session = request.session
@@ -392,10 +400,11 @@ def quiz_products_view(request):
             "message" : message,
             "result" : result,
             "state" : state,
+            "logged_in" : request.authenticated_userid 
         }
 
 
-@view_config(route_name='quiz_reaction', renderer='templates/quiz_reaction.pt')
+@view_config(route_name='quiz_reaction', renderer='templates/quiz_reaction.pt', permission='view')
 def quiz_reaction_view(request):
     global quiz_problems
     session = request.session
@@ -475,24 +484,28 @@ def quiz_reaction_view(request):
             "result" : result,
             "state" : state,
             "base_to_full" : cat.base_to_full,
+            "logged_in" : request.authenticated_userid 
         }
 
 
-@view_config(route_name='synthesis', renderer='templates/synthesis.pt')
+@view_config(route_name='synthesis', renderer='templates/synthesis.pt', permission='view')
 def synthesis_view(request):
-    return {"layout": site_layout()}
+    return {"layout": site_layout(),
+            "logged_in" : request.authenticated_userid }
 
-@view_config(route_name='addreaction', renderer='templates/addreaction.pt')
+@view_config(route_name='addreaction', renderer='templates/addreaction.pt', permission='view')
 def addreaction_view(request):
-    return {"layout": site_layout()}
+    return {"layout": site_layout(),
+            "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='about', renderer='templates/about.pt')
+@view_config(route_name='about', renderer='templates/about.pt', permission='view')
 def about_view(request):
-    return {"layout": site_layout()}
+    return {"layout": site_layout(),
+            "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='contact', renderer='templates/contact.pt')
+@view_config(route_name='contact', renderer='templates/contact.pt', permission='view')
 def contact_view(request):
     state = "new form"
     if "txtComment" in request.POST:
@@ -505,7 +518,9 @@ def contact_view(request):
             myfile.write("----END OF MESSAGE----\n\n")
 
 
-    return {"layout": site_layout(), "state" : state}
+    return {"layout": site_layout(), 
+            "state" : state,
+            "logged_in" : request.authenticated_userid }
 
 
 # def my_view(request):
@@ -530,3 +545,44 @@ def contact_view(request):
 # After you fix the problem, please restart the Pyramid application to
 # try it again.
 # """
+
+
+
+
+@view_config(route_name='login', renderer='templates/login.pt')
+@forbidden_view_config(renderer='templates/login.pt')
+def login(request):
+    #print "Login view fired up, authenticated_userid is " + str(request.authenticated_userid)
+
+    login_url = request.route_url('login')
+    referrer = request.url
+    if referrer == login_url:
+        referrer = '/' # never use the login form itself as came_from
+    came_from = request.params.get('came_from', referrer)
+    message = ''
+    login = ''
+    password = ''
+    if 'form.submitted' in request.params:
+        login = request.params['login']
+        password = request.params['password']
+        if USERS.get(login) == password:
+            headers = remember(request, login)
+            #print "Authentication worked, returning HTTPFound with location " + came_from
+            #print "Headers are " + str(headers)
+            return HTTPFound(location = came_from,
+                             headers = headers)
+        message = 'Failed login'
+
+    return dict(
+        message = message,
+        url = request.application_url + '/login',
+        came_from = came_from,
+        login = login,
+        password = password,
+        )
+
+@view_config(route_name='logout')
+def logout(request):
+    headers = forget(request)
+    return HTTPFound(location = request.route_url('home'),
+                     headers = headers)

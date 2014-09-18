@@ -14,6 +14,13 @@ from sqlalchemy.orm import (
 
 from zope.sqlalchemy import ZopeTransactionExtension
 
+from pyramid.security import (
+    Allow,
+    Everyone,
+    )
+
+# Database
+
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
@@ -25,3 +32,16 @@ class MyModel(Base):
     value = Column(Integer)
 
 Index('my_index', MyModel.name, unique=True, mysql_length=255)
+
+
+
+
+# Authorization
+
+class RootFactory(object):
+    __acl__ = [ (Allow, 'group:guests', 'view'),
+                # (Allow, Everyone, 'view'),
+                (Allow, 'group:editors', 'view'),
+                (Allow, 'group:editors', 'edit') ]
+    def __init__(self, request):
+        pass
