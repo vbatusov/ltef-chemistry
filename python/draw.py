@@ -55,6 +55,9 @@ def renderReactionToBuffer(reaction):
     add_actors_to_ireaction(indigo, reaction.agents, ireaction.addCatalyst)
     add_actors_to_ireaction(indigo, reaction.products, ireaction.addProduct)
 
+    # Hide hydrogens - experiment
+    ireaction.foldHydrogens()
+
     buf = renderer.renderToBuffer(ireaction)
 
     return buf
@@ -80,6 +83,9 @@ def renderMoleculeToBuffer(mol):
          iatom2 = aam_to_iatom[bond.toAtom.aam]
          ibond = iatom1.addBond(iatom2, bond.order)
     imol.layout()
+
+    # Hide hydrogens - experiment
+    imol.foldHydrogens()
 
     buf = renderer.renderToBuffer(imol)
 
