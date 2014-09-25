@@ -58,8 +58,10 @@ class Molecule:
         self.bondList = []
         self.anchor = None
 
-    def addAtom(self, atom):
-        self.atomList.append(atom)
+    def addAtom(self, *atom):
+        for a in atom:
+            #print "Adding atom " + str(a)
+            self.atomList.append(a)
 
     def addBond(self, bond):
         self.bondList.append(bond)
@@ -238,6 +240,7 @@ class Reaction:
 
         for mol in self.reactants:
             for atom in mol.atomList:
+                #print "Sanity: " + str(atom)
                 if atom.aam == 0:
                     raise Exception("Sanity check: reaction contains a reactant atom with AAM = 0")
                 if atom.aam in aamReactants:
@@ -493,12 +496,50 @@ def buildAlkyl(anchorAAM, args):
     root.aam = anchorAAM
     molecule.addAtom(root)
     molecule.anchor = root
-    
-    (size1, size2, size3) = splitThreeWays(size - 1)
-    
-    buildAlkylTree(molecule, root, size1)
-    buildAlkylTree(molecule, root, size2)
-    buildAlkylTree(molecule, root, size3)
+
+    if size == 100: # special case
+        
+        # Starting atom of the ring
+        c1 = None
+
+        # gamble on whether it's a phenyl or a benzyl
+        if random.randint(0,1) == 0:
+            # saturate root with hydrogens
+            h1 = Atom("H", 0, 0, 0, 0, 0)
+            h2 = Atom("H", 0, 0, 0, 0, 0)
+            molecule.addAtom(h1, h2)
+            molecule.addBond(Bond(0, 1, root, h1))
+            molecule.addBond(Bond(0, 1, root, h2))
+            # create a new atom as the ring starter
+            c1 = Atom("C", 0, 0, 0, 0, 0)
+            molecule.addAtom(c1)
+            molecule.addBond(Bond(0, 1, root, c1))
+        else:
+            # otherwise, ring includes the root
+            c1 = root
+
+        # build a ring
+        
+        c2 = Atom("C", 0, 0, 0, 0, 0)
+        c3 = Atom("C", 0, 0, 0, 0, 0)
+        c4 = Atom("C", 0, 0, 0, 0, 0)
+        c5 = Atom("C", 0, 0, 0, 0, 0)
+        c6 = Atom("C", 0, 0, 0, 0, 0)
+        molecule.addAtom(c2, c3, c4, c5, c6)
+        molecule.addBond(Bond(0, 1, c1, c2))
+        molecule.addBond(Bond(0, 2, c2, c3))
+        molecule.addBond(Bond(0, 1, c3, c4))
+        molecule.addBond(Bond(0, 2, c4, c5))
+        molecule.addBond(Bond(0, 1, c5, c6))
+        molecule.addBond(Bond(0, 2, c6, c1))
+
+    else:   # arbitrary tree without rings
+
+        (size1, size2, size3) = splitThreeWays(size - 1)
+        
+        buildAlkylTree(molecule, root, size1)
+        buildAlkylTree(molecule, root, size2)
+        buildAlkylTree(molecule, root, size3)
 
     return molecule
 
@@ -641,7 +682,7 @@ def buildWater(anchorAAM, args):
 PSEUDO = {
         "alkyl" : (
                 buildAlkyl,     # function that builds it
-                { "size" : [1, 2, 3] }     # arguments the function takes
+                { "size" : [1, 2, 3, 100] }     # arguments the function takes
             ), 
         "halogen" : (buildHalogen, {}), 
         #"methyl" : (buildMethyl, {}),
