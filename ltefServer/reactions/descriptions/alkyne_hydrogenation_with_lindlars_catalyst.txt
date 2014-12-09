@@ -1,1 +1,1 @@
-(No description available)
+This is an addition reaction in which hydrogen is added across an alkyne. Lindlar's catalyst is a less active catalyst that allows the reaction of the alkyne with one equivalent of hydrogen to produce an alkene (as opposed to adding two equivalents of hydrogen to the alkyne and producing the alkane).
