@@ -1,1 +1,1 @@
-(No description available)
+This is an addition reaction in which hydrogen is added across an alkene. The most common catalysts for this reaction are platinum and palladium. This is a heterogeneous process where the catalyst is not in the same phase as the reactants. Hydrogenation proceeds with syn stereochemistry where both hydrogens add to the double bond from the same face.

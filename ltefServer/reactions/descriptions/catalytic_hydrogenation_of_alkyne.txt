@@ -1,1 +1,1 @@
-(No description available)
+This is an addition reaction in which two moles of hydrogen are added to one mole of an alkyne. The most common catalyst for this reaction is Pd/C (finely divided palladium powder on an inert charcoal support). This is a heterogeneous process where the catalyst is not in the same phase as the reactants. Hydrogenation proceeds with syn stereochemistry where both hydrogen atoms add from the same face.
