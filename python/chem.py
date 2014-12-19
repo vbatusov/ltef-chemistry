@@ -678,6 +678,10 @@ def buildWater(anchorAAM, args):
     
     return molecule
 
+def buildAlkaliMetal(anchorAAM, args):
+    # Not implemented
+    return None
+
 
 PSEUDO = {
         "alkyl" : (
@@ -685,7 +689,7 @@ PSEUDO = {
                 { "size" : [1, 2, 3, 100] }     # arguments the function takes
             ), 
         "halogen" : (buildHalogen, {}), 
-        #"methyl" : (buildMethyl, {}),
+        "alkalimetal" : (buildAlkaliMetal, {}),
         "methyl" : (buildAlkyl, { "size" : [1] }),
         "lindlarscatalyst" : (buildLindlarsCatalyst, {}),
         "tso-" : (buildTosylate, {}),

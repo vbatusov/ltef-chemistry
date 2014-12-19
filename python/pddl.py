@@ -3,6 +3,9 @@ import itertools
 import re
 
 """ The PDDL output is inspired by and modeled after Andrea's "domain_macro_V1.pddl" file.
+
+    Note to self: there is trouble with r-groups. Why do the various "get_..._description" methods
+    differ in the type of arguments? This will cause a mess with R-groups.
 """
 
 def get_pddl_atom_name_from_atom(atom):
@@ -16,8 +19,9 @@ def get_pddl_atom_name_from_atom(atom):
                 name += chem.LIST_TRANSLATION[s]
             else:
                 name += s
+    result = chem.sanitize_name(name) + "_" + str(atom.aam)
 
-    return chem.sanitize_name(name) + "_" + str(atom.aam)
+    return result
 
 def get_atom_description(reaction, atom):
     """ Let a PDDL atom description consist of:
@@ -35,6 +39,7 @@ def get_atom_description(reaction, atom):
         Ignore this for now; assume type can be used as a predicate.
 
         A further problem is that an R-group may be a multi-atom molecule. Ignore this as well; assume it's a simple atom.
+        Update (2014-12-19): Need to handle R-groups like [H,C,N,O], i.e. disjunctions of atoms. But not multi-atom molecules.
     """
     #print "Invoking get_atom_description on symbol " + atom.symbol
 
@@ -84,7 +89,14 @@ def get_complex_single_atom_desc(reaction, atomSymbol, atomName):
             if chem.sanitize_name(mol.anchor.symbol) in chem.PSEUDO.keys():
                 atomDescList.append("(%s ?%s)" % (chem.sanitize_name(mol.anchor.symbol), atomName))
             else:
-                atomDescList.append("(%s ?%s)" % (get_atom_pddl_type_from_symbol(mol.anchor.symbol), atomName))
+                temp = get_atom_pddl_type_from_symbol(mol.anchor.symbol)
+                atomSymbols = chem.pseudoatomToList(mol.anchor.symbol)
+                if len(atomSymbols) > 1:
+                    # See if it's a list; if it is, expand it into a disjunction
+                    nestedAtomDescs = [get_atom_description(reaction, chem.Atom(sym, 0, 0, 0, 0, 0)) for sym in atomSymbols]
+                    atomDescList.append(pddl_op("or", ["(%s ?%s)" % (d[1], atomName) for d in nestedAtomDescs]))
+                else:
+                    atomDescList.append("(%s ?%s)" % (temp, atomName))
 
         atomDesc = pddl_op("or", atomDescList)
     else:
