@@ -143,6 +143,10 @@ def parse_rxn(rxn, fsm=os.path.join(os.path.dirname(os.path.abspath(__file__)), 
     lineList_raw = open(rxn).readlines()
     lineList = []
 
+    # If not RXNv3000, complain right away
+    if not lineList_raw[0] == "$RXN V3000\n":
+        raise Exception("Your file (" + rxn + ") does not seem to follow the RXNv3000 format.")
+
     # Combine multiline records into long lines
     # In RXN v3000, if a line doesn't fit into 80 chars, it is broken using a hyphen
     prefix = ''
