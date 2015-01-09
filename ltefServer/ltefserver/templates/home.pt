@@ -101,6 +101,20 @@
           </div>
         </div>
 
+        <div class="row" tal:condition="groupName == 'teacher' or groupName == 'admin'">
+          <div class="span9">
+            <a href="${request.route_url('managelists')}"><h3>Manage reaction lists</h3></a>
+            <p>Create, edit, or remove lists of reactions</p>
+          </div>
+        </div>
+
+        <div class="row" tal:condition="groupName == 'admin'">
+          <div class="span9">
+            <a href="${request.route_url('manageusers')}"><h3>Manage users</h3></a>
+            <p>Manage users</p>
+          </div>
+        </div>
+
       </div> 
 
     </div>
@@ -109,7 +123,7 @@
 
 <div id="myModal" class="modal hide" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
     <h3 id="myModalLabel">What is the quiz about?</h3>
   </div>
   <div class="modal-body">
@@ -147,6 +161,7 @@
       </select>
       </label>
     </div>
+  </form>
   </div>
 
   <div class="modal-footer">

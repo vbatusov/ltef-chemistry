@@ -1,0 +1,111 @@
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+
+      .container-molecules {
+        margin: 0 auto;
+        max-width: 700px;
+      }
+
+      .show-grid {
+        margin-top: 10px;
+        margin-bottom: 20px;
+      }
+      .show-grid [class*="span"] {
+        background-color: #eee;
+        text-align: center;
+        -webkit-border-radius: 3px;
+           -moz-border-radius: 3px;
+                border-radius: 3px;
+        min-height: 40px;
+        line-height: 40px;
+      }
+      .show-grid [class*="span"]:hover {
+        background-color: #ddd;
+      }
+      .show-grid .show-grid {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      .show-grid .show-grid [class*="span"] {
+        margin-top: 5px;
+      }
+      .show-grid [class*="span"] [class*="span"] {
+        background-color: #ccc;
+      }
+      .show-grid [class*="span"] [class*="span"] [class*="span"] {
+        background-color: #999;
+      }
+
+      div.row-fluid [class*="span"] .center-in-span { 
+         float: none; 
+         margin: 0 auto; 
+         text-align: center; 
+         display: block; 
+         width: auto; 
+         height: auto;
+      }
+
+      div.molecule {
+        display: inline-block;
+        margin:20px;
+        border:solid 2px;
+        -webkit-border-radius: 7px;
+           -moz-border-radius: 7px;
+                border-radius: 7px;
+        border-color:#ffffff;
+        min-height: 40px;
+        line-height: 40px;
+        width: 220px; 
+        height:119px; 
+        background-size: 220px 119px; 
+        background-repeat:no-repeat;
+      }
+
+      div.molecule:hover {
+        background-color: #eee;
+      }
+    </style>
+
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+    <div class="container">
+
+      <h1>Your quizzes</h1>
+
+      <p>Since ... you've taken ${total} quizzes with a success rate of ${overall_success}%</p>
+
+      <h3>Reactants</h3>
+
+      <p>${len(reactants_pass)} passed, ${len(reactants_fail)} failed, ${len(reactants_inc)} incomplete.</p>
+
+      <div tal:repeat="inst reactants_fail">
+        <h6>${inst["basename"]}</h6>  
+        <img tal:attributes="src request.route_url('home') + 'img/h_' + inst['problem_id'] + '/image.png'">
+      </div>
+
+      <h3>Products</h3>
+
+      <p>${len(products_pass)} passed, ${len(products_fail)} failed, ${len(products_inc)} incomplete.</p>
+
+      <div tal:repeat="inst products_fail">
+        <h6>${inst["basename"]}</h6> 
+        <img tal:attributes="src request.route_url('home') + 'img/h_' + inst['problem_id'] + '/image.png'">  
+      </div>
+
+      <h3>Reactions</h3>
+
+      <p>${len(reactions_pass)} passed, ${len(reactions_fail)} failed, ${len(reactions_inc)} incomplete.</p>
+
+      <div tal:repeat="inst reactions_fail">
+        <h6>${inst["basename"]}</h6>        
+        <img tal:attributes="src request.route_url('home') + 'img/h_' + inst['problem_id'] + '/image.png'">
+      </div>
+
+    </div> <!-- /container -->
+  </div>
+</div>

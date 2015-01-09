@@ -7,7 +7,8 @@ from pyramid.httpexceptions import (HTTPFound, HTTPNotFound)
 from sqlalchemy.exc import DBAPIError
 from .models import (
     DBSession,
-    MyModel,
+    Group,
+    User,
     )
 
 from pyramid.security import (
@@ -15,13 +16,14 @@ from pyramid.security import (
     forget,
     )
 
-from .security import USERS
+from .security import checkCredentials, getHash
 
 import os
 import sys
 import random
 import uuid
-import base64
+import bcrypt
+#import base64
 import datetime
 sys.path.append('../python')
 sys.path.append('./indigo-python-1.1.12')
@@ -29,6 +31,7 @@ import rxn
 import chem
 import draw
 import catalog
+import copy
 
 # Create a catalog object upon loading this module
 # Let's not use 'global' keyword in functions since we should not be
@@ -42,28 +45,162 @@ cat = catalog.Catalog()
 quiz_problems = {}
 
 
+# Experiment
+# student_id -> list of all past quiz problems, labeled as correct/incorrect/incomplete
+# create an entry for student & problem when the problem is generated;
+# update flags of the entry when an answer is received
+history = {}
+# Future work: store this in a DB for persistence
+# Unrelated note to self: add a 'dismiss' button to skip a problem
+
+
 def site_layout():
     renderer = get_renderer("templates/layout.pt")
     layout = renderer.implementation().macros['layout']
     return layout
 
 
-@view_config(route_name='home', renderer='templates/home.pt', permission='view')
+@view_config(route_name='manageusers', renderer='templates/manageusers.pt', permission='dominate')
+def manageusers_view(request):
+
+    message = ""
+
+    if 'addform.submitted' in request.params:
+        # TODO: add checks for valid input
+        u = request.params['login']
+        g = request.params['group']
+        p = request.params['password']
+
+        if DBSession.query(User).filter_by(username=u).first() is None:
+            DBSession.add(User(username=u, group=g, phash=getHash(p)))
+            message = "User '" + u + "' has been added"
+        else:
+            message = "User '" + u + "' already exists"
+
+        #return HTTPFound(location = request.route_url('manageusers'))
+
+    elif 'editform.username' in request.params:
+        u = request.params['editform.username']
+        # apply changes
+        if request.params['editOption'] == 'password':
+            DBSession.query(User).filter(User.username == u).update({"phash": getHash(request.params['password'])})
+            message = "Password changed for user '" + u + "'"
+
+        elif request.params['editOption'] == 'group':
+            if not u == "admin" and not u == "guest":
+                DBSession.query(User).filter(User.username == u).update({"group": request.params['group']})
+                message = "User '" + u + "' has been reassigned to another group"
+            else:
+                message = "User '" + u + "' cannot be reassigned to another group"
+
+        elif request.params['editOption'] == 'erase':
+            # NOTE: update this logic as user data spreads through database
+            if not u == "admin" and not u == "guest":
+                DBSession.query(User).filter(User.username == u).delete()
+                message = "User '" + u + "' has been permanently erased"
+            else:
+                message = "User '" + u + "' cannot be erased"
+
+        #return HTTPFound(location = request.route_url('manageusers'))
+
+    admins = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='admin').all()
+    teachers = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='teacher').all()
+    students = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='student').all()
+    guests = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='guest').all()
+
+    groups = DBSession.query(Group).all()
+
+    return {"layout" : site_layout(), 
+            "logged_in" : request.authenticated_userid,
+            "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
+            "groups" : groups,
+            "message" : message,
+            }
+
+@view_config(route_name='managelists', renderer='templates/managelists.pt', permission='educate')
+def managelists_view(request):
+
+    message = ""
+
+    if 'deleteform.submitted' in request.params:
+        # TODO: add checks for valid input
+        u = request.params['login']
+        g = request.params['group']
+        p = request.params['password']
+
+        if DBSession.query(User).filter_by(username=u).first() is None:
+            DBSession.add(User(username=u, group=g, phash=getHash(p)))
+            message = "User '" + u + "' has been added"
+        else:
+            message = "User '" + u + "' already exists"
+
+        #return HTTPFound(location = request.route_url('manageusers'))
+
+    elif 'saveform.submitted' in request.params:
+        u = request.params['editform.username']
+        # apply changes
+        if request.params['editOption'] == 'password':
+            DBSession.query(User).filter(User.username == u).update({"phash": getHash(request.params['password'])})
+            message = "Password changed for user '" + u + "'"
+
+        elif request.params['editOption'] == 'group':
+            if not u == "admin" and not u == "guest":
+                DBSession.query(User).filter(User.username == u).update({"group": request.params['group']})
+                message = "User '" + u + "' has been reassigned to another group"
+            else:
+                message = "User '" + u + "' cannot be reassigned to another group"
+
+        elif request.params['editOption'] == 'erase':
+            # NOTE: update this logic as user data spreads through database
+            if not u == "admin" and not u == "guest":
+                DBSession.query(User).filter(User.username == u).delete()
+                message = "User '" + u + "' has been permanently erased"
+            else:
+                message = "User '" + u + "' cannot be erased"
+
+        #return HTTPFound(location = request.route_url('manageusers'))
+
+    admins = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='admin').all()
+    teachers = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='teacher').all()
+    students = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='student').all()
+    guests = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='guest').all()
+
+    groups = DBSession.query(Group).all()
+
+    return {"layout" : site_layout(), 
+            "logged_in" : request.authenticated_userid,
+            "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
+            "groups" : groups,
+            "message" : message,
+            }
+
+@view_config(route_name='home', renderer='templates/home.pt', permission='study')
 def home_view(request):
     #print "Home view fired up, authenticated_userid is " + str(request.authenticated_userid)
+
+    groupName = 'guest'
+
+    user = DBSession.query(User).filter_by(username=request.authenticated_userid).first()
+    if user is not None:
+        group = DBSession.query(Group).filter_by(id=user.group).first()
+        if group is not None:
+            groupName = group.desc
+
+
     return {"layout" : site_layout(), 
             "base_to_full" : cat.base_to_full, 
-            "logged_in" : request.authenticated_userid }
+            "logged_in" : request.authenticated_userid,
+            "groupName" : groupName }
 
 
-@view_config(route_name='learning', renderer='templates/learning.pt', permission='view')
+@view_config(route_name='learning', renderer='templates/learning.pt', permission='study')
 def learning_view(request):
     return {"layout" : site_layout(), 
             "base_to_full" : cat.base_to_full, 
             "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='learning_reaction', renderer='templates/learning_reaction.pt', permission='view')
+@view_config(route_name='learning_reaction', renderer='templates/learning_reaction.pt', permission='study')
 def learning_reaction_view(request):
     # Sessions experiment; ignore
     # session = request.session
@@ -88,7 +225,7 @@ def learning_reaction_view(request):
             "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='img', permission='view')
+@view_config(route_name='img', permission='study')
 def img_view(request):
 
     param_str = request.matchdict["filename"]
@@ -132,7 +269,7 @@ def img_view(request):
     return response
 
 
-@view_config(route_name='img_by_id', permission='view')
+@view_config(route_name='img_by_id', permission='study')
 def img_by_id_view(request):
 
     problem_id = request.matchdict["id"]
@@ -152,9 +289,31 @@ def img_by_id_view(request):
 
     return response
 
+@view_config(route_name='img_from_history', permission='study')
+def img_from_history_view(request):
+
+    problem_id = request.matchdict["id"]
+    which = request.matchdict["which"]
+
+    response = None
+    problem = None
+    for p in history[request.authenticated_userid]:
+        if p["problem_id"] == problem_id:
+            problem = p
+            print "Image: found problem in history"
+            break
 
 
-@view_config(route_name='quiz_reactants', renderer='templates/quiz_reactants.pt', permission='view')
+    if problem is not None:
+        image = draw.renderReactionToBuffer(problem["instance_full"]).tostring()
+        response = Response(content_type='image/png', body=image)
+    else:
+        response = HTTPNotFound()
+
+    return response
+
+
+@view_config(route_name='quiz_reactants', renderer='templates/quiz_reactants.pt', permission='study')
 def quiz_reactants_view(request):
     global quiz_problems
     session = request.session
@@ -185,7 +344,9 @@ def quiz_reactants_view(request):
         full_name = reaction.full_name
 
         # prepare instance, cut off reactants
-        instance = reaction.getInstance()
+        instance = reaction.getInstance()        
+        instance_full = copy.deepcopy(instance)
+
         fullImage = draw.renderReactionToBuffer(instance).tostring()
 
         reactants = instance.reactants
@@ -212,6 +373,17 @@ def quiz_reactants_view(request):
         random.shuffle(reactantImages)
 
         quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
+
+        # record problem in history
+        print "Adding problem " + problem_id + " to " + request.authenticated_userid + "'s history as incomplete"
+        if request.authenticated_userid not in history:
+            history[request.authenticated_userid] = []
+        history[request.authenticated_userid].append({'problem_id' : problem_id,
+                                                      'type' : 'reactants',
+                                                      'status' : 'incomplete',
+                                                      'basename' : basename,
+                                                      'instance_full' : instance_full,
+                                                      'instance_part' : instance, })
 
         session['basename'] = basename
         print "Started a quiz (reactants) session for " + basename + ", id = " + problem_id
@@ -245,14 +417,29 @@ def quiz_reactants_view(request):
                     correctAnswers.append(str(index))
             #print "Correct answer is " + str(set(correctAnswers))
 
+            problem_h = None
+            for p in history[request.authenticated_userid]:
+                    if p['problem_id'] == problem_id:
+                        problem_h = p
+                        break
+
+            if problem_h == None:
+                print "Error: could not find problem in history"
+
             if set(ans) != set(correctAnswers):
                 message = "Wrong!"
                 result = False
                 #print "Your set: " + str(set(ans))
                 #print "Good set: " + str(set(correctAnswers))
+
+                # record result in history
+                problem_h['status'] = 'fail'
+
+
             else:
                 message = "Correct! You selected what's necessary and nothing else."
                 result = True
+                problem_h['status'] = 'pass'
 
             # Once user has made a choice, replace cut reaction with a full one
             quiz_problems[problem_id][0] = quiz_problems[problem_id][2]
@@ -278,7 +465,7 @@ def quiz_reactants_view(request):
         }
 
 
-@view_config(route_name='quiz_products', renderer='templates/quiz_products.pt', permission='view')
+@view_config(route_name='quiz_products', renderer='templates/quiz_products.pt', permission='study')
 def quiz_products_view(request):
     global quiz_problems
     session = request.session
@@ -311,6 +498,9 @@ def quiz_products_view(request):
 
         # prepare instance, cut off products
         instance = reaction.getInstance()
+
+        instance_full = copy.deepcopy(instance)
+
         fullImage = draw.renderReactionToBuffer(instance).tostring()
 
         products = instance.products
@@ -337,6 +527,17 @@ def quiz_products_view(request):
         random.shuffle(reactantImages)
 
         quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
+
+        # record problem in history
+        print "Adding problem " + problem_id + " to " + request.authenticated_userid + "'s history as incomplete"
+        if request.authenticated_userid not in history:
+            history[request.authenticated_userid] = []
+        history[request.authenticated_userid].append({'problem_id' : problem_id,
+                                                      'type' : 'products',
+                                                      'status' : 'incomplete',
+                                                      'basename' : basename,
+                                                      'instance_full' : instance_full,
+                                                      'instance_part' : instance })
 
         session['basename'] = basename
         print "Started a quiz (products) session for " + basename + ", id = " + problem_id
@@ -370,14 +571,22 @@ def quiz_products_view(request):
                     correctAnswers.append(str(index))
             #print "Correct answer is " + str(set(correctAnswers))
 
+            problem_h = None
+            for p in history[request.authenticated_userid]:
+                    if p['problem_id'] == problem_id:
+                        problem_h = p
+                        break
+
             if set(ans) != set(correctAnswers):
                 message = "Wrong!"
                 result = False
+                problem_h['status'] = 'fail'
                 #print "Your set: " + str(set(ans))
                 #print "Good set: " + str(set(correctAnswers))
             else:
                 message = "Correct! You selected what's necessary and nothing else."
                 result = True
+                problem_h['status'] = 'pass'
 
             # Once user has made a choice, replace cut reaction with a full one
             
@@ -404,7 +613,7 @@ def quiz_products_view(request):
         }
 
 
-@view_config(route_name='quiz_reaction', renderer='templates/quiz_reaction.pt', permission='view')
+@view_config(route_name='quiz_reaction', renderer='templates/quiz_reaction.pt', permission='study')
 def quiz_reaction_view(request):
     global quiz_problems
     session = request.session
@@ -430,16 +639,22 @@ def quiz_reaction_view(request):
         reaction = cat.get_reaction_by_basename(basename)
         full_name = reaction.full_name
 
-        # prepare instance, cut off products
+        # prepare instance
         instance = reaction.getInstance()
         mainImage = draw.renderReactionToBuffer(instance).tostring()
 
-        # Generate wrong answers here, add to reactantImages
-        #
-        #
-
-
         quiz_problems[problem_id] = (mainImage, basename, full_name)
+
+        # record problem in history
+        print "Adding problem " + problem_id + " to " + request.authenticated_userid + "'s history as incomplete"
+        if request.authenticated_userid not in history:
+            history[request.authenticated_userid] = []
+        history[request.authenticated_userid].append({'problem_id' : problem_id,
+                                                      'type' : session['quiz_type'],
+                                                      'status' : 'incomplete',
+                                                      'basename' : basename,
+                                                      'instance_full' : instance,
+                                                      'instance_part' : instance })
 
         session['basename'] = "unknown"
         print "Started a quiz (reaction) session for " + basename + ", id = " + problem_id
@@ -466,14 +681,25 @@ def quiz_reaction_view(request):
 
             print "Correct answer is " + correctAnswer
 
+            problem_h = None
+            for p in history[request.authenticated_userid]:
+                if p['problem_id'] == problem_id:
+                    problem_h = p
+                    break
+
+            if problem_h == None:
+                print "Error: could not find problem in history"
+
             if correctAnswer != ans:
                 message = "Wrong! This is actually " + quiz_problems[problem_id][2]
                 result = False
+                problem_h['status'] = 'fail'
                 #print "Your set: " + str(set(ans))
                 #print "Good set: " + str(set(correctAnswers))
             else:
                 message = "Correct! This indeed is " + quiz_problems[problem_id][2]
                 result = True
+                problem_h['status'] = 'pass'
 
     return {
             "layout": site_layout(),
@@ -487,29 +713,96 @@ def quiz_reaction_view(request):
             "logged_in" : request.authenticated_userid 
         }
 
+@view_config(route_name='quiz_history', renderer='templates/quiz_history.pt', permission='study')
+def quiz_history_view(request):
+    reactants_pass = []
+    reactants_fail = []
+    reactants_inc = []
+    products_pass = []
+    products_fail = []
+    products_inc = []
+    reactions_pass = []
+    reactions_fail = []
+    reactions_inc = []
+    rest = []
 
-@view_config(route_name='synthesis', renderer='templates/synthesis.pt', permission='view')
+    for p in history[request.authenticated_userid]:
+        if p['type'] == 'reactants' and p['status'] == 'pass':
+            reactants_pass.append(p)
+        elif p['type'] == 'reactants' and p['status'] == 'fail':
+            reactants_fail.append(p)
+        elif p['type'] == 'reactants' and p['status'] == 'incomplete':
+            reactants_inc.append(p)
+        elif p['type'] == 'products' and p['status'] == 'pass':
+            products_pass.append(p)
+        elif p['type'] == 'products' and p['status'] == 'fail':
+            products_fail.append(p)
+        elif p['type'] == 'products' and p['status'] == 'incomplete':
+            products_inc.append(p)
+        elif p['type'] == 'reaction' and p['status'] == 'pass':
+            reactions_pass.append(p)
+        elif p['type'] == 'reaction' and p['status'] == 'fail':
+            reactions_fail.append(p)
+        elif p['type'] == 'reaction' and p['status'] == 'incomplete':
+            reactions_inc.append(p)
+        else:
+            rest.append(p)
+
+    total = len(reactants_pass) + len(reactants_fail) + len(reactants_inc) + len(products_pass) + len(products_fail) + len(products_inc) + len(reactions_pass) + len(reactions_fail) + len(reactions_inc)
+
+    total_pass = len(reactants_pass) + len(products_pass) + len(reactions_pass)
+    total_fail = len(reactants_fail) + len(products_fail) + len(reactions_fail)
+    total_inc = len(reactants_inc) + len(products_inc) + len(reactions_inc)
+    total_orphans = len(rest)
+
+    overall_success = 0
+    if total_fail + total_pass > 0:
+        overall_success = 100 * total_pass / (total_fail + total_pass)
+
+    return {
+            "total" : total,
+            "total_pass" : total_pass,
+            "total_fail" : total_fail,
+            "total_inc" : total_inc,
+            "total_orphans" : total_orphans,
+            "overall_success" : overall_success,
+            "reactants_pass" : reactants_pass,
+            "reactants_fail" : reactants_fail,
+            "reactants_inc" : reactants_inc,
+            "products_pass" : products_pass,
+            "products_fail" : products_fail,
+            "products_inc" : products_inc,
+            "reactions_pass" : reactions_pass,
+            "reactions_fail" : reactions_fail,
+            "reactions_inc" : reactions_inc,
+            "rest" : rest,
+
+            "layout": site_layout(),
+            "logged_in" : request.authenticated_userid 
+        }
+
+
+@view_config(route_name='synthesis', renderer='templates/synthesis.pt', permission='study')
 def synthesis_view(request):
     return {"layout": site_layout(),
             "logged_in" : request.authenticated_userid }
 
-@view_config(route_name='addreaction', renderer='templates/addreaction.pt', permission='view')
+@view_config(route_name='addreaction', renderer='templates/addreaction.pt', permission='study')
 def addreaction_view(request):
     return {"layout": site_layout(),
             "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='about', renderer='templates/about.pt', permission='view')
+@view_config(route_name='about', renderer='templates/about.pt', permission='study')
 def about_view(request):
     return {"layout": site_layout(),
             "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='contact', renderer='templates/contact.pt', permission='view')
+@view_config(route_name='contact', renderer='templates/contact.pt', permission='study')
 def contact_view(request):
     state = "new form"
     if "txtComment" in request.POST:
-        #print request.POST["txtComment"]
         state = "sent"        
         with open("contact.txt", "a") as myfile:
             myfile.write(str(datetime.datetime.now()) + "\n")
@@ -523,37 +816,12 @@ def contact_view(request):
             "logged_in" : request.authenticated_userid }
 
 
-# def my_view(request):
-#     try:
-#         one = DBSession.query(MyModel).filter(MyModel.name == 'one').first()
-#     except DBAPIError:
-#         return Response(conn_err_msg, content_type='text/plain', status_int=500)
-#     return {'one': one, 'project': 'dbtutorial'}
-
-# conn_err_msg = """\
-# Pyramid is having a problem using your SQL database.  The problem
-# might be caused by one of the following things:
-
-# 1.  You may need to run the "initialize_dbtutorial_db" script
-#     to initialize your database tables.  Check your virtual 
-#     environment's "bin" directory for this script and try to run it.
-
-# 2.  Your database server may not be running.  Check that the
-#     database server referred to by the "sqlalchemy.url" setting in
-#     your "development.ini" file is running.
-
-# After you fix the problem, please restart the Pyramid application to
-# try it again.
-# """
-
-
 
 
 @view_config(route_name='login', renderer='templates/login.pt')
 @forbidden_view_config(renderer='templates/login.pt')
 def login(request):
-    #print "Login view fired up, authenticated_userid is " + str(request.authenticated_userid)
-
+    
     login_url = request.route_url('login')
     referrer = request.url
     if referrer == login_url:
@@ -565,10 +833,12 @@ def login(request):
     if 'form.submitted' in request.params:
         login = request.params['login']
         password = request.params['password']
-        if USERS.get(login) == password:
+        if checkCredentials(login, password):
             headers = remember(request, login)
-            #print "Authentication worked, returning HTTPFound with location " + came_from
-            #print "Headers are " + str(headers)
+
+            print "Logged in as " + login + "; creating a blank history"
+            history[login] = []
+
             return HTTPFound(location = came_from,
                              headers = headers)
         message = 'Failed login'

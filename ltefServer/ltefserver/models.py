@@ -3,6 +3,7 @@ from sqlalchemy import (
     Index,
     Integer,
     Text,
+    ForeignKey,
     )
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -24,24 +25,29 @@ from pyramid.security import (
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-
-class MyModel(Base):
-    __tablename__ = 'models'
+class Group(Base):
+    __tablename__ = 'groups'
     id = Column(Integer, primary_key=True)
-    name = Column(Text)
-    value = Column(Integer)
+    desc = Column(Text, unique=True)
 
-Index('my_index', MyModel.name, unique=True, mysql_length=255)
-
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    username = Column(Text, unique=True)
+    group = Column(ForeignKey("groups.id"))
+    phash = Column(Text)
 
 
 
 # Authorization
 
 class RootFactory(object):
-    __acl__ = [ (Allow, 'group:guests', 'view'),
-                # (Allow, Everyone, 'view'),
-                (Allow, 'group:editors', 'view'),
-                (Allow, 'group:editors', 'edit') ]
+    __acl__ = [ (Allow, 'admin', 'dominate'),
+                (Allow, 'admin', 'educate'),
+                (Allow, 'admin', 'study'),
+                (Allow, 'teacher', 'educate'),
+                (Allow, 'teacher', 'study'),
+                (Allow, 'student', 'study'),
+                (Allow, 'guest', 'study') ]
     def __init__(self, request):
         pass

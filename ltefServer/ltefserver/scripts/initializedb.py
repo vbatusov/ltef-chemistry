@@ -1,6 +1,8 @@
 import os
 import sys
 import transaction
+import getpass
+import bcrypt
 
 from sqlalchemy import engine_from_config
 
@@ -13,7 +15,8 @@ from pyramid.scripts.common import parse_vars
 
 from ..models import (
     DBSession,
-    MyModel,
+    Group,
+    User,
     Base,
     )
 
@@ -36,5 +39,19 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
-        model = MyModel(name='one', value=1)
-        DBSession.add(model)
+        print "Creating groups..."
+        DBSession.add(Group(desc='admin'))
+        DBSession.add(Group(desc='teacher'))
+        DBSession.add(Group(desc='student'))
+        DBSession.add(Group(desc='guest'))
+
+        print "Creating guest..."
+        guestgroup = DBSession.query(Group).filter_by(desc='guest').first().id
+        guesthash = bcrypt.hashpw('', bcrypt.gensalt())
+        DBSession.add(User(username='guest', group=guestgroup, phash=guesthash))
+
+        print "Creating superuser..."
+        admingroup = DBSession.query(Group).filter_by(desc='admin').first().id
+        adminpw = getpass.getpass()
+        adminhash = bcrypt.hashpw(adminpw, bcrypt.gensalt())
+        DBSession.add(User(username='admin', group=admingroup, phash=adminhash))

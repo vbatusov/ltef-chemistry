@@ -52,9 +52,14 @@ def main(global_config, **settings):
     config.add_route('learning_reaction', '/tools/learning/{basename}')
     config.add_route('img', '/img/{basename}/{what}/{filename}.png')
     config.add_route('img_by_id', '/img/q_{id}/{which}.png')
+    config.add_route('img_from_history', '/img/h_{id}/{which}.png')
     config.add_route('quiz_reactants', '/tools/quiz/reactants/{basename}')
     config.add_route('quiz_products', '/tools/quiz/products/{basename}')
     config.add_route('quiz_reaction', '/tools/quiz/reaction')
+    config.add_route('quiz_history', '/tools/quiz/history')
+
+    config.add_route('manageusers', '/manageusers')
+    config.add_route('managelists', '/tools/managelists')
     
     config.scan()
 
