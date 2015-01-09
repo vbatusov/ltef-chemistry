@@ -49,7 +49,7 @@ def get_atom_description(reaction, atom):
 
     #print "  atomName=" + atomName
 
-    if atomType == "atom":  # Not a simple atom, begs a non-empty description
+    if atomType == "object":  # Not a simple atom, begs a non-empty description
         atomSymbols = chem.pseudoatomToList(atom.symbol)   
         #print "  atomSymbols=" + str(atomSymbols)
         if len(atomSymbols) > 1:
@@ -60,8 +60,8 @@ def get_atom_description(reaction, atom):
                 if eachSymbol in chem.LIST_TRANSLATION.keys():
                     actualSymbol = chem.LIST_TRANSLATION[eachSymbol]
                 actualType = get_atom_pddl_type_from_symbol(actualSymbol)
-                if actualType != "atom":
-                    atomDescList.append("(%s ?%s)" % (actualType, atomName))
+                if actualType != "object":
+                    atomDescList.append("(%s ?%s)" % (get_predicate_from_type(actualType), atomName))
                 else:
                     atomDescList.append(get_complex_single_atom_desc(reaction, actualSymbol, atomName))
             atomDesc = pddl_op("or", atomDescList)
@@ -94,9 +94,9 @@ def get_complex_single_atom_desc(reaction, atomSymbol, atomName):
                 if len(atomSymbols) > 1:
                     # See if it's a list; if it is, expand it into a disjunction
                     nestedAtomDescs = [get_atom_description(reaction, chem.Atom(sym, 0, 0, 0, 0, 0)) for sym in atomSymbols]
-                    atomDescList.append(pddl_op("or", ["(%s ?%s)" % (d[1], atomName) for d in nestedAtomDescs]))
+                    atomDescList.append(pddl_op("or", ["(%s ?%s)" % (get_predicate_from_type(d[1]), atomName) for d in nestedAtomDescs]))
                 else:
-                    atomDescList.append("(%s ?%s)" % (temp, atomName))
+                    atomDescList.append("(%s ?%s)" % (get_predicate_from_type(temp), atomName))
 
         atomDesc = pddl_op("or", atomDescList)
     else:
@@ -112,14 +112,14 @@ def pddl_op(op, myList):
     elif len(myList) == 1:
         return myList[0]
     else:
-        return "You are doing it wrong."
+        return ""
 
 def pddl_not_equal(name1, name2):
     return "(not (= ?%s ?%s))" % (name1, name2)
 
 
 def get_atom_pddl_type_from_symbol(symbol):
-    name = "atom"
+    name = "object"
 
     if symbol in chem.ATOM_NAMES.keys() :
         name = chem.ATOM_NAMES[symbol]
@@ -141,6 +141,9 @@ def get_bond_name_from_order(order):
         name = bondNames[order]
 
     return name
+
+def get_predicate_from_type(type):
+    return "p" + type[0].upper() + type[1:]
 
 
 def store_atom_in_type_dict(dic, typ, atomName):
@@ -173,6 +176,7 @@ def getDomain(reaction):
     effects = []
     parameters = {}
     parametersByType = {}
+    parameterAtoms = {} # Maps AAM to atom object
 
     # Initialize bond matrices to 0
     bondMatrixBefore = [list(i) for i in [[None]*size]*size]
@@ -204,6 +208,9 @@ def getDomain(reaction):
                 else:
                     bond = bondMatrixAfter[x][y]
 
+                parameterAtoms[bond.fromAtom.aam] = bond.fromAtom
+                parameterAtoms[bond.toAtom.aam] = bond.toAtom
+
                 atomName1 = get_pddl_atom_name_from_atom(bond.fromAtom)
                 atomName2 = get_pddl_atom_name_from_atom(bond.toAtom)
 
@@ -212,7 +219,6 @@ def getDomain(reaction):
 
                 store_atom_in_type_dict(parametersByType, parameters[atomName1], atomName1)
                 store_atom_in_type_dict(parametersByType, parameters[atomName2], atomName2)
-
 
                 if bondMatrixBefore[x][y] is not None:  # There is a bond that disappears
                     effects.append("(not (" + get_bond_name_from_order(bondMatrixBefore[x][y].order) + " ?" + atomName1 + " ?" + atomName2 + "))")
@@ -229,11 +235,24 @@ def getDomain(reaction):
     # Compute preconditions
     # Precondition describes the reactants and catalysts
 
+    # Preconditions associated solely with properties of atoms appearing in the parameters
+    #print "=========== NEW STUFF ============="
+    paramPrecPredicates = []
+    for paramAtom in parameterAtoms.values():
+        #print str(paramAtom) + " is a " + str(get_atom_description(reaction, paramAtom))
+        predicate = get_atom_description(reaction, paramAtom)[2]
+        if len(predicate) > 0:
+            paramPrecPredicates.append(predicate)
+    paramPrec = pddl_op("and", paramPrecPredicates)
+    #print "paramPrec is " + paramPrec
+
+    #print "==================================="
+
     # All reaction preconditions
     preconditions = []
 
     for mol in reaction.reactants + reaction.agents:
-        #print "Processing molecule " + str(mol)
+        print "Processing molecule " + str(mol)
         # Preconditions due to this particular molecule
         precMol = []
         nonparameters = {}
@@ -267,6 +286,7 @@ def getDomain(reaction):
         elif len(mol.atomList) > 0: # Assume == 1, because it's meaningless otherwise
             if len(mol.atomList) != 1:
                 raise Exception("A bondless molecule must have a single atom, no more, no less.")
+                # Thought: can there be a two-atom 'molecule' with an electrostatic bond?
 
             atom = mol.atomList[0]
             (atomName, atomType, atomDesc) = get_atom_description(reaction, atom)
@@ -298,7 +318,7 @@ def getDomain(reaction):
 
     pddl_domain = "(:action " + reaction.name
     pddl_domain += "\n:parameters (?" + " ?".join(["%s - %s" % (atomName, parameters[atomName]) for atomName in parameters.keys()]) + ")"
-    pddl_domain += "\n:precondition " + pddl_op("and", paramIneq + preconditions)
+    pddl_domain += "\n:precondition " + pddl_op("and", paramIneq + paramPrecPredicates + preconditions)
     pddl_domain += "\n:effect " + pddl_op("and", effects) + ")"
 
     return pddl_domain
