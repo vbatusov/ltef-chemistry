@@ -10,149 +10,50 @@
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 
     <script>
-        // Executed by jQuery when the DOM is ready
-        $( document ).ready(function() {
-
-          $(document).on("click", ".openModal", function () {
-            var myUserName = $(this).data('username');
-            var myUserGroup = $(this).data('group');
-            $("#myModalLabel").text("Edit " + myUserGroup + " '" + myUserName + "'" );
-            $("#username").val(myUserName);
-            $("#groupname").val(myUserGroup);
-
-            $('input:radio[name=editOption][value=password]').click();
-          });
-
-          $('#btnSave').click(function() {
-            $('#frmEditUser').submit();
-          });
-
-          $('input[name="editOption"]').click(function(){
-            if($(this).attr("value")=="password"){
-                $(".password").show();
-                $(".modal-body #inPass").val("");            
-                $(".group").hide();
-                $(".erase").hide();
-            }
-            if($(this).attr("value")=="group"){
-                $("#selGroup option").each(function() { this.selected = (this.text == $("#groupname").val()); });
-                $(".password").hide();
-                $(".group").show();
-                $(".erase").hide();
-            }
-            if($(this).attr("value")=="erase"){
-                $(".password").hide();
-                $(".group").hide();
-                $(".erase").show();
-            }
-          });
-        });
-
-      </script>
+    </script>
 
     <div class="container">
 
       <h1>Manage Reaction Lists</h1>
 
       <div class="row">
-        <div class="span9">
-          <div class="alert alert-danger" role="alert">Remember: input is not sanitized, changes are irreversible!</div>
+        <div class="span9">          
           <div tal:condition="message" class="alert alert-info" role="alert">${message}</div>
-        </div>
-      </div>
-      
-      <div class="row">
-        <div class="span9">
-          <form class="form-inline" action="${request.route_url('manageusers')}" method="post">
-            <input type="text" class="input-medium" placeholder="Username" name="login">
-            <select name="group" class="input-medium">
-              <option tal:repeat="group groups" tal:content="group.desc" tal:attributes="value group.id">Hi</option>
-            </select>
-            <input type="password" class="input-medium" placeholder="Password" name="password">
-            <button class="btn btn-medium btn-primary" type="submit" name="addform.submitted">Create</button>
-          </form>
         </div>
       </div>
 
       <div class="row">
         <div class="span9">
           <table class="table">
-            <caption>Existing users</caption>
+            <!--caption></caption-->
             <thead>
               <tr>
-                <th>Username</th>
-                <th>Group</th>
+                <th>You are the owner of the following lists:</th>
               </tr>
             </thead>
             <tbody>
-              <tr tal:repeat="(u,g) admins">
-                <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
-                <td><span tal:content="g.desc"></span> </td>
+              <tr>
+                <td><a href="${request.route_url('editlist')}">CHE101</a> - Reactions for the first course of organic chemistry...</td>                
               </tr>
-              <tr tal:repeat="(u,g) teachers">
-                <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
-                <td><span tal:content="g.desc"></span> </td>
+              <tr>
+                <td><a href="#">CHE102</a> - Some more reactions building up on CHE101</td>                
               </tr>
-              <tr tal:repeat="(u,g) students">
-                <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
-                <td><span tal:content="g.desc"></span> </td>
-              </tr>
-              <tr tal:repeat="(u,g) guests">
-                <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
-                <td><span tal:content="g.desc"></span> </td>
+              <tr>
+                <td><a href="#">CHE103</a> - Advanced reactions for clever people</td>                
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
+      <div class="row">
+        <div class="span9">
+          <form class="form-inline" action="${request.route_url('editlist')}" method="post">
+            <button class="btn btn-medium btn-primary" type="submit" name="addform.submitted">Create a new list</button>
+          </form>
+        </div>
+      </div>
+
     </div> <!-- /container -->
   </div>
-</div>
-
-
-<div id="myModal" class="modal hide" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-    <h3 id="myModalLabel">Edit user </h3>
-  </div>
-
-  <div class="modal-body">
-    <form id="frmEditUser" role="form" method="post" class="form-horizontal" action="${request.route_url('manageusers')}">
-      <input id="username" type="hidden" name="editform.username" value=""/>
-      <input id="groupname" type="hidden" name="editform.groupname" value=""/>
-      <div class="control-group">
-        <label class="radio inline">
-          <input type="radio" name="editOption" value="password" checked>
-          Change password
-        </label>
-        <label class="radio inline">
-          <input type="radio" name="editOption" value="group">
-          Change group
-        </label>
-        <label class="radio inline">
-          <input type="radio" name="editOption" value="erase">
-          Erase user
-        </label>
-      </div>
-
-      <div id="tab1" class="comment password">
-        <input id="inPass" type="password" class="input-medium" placeholder="New password" name="password">
-      </div>
-      <div id="tab2" class="comment group">
-        <select id="selGroup" name="group" class="input-medium">
-          <option tal:repeat="group groups" tal:content="group.desc" tal:attributes="value group.id">Hi</option>
-        </select>
-      </div>
-      <div id="tab3" class="comment erase">
-        <div class="alert alert-danger" role="alert">This will permanently erase the user's account.</div>
-      </div>
-    </form>
-  </div>
-
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Dismiss</button>
-    <button class="btn btn-danger" id="btnSave">Execute</button>
-  </div>
-  
 </div>

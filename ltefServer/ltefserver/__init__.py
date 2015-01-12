@@ -60,6 +60,7 @@ def main(global_config, **settings):
 
     config.add_route('manageusers', '/manageusers')
     config.add_route('managelists', '/tools/managelists')
+    config.add_route('editlist', '/tools/managelists/edit')
     
     config.scan()
 

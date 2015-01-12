@@ -1,0 +1,102 @@
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+
+      .mysel {
+        width:100%;
+        height: 100px;
+        size:10;
+      } 
+
+      #select1, #select2 {
+        height:400px;
+      }
+
+      .myform {
+        width:100%;
+
+      }
+    </style>
+
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+    <script>
+      $().ready(function() {  
+         $('#add').click(function() {  
+          return !$('#select1 option:selected').remove().appendTo('#select2');  
+         });  
+         $('#remove').click(function() {  
+          return !$('#select2 option:selected').remove().appendTo('#select1');  
+         });  
+        }); 
+    </script>
+
+    <div class="container">
+
+      <h1>Manage Reaction Lists</h1>
+
+      <div class="row">
+        <div class="span9">          
+          <div tal:condition="message" class="alert alert-info" role="alert">${message}</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span5">
+          <form action="${request.route_url('manageusers')}" method="post">
+              <label>Title</label>
+              <input type="text" placeholder="Title" class="myform">
+              <label>Description</label>
+              <textarea rows="3" placeholder="Description" class="myform"></textarea>
+          </form>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span5">
+          <select multiple class="form-control mysel" id="select1">
+            <option value="1">Some 1 reaction with Lindlar's Catalyst</option>
+            <option value="2">Some 2 reaction with another catalyst</option>
+            <option value="3">Some 3 reaction without a catalyst</option>
+            <option value="4">Some 4 reaction with Lindlar's Catalyst</option>
+            <option value="5">Some 5 reaction with another catalyst</option>
+            <option value="6">Some 6 reaction without a catalyst</option>
+            <option value="7">Some 7 reaction with Lindlar's Catalyst</option>
+            <option value="8">Some 8 reaction with another catalyst</option>
+            <option value="9">Some 9 reaction without a catalyst</option>
+          </select>
+        </div>
+        <div class="span2 adddeleteparent">
+          <div class="adddeletediv">
+            <a class="btn btn-large input-block-level" href="#" id="add">&#10095;</a>
+            <a class="btn btn-large input-block-level" href="#" id="remove">&#10096;</a>
+          </div>
+        </div>
+        <div class="span5">
+          <select multiple class="mysel" id="select2">
+            
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <form class="form-inline" action="${request.route_url('manageusers')}" method="post">
+            <div class="btn-toolbar pull-left">
+            <button class="btn btn-medium btn-danger" type="submit" name="addform.submitted">Remove this list</button>
+          </div>
+          <div class="btn-toolbar pull-right">
+            <button class="btn btn-medium btn-primary" type="submit" name="addform.submitted">Dismiss changes</button>
+            <button class="btn btn-medium btn-success" type="submit" name="addform.submitted">Save changes</button>
+          </div>
+          </form>
+        </div>
+      </div>
+
+    </div> <!-- /container -->
+  </div>
+</div>

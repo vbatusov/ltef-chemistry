@@ -37,6 +37,17 @@ class User(Base):
     group = Column(ForeignKey("groups.id"))
     phash = Column(Text)
 
+# Store lists in a single table, intertwined?
+# Or take the arms against the sea of troubles
+# And by storing an array in each entry, end them?
+class ListItems(Base):
+    __tablename__ = 'lists'
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, unique=True)
+    owner = Column(ForeignKey("users.id"))
+    desc = Column(Text)
+
+
 
 
 # Authorization
