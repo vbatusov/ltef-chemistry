@@ -10,6 +10,11 @@
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 
     <script>
+      $(document).on('click', "a.listlink", function(event) {
+        event.preventDefault();
+        $('#editlistformtitle').val($(this).data('title'));
+        $('#editlistform').submit();        
+      });
     </script>
 
     <div class="container">
@@ -33,12 +38,16 @@
             </thead>
             <tbody>
               <tr tal:repeat="(title, desc) lists">
-                <td><a href="${request.route_url('editlist')}" tal:content="title"></a><span tal:content="' - ' + title"></span></td>
+                <td><a href="#" tal:content="title" tal:attributes="data-title title; class 'listlink'"></a><span tal:content="' - ' + desc"></span></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
+
+      <form id="editlistform" style="display:none" action="${request.route_url('editlist')}" method="post">
+        <input type="hidden" name="editlistformtitle" id="editlistformtitle">
+      </form>
 
       <div class="row">
         <div class="span9">

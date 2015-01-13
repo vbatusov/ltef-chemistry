@@ -20,6 +20,16 @@
         width:100%;
 
       }
+
+      .adddeleteparent{
+        height:400px;
+        display:table;
+      }
+
+      .adddeletediv{
+        display:table-cell; 
+        vertical-align: middle;
+      }
     </style>
 
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
@@ -31,8 +41,25 @@
          });  
          $('#remove').click(function() {  
           return !$('#select2 option:selected').remove().appendTo('#select1');  
-         });  
-        }); 
+         });
+         $('#btnSave').click(function(event) {
+
+            if ($('#txtTitle').val() == "") {
+              alert ("List title cannot be empty.");
+              event.preventDefault();
+            }
+
+
+            var l = "";
+            $("#select2 option").each(function()
+            {
+                l += $(this).val() + " ";
+            });
+
+
+            $('#listOfIDs').val(l);
+         });
+      });
     </script>
 
     <div class="container">
@@ -40,34 +67,27 @@
       <h1>Manage Reaction Lists</h1>
 
       <div class="row">
-        <div class="span9">          
+        <div class="span12">          
           <div tal:condition="message" class="alert alert-info" role="alert">${message}</div>
         </div>
       </div>
 
+      <form class="form-inline" action="${request.route_url('managelists')}" method="post">
       <div class="row">
-        <div class="span5">
-          <form action="${request.route_url('manageusers')}" method="post">
+        <div class="span5">        
+              <legend>List Editor</legend>
               <label>Title</label>
-              <input type="text" placeholder="Title" class="myform">
+              <input type="text" placeholder="Title" class="myform" tal:attributes="value title" name="txtTitle" id="txtTitle">
               <label>Description</label>
-              <textarea rows="3" placeholder="Description" class="myform"></textarea>
-          </form>
+              <textarea rows="3" placeholder="Description" class="myform" tal:content="desc" name="txtDesc"></textarea>
         </div>
       </div>
 
       <div class="row">
         <div class="span5">
+          <label>Available reactions</label>
           <select multiple class="form-control mysel" id="select1">
-            <option value="1">Some 1 reaction with Lindlar's Catalyst</option>
-            <option value="2">Some 2 reaction with another catalyst</option>
-            <option value="3">Some 3 reaction without a catalyst</option>
-            <option value="4">Some 4 reaction with Lindlar's Catalyst</option>
-            <option value="5">Some 5 reaction with another catalyst</option>
-            <option value="6">Some 6 reaction without a catalyst</option>
-            <option value="7">Some 7 reaction with Lindlar's Catalyst</option>
-            <option value="8">Some 8 reaction with another catalyst</option>
-            <option value="9">Some 9 reaction without a catalyst</option>
+            <option tal:repeat="(t, id) leftbox" tal:content="t" tal:attributes="value id">Reaction title</option>
           </select>
         </div>
         <div class="span2 adddeleteparent">
@@ -77,26 +97,27 @@
           </div>
         </div>
         <div class="span5">
+          <label>Your list</label>
           <select multiple class="mysel" id="select2">
-            
+            <option tal:repeat="(t, id) rightbox" tal:content="t" tal:attributes="value id">Reaction title</option>
           </select>
         </div>
       </div>
 
       <div class="row">
-        <div class="span12">
-          <form class="form-inline" action="${request.route_url('manageusers')}" method="post">
-            <div class="btn-toolbar pull-left">
-            <button class="btn btn-medium btn-danger" type="submit" name="addform.submitted">Remove this list</button>
-          </div>
-          <div class="btn-toolbar pull-right">
-            <button class="btn btn-medium btn-primary" type="submit" name="addform.submitted">Dismiss changes</button>
-            <button class="btn btn-medium btn-success" type="submit" name="addform.submitted">Save changes</button>
-          </div>
-          </form>
+        <div class="span12">          
+            <input type="hidden" name="listOfIDs" id="listOfIDs">
+            <input type="hidden" name="isNew" id="listOfIDs" tal:condition="new">
+            <div class="btn-toolbar pull-left" tal:condition="not new">
+              <button class="btn btn-medium btn-danger" type="submit" name="btnRemove">Remove this list</button>
+            </div>
+            <div class="btn-toolbar pull-right">
+              <button class="btn btn-medium btn-primary" type="submit" name="btnDiscard">Discard changes</button>
+              <button class="btn btn-medium btn-success" type="submit" name="btnSave" id="btnSave">Save changes</button>
+            </div>          
         </div>
       </div>
-
+      </form>
     </div> <!-- /container -->
   </div>
 </div>

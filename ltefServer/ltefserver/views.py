@@ -10,6 +10,7 @@ from .models import (
     Group,
     User,
     Reac,
+    List,
     )
 
 from pyramid.security import (
@@ -88,7 +89,7 @@ def manageusers_view(request):
             message = "Password changed for user '" + u + "'"
 
         elif request.params['editOption'] == 'group':
-            if not u == "admin" and not u == "guest":
+            if not u == User.ADMIN and not u == User.GUEST:
                 DBSession.query(User).filter(User.username == u).update({"group": request.params['group']})
                 message = "User '" + u + "' has been reassigned to another group"
             else:
@@ -96,7 +97,7 @@ def manageusers_view(request):
 
         elif request.params['editOption'] == 'erase':
             # NOTE: update this logic as user data spreads through database
-            if not u == "admin" and not u == "guest":
+            if not u == User.ADMIN and not u == User.GUEST:
                 DBSession.query(User).filter(User.username == u).delete()
                 message = "User '" + u + "' has been permanently erased"
             else:
@@ -104,10 +105,10 @@ def manageusers_view(request):
 
         #return HTTPFound(location = request.route_url('manageusers'))
 
-    admins = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='admin').all()
-    teachers = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='teacher').all()
-    students = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='student').all()
-    guests = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='guest').all()
+    admins = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc==Group.ADMIN).all()
+    teachers = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc==Group.TEACHER).all()
+    students = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc==Group.STUDENT).all()
+    guests = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc==Group.GUEST).all()
 
     groups = DBSession.query(Group).all()
 
@@ -122,10 +123,51 @@ def manageusers_view(request):
 def managelists_view(request):
     message = ""
 
-    user = DBSession.query(User).filter(User.id == request.authenticated_userid).first()
+    user = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+
+    if 'btnDiscard' in request.params: # from editlist
+        message = "No changes made"
+
+    elif 'btnSave' in request.params and request.params["txtTitle"] != "": # from editlist
+        # If list.title exists, update DB
+        # If not, add a new List entry
+        newlist = [int(x) for x in request.params["listOfIDs"].split()]
+        tit = request.params["txtTitle"]
+
+        # Create a new list
+        if "isNew" in request.params:          
+            if DBSession.query(List).filter_by(title=tit).first() is None:
+                DBSession.add(List(owner=user.id, title=tit,\
+                    desc=request.params["txtDesc"], data=newlist))
+                message = "List '" + tit + "' has been created"
+            else:
+                message = "List '" + tit + "' already exists; no changes made"  
+        # Update existing list     
+        else:
+            if tit == List.ALL_TITLE:
+                message = "List '" + tit + "' is locked and cannot be edited"
+            else:
+                if DBSession.query(List).filter_by(title=tit).first() is not None:
+                    DBSession.query(List).filter_by(title=tit)\
+                        .update({"title" : tit, "desc" : request.params["txtDesc"], "data" : newlist})
+                    message = "List '" + tit + "' has been updated"
+                else:
+                    # This cannot occur
+                    message = "Error: Editing a list that cannot be found in the database!"
+            
+    elif 'btnRemove' in request.params:
+        tit = request.params["txtTitle"]
+
+        if tit == List.ALL_TITLE:
+            message = "List '" + tit + "' is locked and cannot be removed"
+        else:
+            DBSession.query(List).filter_by(title=tit).delete()
+            message = "List '" + tit + "' has been permanently removed"
+
+    user = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     lists = []
     if user is not None:
-        lists = DBSession.query(List).filter(List.owner == user.id).all()
+        lists = [(l.title, l.desc) for l in DBSession.query(List).filter(List.owner == user.id).all()]
 
     return {"layout" : site_layout(), 
             "logged_in" : request.authenticated_userid,
@@ -138,38 +180,62 @@ def editlist_view(request):
 
     message = ""
 
-    # CONTINUE WORK BELOW THIS LINE
-
     title = ""
     desc = ""
+    new = True
+    # Data for select boxes: lists of pairs (full reaction name, reaction id)
+    leftbox = []
+    rightbox = []
 
-    if 'newlistform.submitted' in request.params:
-        pass
+    if 'editlistformtitle' in request.params:
+        list_title = request.params['editlistformtitle']
+        mylist = DBSession.query(List).filter(List.title == list_title).first()
+        title = mylist.title
+        desc = mylist.desc
+        (leftbox, rightbox) = cat.get_selectbox_lists_by_list_id(mylist.id)
+        new = False
+    else:
+        list_title = List.ALL_TITLE
+        list_id = DBSession.query(List).filter(List.title == list_title).first().id
+        (rightbox, leftbox) = cat.get_selectbox_lists_by_list_id(list_id)
 
+    if title == List.ALL_TITLE:
+        message = "This list is locked and cannot be changed"
 
     return {"layout" : site_layout(), 
             "logged_in" : request.authenticated_userid,            
             "message" : message,
+            "title" : title,
+            "desc" : desc,
+            "leftbox" : leftbox,
+            "rightbox" : rightbox,
+            "new" : new,
+            }          
 
-            }              
 
 @view_config(route_name='home', renderer='templates/home.pt', permission='study')
 def home_view(request):
     #print "Home view fired up, authenticated_userid is " + str(request.authenticated_userid)
 
-    groupName = 'guest'
+    is_guest = Group.GUEST
+    is_admin = None
+    is_teacher = None
+    is_student = None
 
     user = DBSession.query(User).filter_by(username=request.authenticated_userid).first()
     if user is not None:
         group = DBSession.query(Group).filter_by(id=user.group).first()
         if group is not None:
-            groupName = group.desc
+            is_admin = (group.desc == Group.ADMIN)
+            is_teacher = (group.desc == Group.TEACHER)
+            is_student = (group.desc == Group.STUDENT)
 
 
     return {"layout" : site_layout(), 
             "base_to_full" : cat.base_to_full, 
             "logged_in" : request.authenticated_userid,
-            "groupName" : groupName }
+            "is_guest" : is_guest, "is_admin" : is_admin, "is_teacher" : is_teacher, "is_student" : is_student,
+            }
 
 
 @view_config(route_name='learning', renderer='templates/learning.pt', permission='study')

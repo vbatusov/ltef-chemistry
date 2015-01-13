@@ -40,18 +40,18 @@ def main(argv=sys.argv):
     Base.metadata.create_all(engine)
     with transaction.manager:
         print "Creating groups..."
-        DBSession.add(Group(desc='admin'))
-        DBSession.add(Group(desc='teacher'))
-        DBSession.add(Group(desc='student'))
-        DBSession.add(Group(desc='guest'))
+        DBSession.add(Group(desc=Group.ADMIN))
+        DBSession.add(Group(desc=Group.GUEST))
+        DBSession.add(Group(desc=Group.TEACHER))
+        DBSession.add(Group(desc=Group.STUDENT))
 
         print "Creating guest..."
-        guestgroup = DBSession.query(Group).filter_by(desc='guest').first().id
+        guestgroup = DBSession.query(Group).filter_by(desc=Group.GUEST).first().id
         guesthash = bcrypt.hashpw('', bcrypt.gensalt())
-        DBSession.add(User(username='guest', group=guestgroup, phash=guesthash))
+        DBSession.add(User(username=User.GUEST, group=guestgroup, phash=guesthash))
 
         print "Creating superuser..."
-        admingroup = DBSession.query(Group).filter_by(desc='admin').first().id
+        admingroup = DBSession.query(Group).filter_by(desc=Group.ADMIN).first().id
         adminpw = getpass.getpass()
         adminhash = bcrypt.hashpw(adminpw, bcrypt.gensalt())
-        DBSession.add(User(username='admin', group=admingroup, phash=adminhash))
+        DBSession.add(User(username=User.ADMIN, group=admingroup, phash=adminhash))

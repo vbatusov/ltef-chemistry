@@ -101,14 +101,14 @@
           </div>
         </div>
 
-        <div class="row" tal:condition="groupName == 'teacher' or groupName == 'admin'">
+        <div class="row" tal:condition="is_teacher or is_admin">
           <div class="span9">
             <a href="${request.route_url('managelists')}"><h3>Manage reaction lists</h3></a>
             <p>Create, edit, or remove lists of reactions</p>
           </div>
         </div>
 
-        <div class="row" tal:condition="groupName == 'admin'">
+        <div class="row" tal:condition="is_admin">
           <div class="span9">
             <a href="${request.route_url('manageusers')}"><h3>Manage users</h3></a>
             <p>Manage users</p>

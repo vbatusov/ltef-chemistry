@@ -29,6 +29,7 @@ from .models import (
     Group,
     User,
     Reac,
+    List,
     )
 
 YAML_PATH = "reactions/catalogue.yml"
@@ -94,14 +95,14 @@ class Catalog:
             db_reac = DBSession.query(Reac).filter(Reac.basename == b).first()
             # No DB entry for this basename => create entry
             if db_reac is None:
-                with transaction.manager:
-                    DBSession.add(Reac(basename=b, source=s, source_timestamp=st, full_name=fn, description=d))
+                #with transaction.manager:
+                DBSession.add(Reac(basename=b, source=s, source_timestamp=st, full_name=fn, description=d))
                 print "Added new reaction '" + b + "' to database due to previously unknown basename."
             # DB entry is old according to timestamps => update
             elif db_reac.source_timestamp < st:
-                with transaction.manager:
-                    DBSession.query(Reac).filter(Reac.basename == b)\
-                        .update({"source" : s, "source_timestamp" : st, "full_name" : fn, "description" : d})
+                #with transaction.manager:
+                DBSession.query(Reac).filter(Reac.basename == b)\
+                    .update({"source" : s, "source_timestamp" : st, "full_name" : fn, "description" : d})
                 print "Updated reaction '" + b + "' in database due to file (rxn or description) timestamp."
 
         # DB to disk sync
@@ -112,11 +113,21 @@ class Catalog:
 
         if len(delquery.all()) > 0:
             print "Removing " + str(len(delquery.all())) + " outdated reaction records from DB..."
-            with transaction.manager:
-                delquery.delete()
+            #with transaction.manager:
+            delquery.delete()
 
-        # MUST REPOPULATE THE LIST OF ALL REACTIONS IN THE LISTS TABLE IF CHANGES HAVE BEEN MADE TO DB ^^^
+        # Repopulate the list of all reactions in the lists table
+        # [1,6,5] - a list of reaction id's; order is significant
+        # Drop the old list
+        DBSession.query(List).filter(List.title == List.ALL_TITLE).delete()
+        # Get a list of all reaction id's out of DB
+        list_all = [reac.id for reac in DBSession.query(Reac).all()]
+        # Get the admin's id
+        admin_id = DBSession.query(User).filter(User.username=="admin").first().id
+        # Add the new list back        
+        DBSession.add(List(owner=admin_id, title=List.ALL_TITLE, desc=List.ALL_DESC, data=list_all))
 
+        transaction.commit()        
 
     def _get_yaml_object(self):
         global YAML_PATH
@@ -153,6 +164,37 @@ class Catalog:
 
     def get_reaction_by_basename(self, basename):
         return self._reactions[basename]
+
+
+    def get_selectbox_lists_by_list_id(self, list_id):
+        """
+            Lists of tuples (full reaction name, reaction id);
+            left: those in list_id
+            right: those in List.ALL_TITLE but not in list_id
+        """
+        left = []
+        right = []
+
+        all_reacs_list_id = DBSession.query(List).filter(List.title == List.ALL_TITLE).first().id
+
+        list_of_all_ids = DBSession.query(List).filter(List.id == all_reacs_list_id).first().data
+        list_of_right_ids = DBSession.query(List).filter(List.id == list_id).first().data
+        
+        print "+++++++++++++++++++++++++++++++++++"
+        print "List of all   ids: " + str(list_of_all_ids)
+        print "List of right ids: " + str(list_of_right_ids)
+
+        all_reacs = DBSession.query(Reac).filter(Reac.id.in_(list_of_all_ids)).order_by(Reac.full_name).all()
+
+        for reac in all_reacs:
+            if reac.id in list_of_right_ids:
+                right.append((reac.full_name, reac.id))
+            else:
+                left.append((reac.full_name, reac.id))
+
+        print str((left, right))
+
+        return (left, right)
 
 
     # def get_reactions_info_from_files(folder):

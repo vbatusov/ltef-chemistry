@@ -29,11 +29,21 @@ Base = declarative_base()
 
 class Group(Base):
     __tablename__ = 'groups'
+
+    ADMIN = "admins"
+    GUEST = "guests"
+    TEACHER = "teachers"
+    STUDENT = "students"
+
     id = Column(Integer, primary_key=True)
     desc = Column(Text, unique=True)
 
 class User(Base):
     __tablename__ = 'users'
+
+    ADMIN = "admin"
+    GUEST = "guest"
+
     id = Column(Integer, primary_key=True)
     username = Column(Text, unique=True)
     group = Column(ForeignKey("groups.id"))
@@ -51,6 +61,10 @@ class Reac(Base):
 
 class List(Base):
     __tablename__ = 'lists'
+
+    ALL_TITLE = "All reactions"
+    ALL_DESC = "All reactions currently stored in the database"
+
     id = Column(Integer, primary_key=True)
     owner = Column(ForeignKey("users.id"))
     title = Column(Text, unique=True)
@@ -59,12 +73,12 @@ class List(Base):
 
 # Authorization
 class RootFactory(object):
-    __acl__ = [ (Allow, 'admin', 'dominate'),
-                (Allow, 'admin', 'educate'),
-                (Allow, 'admin', 'study'),
-                (Allow, 'teacher', 'educate'),
-                (Allow, 'teacher', 'study'),
-                (Allow, 'student', 'study'),
-                (Allow, 'guest', 'study') ]
+    __acl__ = [ (Allow, Group.ADMIN, 'dominate'),
+                (Allow, Group.ADMIN, 'educate'),
+                (Allow, Group.ADMIN, 'study'),
+                (Allow, Group.TEACHER, 'educate'),
+                (Allow, Group.TEACHER, 'study'),
+                (Allow, Group.STUDENT, 'study'),
+                (Allow, Group.GUEST, 'study') ]
     def __init__(self, request):
         pass
