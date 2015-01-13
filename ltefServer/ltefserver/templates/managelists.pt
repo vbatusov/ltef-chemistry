@@ -32,14 +32,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><a href="${request.route_url('editlist')}">CHE101</a> - Reactions for the first course of organic chemistry...</td>                
-              </tr>
-              <tr>
-                <td><a href="#">CHE102</a> - Some more reactions building up on CHE101</td>                
-              </tr>
-              <tr>
-                <td><a href="#">CHE103</a> - Advanced reactions for clever people</td>                
+              <tr tal:repeat="(title, desc) lists">
+                <td><a href="${request.route_url('editlist')}" tal:content="title"></a><span tal:content="' - ' + title"></span></td>
               </tr>
             </tbody>
           </table>
@@ -49,7 +43,7 @@
       <div class="row">
         <div class="span9">
           <form class="form-inline" action="${request.route_url('editlist')}" method="post">
-            <button class="btn btn-medium btn-primary" type="submit" name="addform.submitted">Create a new list</button>
+            <button class="btn btn-medium btn-primary" type="submit" name="newlistform.submitted">Create a new list</button>
           </form>
         </div>
       </div>

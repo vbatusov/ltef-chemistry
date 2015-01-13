@@ -4,14 +4,32 @@ Let the catalog contain a dictionary { "reaction_basename" : generic_reaction_ob
 This way, we parse each reaction file once on startup. Parsing is based on paths and names 
 given in YAML file; reaction objects are assigned their full names and descriptions (from .txt)
 as attributes.
+
+
+RULE CHANGE:
+This will now house DB-related startup tasks:
+ - As before, load reactions from files;
+ - Check reactions against DB - by basename for existence, by timestamp for decrepitude;
+ - Update DB as necessary or complain if can't;
+Invariant: pairs (id,basename) must be preserved
+TODO: switch views.py to use DB instead of objects?
 """
 
 import yaml
 import os
+import datetime
 import sys
 sys.path.append('../python')
 import rxn
 import chem
+
+import transaction
+from .models import (
+    DBSession,
+    Group,
+    User,
+    Reac,
+    )
 
 YAML_PATH = "reactions/catalogue.yml"
 
@@ -28,6 +46,9 @@ class Catalog:
         # This will store everything
         self._reactions = {}
 
+        # And this to store everything plus file info
+        disk_data = []
+
         # This will map basenames to full names
         self.base_to_full = {}
 
@@ -35,12 +56,17 @@ class Catalog:
         yaml_obj = self._get_yaml_object()
         path_to_rxn = yaml_obj["rxn_dir"]
         path_to_desc = yaml_obj["descriptions_dir"]
+        desc_mtime = os.path.getmtime(path_to_desc)
         reaction_names = yaml_obj["reactions"]
 
         # Read and parse all RXN
         for entry in reaction_names:
             basename = entry["basename"]
             path = os.path.join(path_to_rxn, basename + ".rxn")
+            rxn_mtime = os.path.getmtime(path)
+
+            # Whichever is the latest
+            mtime = max(desc_mtime, rxn_mtime)
 
             reaction = rxn.parse_rxn(path)
             reaction.full_name = entry["name"]
@@ -49,10 +75,47 @@ class Catalog:
             self._reactions[basename] = reaction
             self.base_to_full[basename] = entry["name"]
 
-        # DEBUG
-        print "Catalog init finished with: "
-        for bn in self.get_sorted_basenames():
-            print "  " + bn + " : " + str(id(self._reactions[bn]))
+            disk_data.append((basename, path, datetime.datetime.fromtimestamp(mtime), reaction.full_name, reaction.desc, reaction))
+
+        self._update_DB(disk_data)
+
+
+    def _update_DB(self, disk_data):
+        print "Synchronizing DB with files..."
+        reacs = DBSession.query(Reac).all()
+
+        print "%d reaction files on disk." % len(disk_data)
+        print "%d reactions recorded in the database." % len(reacs)
+
+        # Disk to DB sync
+        print "Updating DB with new data..."
+        for (b, s, st, fn, d, o) in disk_data:
+            # Since Reac.basename is unique, there can only be one result, if any
+            db_reac = DBSession.query(Reac).filter(Reac.basename == b).first()
+            # No DB entry for this basename => create entry
+            if db_reac is None:
+                with transaction.manager:
+                    DBSession.add(Reac(basename=b, source=s, source_timestamp=st, full_name=fn, description=d))
+                print "Added new reaction '" + b + "' to database due to previously unknown basename."
+            # DB entry is old according to timestamps => update
+            elif db_reac.source_timestamp < st:
+                with transaction.manager:
+                    DBSession.query(Reac).filter(Reac.basename == b)\
+                        .update({"source" : s, "source_timestamp" : st, "full_name" : fn, "description" : d})
+                print "Updated reaction '" + b + "' in database due to file (rxn or description) timestamp."
+
+        # DB to disk sync
+        print "Removing old data from DB..."
+        delquery = DBSession.query(Reac)
+        for (b, s, st, fn, d, o) in disk_data:
+            delquery = delquery.filter(Reac.basename != b)
+
+        if len(delquery.all()) > 0:
+            print "Removing " + str(len(delquery.all())) + " outdated reaction records from DB..."
+            with transaction.manager:
+                delquery.delete()
+
+        # MUST REPOPULATE THE LIST OF ALL REACTIONS IN THE LISTS TABLE IF CHANGES HAVE BEEN MADE TO DB ^^^
 
 
     def _get_yaml_object(self):

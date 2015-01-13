@@ -4,6 +4,8 @@ from sqlalchemy import (
     Integer,
     Text,
     ForeignKey,
+    PickleType,
+    DateTime,
     )
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -37,21 +39,25 @@ class User(Base):
     group = Column(ForeignKey("groups.id"))
     phash = Column(Text)
 
-# Store lists in a single table, intertwined?
-# Or take the arms against the sea of troubles
-# And by storing an array in each entry, end them?
-class ListItems(Base):
+class Reac(Base):
+    __tablename__ = 'reactions'
+    id = Column(Integer, primary_key=True)
+    basename = Column(Text, unique=True)
+    source = Column(Text)
+    source_timestamp = Column(DateTime)
+    full_name = Column(Text)
+    description = Column(Text)
+    #obj = Column(PickleType)
+
+class List(Base):
     __tablename__ = 'lists'
     id = Column(Integer, primary_key=True)
-    name = Column(Text, unique=True)
     owner = Column(ForeignKey("users.id"))
+    title = Column(Text, unique=True)
     desc = Column(Text)
-
-
-
+    data = Column(PickleType)
 
 # Authorization
-
 class RootFactory(object):
     __acl__ = [ (Allow, 'admin', 'dominate'),
                 (Allow, 'admin', 'educate'),

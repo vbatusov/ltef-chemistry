@@ -9,6 +9,7 @@ from .models import (
     DBSession,
     Group,
     User,
+    Reac,
     )
 
 from pyramid.security import (
@@ -119,58 +120,16 @@ def manageusers_view(request):
 
 @view_config(route_name='managelists', renderer='templates/managelists.pt', permission='educate')
 def managelists_view(request):
-
     message = ""
 
-    if 'deleteform.submitted' in request.params:
-        # TODO: add checks for valid input
-        u = request.params['login']
-        g = request.params['group']
-        p = request.params['password']
-
-        if DBSession.query(User).filter_by(username=u).first() is None:
-            DBSession.add(User(username=u, group=g, phash=getHash(p)))
-            message = "User '" + u + "' has been added"
-        else:
-            message = "User '" + u + "' already exists"
-
-        #return HTTPFound(location = request.route_url('manageusers'))
-
-    elif 'saveform.submitted' in request.params:
-        u = request.params['editform.username']
-        # apply changes
-        if request.params['editOption'] == 'password':
-            DBSession.query(User).filter(User.username == u).update({"phash": getHash(request.params['password'])})
-            message = "Password changed for user '" + u + "'"
-
-        elif request.params['editOption'] == 'group':
-            if not u == "admin" and not u == "guest":
-                DBSession.query(User).filter(User.username == u).update({"group": request.params['group']})
-                message = "User '" + u + "' has been reassigned to another group"
-            else:
-                message = "User '" + u + "' cannot be reassigned to another group"
-
-        elif request.params['editOption'] == 'erase':
-            # NOTE: update this logic as user data spreads through database
-            if not u == "admin" and not u == "guest":
-                DBSession.query(User).filter(User.username == u).delete()
-                message = "User '" + u + "' has been permanently erased"
-            else:
-                message = "User '" + u + "' cannot be erased"
-
-        #return HTTPFound(location = request.route_url('manageusers'))
-
-    admins = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='admin').all()
-    teachers = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='teacher').all()
-    students = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='student').all()
-    guests = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='guest').all()
-
-    groups = DBSession.query(Group).all()
+    user = DBSession.query(User).filter(User.id == request.authenticated_userid).first()
+    lists = []
+    if user is not None:
+        lists = DBSession.query(List).filter(List.owner == user.id).all()
 
     return {"layout" : site_layout(), 
             "logged_in" : request.authenticated_userid,
-            "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
-            "groups" : groups,
+            "lists" : lists,
             "message" : message,
             }
 
@@ -179,57 +138,20 @@ def editlist_view(request):
 
     message = ""
 
-    if 'deleteform.submitted' in request.params:
-        # TODO: add checks for valid input
-        u = request.params['login']
-        g = request.params['group']
-        p = request.params['password']
+    # CONTINUE WORK BELOW THIS LINE
 
-        if DBSession.query(User).filter_by(username=u).first() is None:
-            DBSession.add(User(username=u, group=g, phash=getHash(p)))
-            message = "User '" + u + "' has been added"
-        else:
-            message = "User '" + u + "' already exists"
+    title = ""
+    desc = ""
 
-        #return HTTPFound(location = request.route_url('manageusers'))
+    if 'newlistform.submitted' in request.params:
+        pass
 
-    elif 'saveform.submitted' in request.params:
-        u = request.params['editform.username']
-        # apply changes
-        if request.params['editOption'] == 'password':
-            DBSession.query(User).filter(User.username == u).update({"phash": getHash(request.params['password'])})
-            message = "Password changed for user '" + u + "'"
-
-        elif request.params['editOption'] == 'group':
-            if not u == "admin" and not u == "guest":
-                DBSession.query(User).filter(User.username == u).update({"group": request.params['group']})
-                message = "User '" + u + "' has been reassigned to another group"
-            else:
-                message = "User '" + u + "' cannot be reassigned to another group"
-
-        elif request.params['editOption'] == 'erase':
-            # NOTE: update this logic as user data spreads through database
-            if not u == "admin" and not u == "guest":
-                DBSession.query(User).filter(User.username == u).delete()
-                message = "User '" + u + "' has been permanently erased"
-            else:
-                message = "User '" + u + "' cannot be erased"
-
-        #return HTTPFound(location = request.route_url('manageusers'))
-
-    admins = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='admin').all()
-    teachers = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='teacher').all()
-    students = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='student').all()
-    guests = DBSession.query(User,Group).filter(User.group==Group.id).filter(Group.desc=='guest').all()
-
-    groups = DBSession.query(Group).all()
 
     return {"layout" : site_layout(), 
-            "logged_in" : request.authenticated_userid,
-            "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
-            "groups" : groups,
+            "logged_in" : request.authenticated_userid,            
             "message" : message,
-            }            
+
+            }              
 
 @view_config(route_name='home', renderer='templates/home.pt', permission='study')
 def home_view(request):
