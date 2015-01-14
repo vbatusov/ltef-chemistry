@@ -35,3 +35,5 @@ reactions:
 - {basename: sn2_with_leaving_group, name: SN2 with leaving group}
 - {basename: sn1_with_leaving_group, name: SN1 with leaving group}
 - {basename: synthesis_of_acid_chlorides, name: Synthesis of acid chlorides}
+- {basename: cleavage_of_ethers_with_hi_or_hbr, name: Cleavage of ethers with HI or HBr}
+- {basename: synthesis_of_an_ether_from_an_alcohol, name: Synthesis of an ether from an alcohol}
