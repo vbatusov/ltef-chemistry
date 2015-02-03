@@ -28,7 +28,7 @@ reactions:
 - {basename: fischer_esterification, name: Fischer esterification}
 - {basename: hydration_of_alkenes_(markovnikov), name: Hydration of alkenes (Markovnikov)}
 - {basename: tosylation, name: Tosylation}
-- {basename: bromination_of_alkanes_(uv_light), name: Bromination of alkanes with UV light}
+- {basename: halogenation_of_alkanes, name: Halogenation of alkanes}
 - {basename: bromination_of_alkanes_with_heat, name: Bromination of alkanes with heat}
 - {basename: catalytic_hydrogenation_of_alkyne, name: Catalytic hydrogenation of alkyne}
 - {basename: hydrogen_halide_addition_to_alkenes_(markovnikov), name: Hydrogen halide addition to alkenes (Markovnikov)}
