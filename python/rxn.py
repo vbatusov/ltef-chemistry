@@ -110,7 +110,7 @@ def parse_record(record, rgroup=False):
         # Add atom to molecule
         molecule.addAtom(atom)
 
-        if rgroup and attrDict["ATTCHPT"] == "1":
+        if rgroup and "ATTCHPT" in attrDict and attrDict["ATTCHPT"] == "1":
             molecule.anchor = atom
 
 

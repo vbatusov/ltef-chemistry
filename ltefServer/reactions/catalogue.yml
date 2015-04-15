@@ -43,8 +43,8 @@ reactions:
 - {basename: nitration_of_benzene, name: Nitration of benzene}
 - {basename: halogenation_of_benzene, name: Halogenation of benzene}
 - {basename: polymerization_of_alkenes, name: Polymerization of alkenes}
-- {basename: hydrohalogenation_of_alkynes, name: Hydrohalogenation of alkynes}
+#- {basename: hydrohalogenation_of_alkynes, name: Hydrohalogenation of alkynes}
 - {basename: hydration_of_alkenes, name: Hydration of alkenes}
 - {basename: halogenation_of_alkynes, name: Halogenation of alkynes}
-- {basename: reaction_of_alkyne_with_HX, name: Reaction of an alkyne with HX}
+#- {basename: reaction_of_alkyne_with_HX, name: Reaction of an alkyne with HX}
 
