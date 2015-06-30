@@ -28,7 +28,7 @@ import bcrypt
 #import base64
 import datetime
 sys.path.append('../python')
-sys.path.append('./indigo-python-1.1.12')
+sys.path.append('./indigo-python')
 import rxn
 import chem
 import draw
