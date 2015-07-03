@@ -56,11 +56,20 @@ history = {}
 # Unrelated note to self: add a 'dismiss' button to skip a problem
 
 
+def main_layout():
+    renderer = get_renderer("templates/main_layout.pt")
+    layout = renderer.implementation().macros['main_layout']
+    return layout
+
 def site_layout():
     renderer = get_renderer("templates/layout.pt")
     layout = renderer.implementation().macros['layout']
     return layout
 
+def logged_layout():
+    renderer = get_renderer("templates/logged_layout.pt")
+    layout = renderer.implementation().macros['logged_layout']
+    return layout
 
 @view_config(route_name='manageusers', renderer='templates/manageusers.pt', permission='dominate')
 def manageusers_view(request):
@@ -213,7 +222,7 @@ def editlist_view(request):
             }          
 
 
-@view_config(route_name='home', renderer='templates/home.pt', permission='study')
+@view_config(route_name='home', renderer='templates/new/home.pt', permission='study')
 def home_view(request):
     #print "Home view fired up, authenticated_userid is " + str(request.authenticated_userid)
 
@@ -231,7 +240,7 @@ def home_view(request):
             is_student = (group.desc == Group.STUDENT)
 
 
-    return {"layout" : site_layout(), 
+    return {"layout" : logged_layout(), 
             "base_to_full" : cat.base_to_full, 
             "logged_in" : request.authenticated_userid,
             "is_guest" : is_guest, "is_admin" : is_admin, "is_teacher" : is_teacher, "is_student" : is_student,
@@ -240,7 +249,7 @@ def home_view(request):
 
 @view_config(route_name='learning', renderer='templates/learning.pt', permission='study')
 def learning_view(request):
-    return {"layout" : site_layout(), 
+    return {"layout" : logged_layout(), 
             "base_to_full" : cat.base_to_full, 
             "logged_in" : request.authenticated_userid }
 
@@ -838,13 +847,13 @@ def addreaction_view(request):
             "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='about', renderer='templates/about.pt', permission='study')
+@view_config(route_name='about', renderer='templates/new/about.pt', permission='study')
 def about_view(request):
-    return {"layout": site_layout(),
+    return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid }
 
 
-@view_config(route_name='contact', renderer='templates/contact.pt', permission='study')
+@view_config(route_name='contact', renderer='templates/new/contact.pt', permission='study')
 def contact_view(request):
     state = "new form"
     if "txtComment" in request.POST:
@@ -856,15 +865,15 @@ def contact_view(request):
             myfile.write("----END OF MESSAGE----\n\n")
 
 
-    return {"layout": site_layout(), 
+    return {"layout": logged_layout(), 
             "state" : state,
             "logged_in" : request.authenticated_userid }
 
 
 
 
-@view_config(route_name='login', renderer='templates/login.pt')
-@forbidden_view_config(renderer='templates/login.pt')
+@view_config(route_name='login', renderer='templates/new/login.pt')
+@forbidden_view_config(renderer='templates/new/login.pt')
 def login(request):
     
     login_url = request.route_url('login')
@@ -889,7 +898,8 @@ def login(request):
         message = 'Failed login'
 
     return dict(
-        message = message,
+        layout = main_layout(),
+	message = message,
         url = request.application_url + '/login',
         came_from = came_from,
         login = login,

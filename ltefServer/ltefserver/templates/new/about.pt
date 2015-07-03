@@ -1,0 +1,16 @@
+
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+
+      <h1>About</h1>
+      <p>This project is developed by the <a href="http://www.ryerson.ca">Ryerson University</a> <a href="http://scs.ryerson.ca/">Computer Science Department</a> under the LTEF grant from the <a href="http://www.ryerson.ca/lt">Learning and Teaching office</a>.</p>
+      <h3>People</h3>
+      <p>Vitaliy Batusov - lead developer</p>
+      <p>Dr. Mikhail Soutchanski - idea, requirements specification</p>
+      <p>Dr. Andrew McWilliams - requirements specification</p>
+      <h3>Technology</h3>
+      <p>The back-end logic is developed in Python. The website is served by <a href="http://www.pylonsproject.org/projects/pyramid/about">Pyramid</a>. The source code for the project is open and available as a <a href="https://github.com/vbatusov/ltef-chemistry">GitHub repository</a>.</p>
+      <p><a href="http://www.epam.com/industries/healthcare-and-life-sciences/life-sciences-open-source.html">EPAM</a> - chemical object rendering via <a href="https://github.com/ggasoftware/indigo">Indigo Toolkit</a></p>
+      <p><a href="http://www.chemaxon.com">ChemAxon</a> - initial reaction descriptions</p>
+    </div>
+</div>

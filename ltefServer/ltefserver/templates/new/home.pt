@@ -1,0 +1,39 @@
+<div metal:use-macro="layout">
+<div metal:fill-slot="content">
+   <div class="panel panel-default">
+      <div class="panel-heading">
+         <h3 class="panel-title">LTEF Chemistry Tools</h3>
+      </div>
+      <div class="panel-body">
+         <p>Please select a tool. "Learning by example" and "Complete the reaction" are nearing completion; "Multistep synthesis" is very non-trivial and should be expected by the end of year.</p>
+      </div>
+      <div class="row placeholders">
+         <div class="col-xs-6 col-sm-3 placeholder">
+            <h4><a href="${request.route_url('learning')}">Learn by Examples<a></a></h4>
+            <span class="text-muted">Browse through arbitrary instances of reactions</span>
+         </div>
+         <div class="col-xs-6 col-sm-3 placeholder">
+            <h4><a href="">Complete the Reaction</a></h4>
+            <span class="text-muted">Fill-in the missing information about the reaction and get immediate feedback.</span>
+         </div>
+         <div class="col-xs-6 col-sm-3 placeholder">
+            <h4><a href="${request.route_url('synthesis')}">Multistep Synthesis</a></h4>
+            <span class="text-muted">(In development Stages) Design a synthesis with multiple reactions and get immediate feedback.</span>
+         </div>
+         <div class="col-xs-6 col-sm-3 placeholder">
+            <h4><a href="${request.route_url('addreaction')}">Add New Reaction</a></h4>
+            <span class="text-muted">(In development Stages) Add a new reaction to the knowledge base. After review, it will be appear in all other tools.</span>
+         </div>
+         <div class="col-xs-6 col-sm-3 placeholder"  tal:condition="is_teacher or is_admin">
+            <h4><a href="${request.route_url('managelists')}">Manage reaction lists</a></h4>
+            <span class="text-muted">Create, edit, or remove lists of reactions.</span>
+         </div>
+         <div class="col-xs-6 col-sm-3 placeholder" tal:condition="is_admin">
+            <h4><a href="${request.route_url('manageusers')}">Manage users</a></h4>
+            <span class="text-muted">Manage users</span>
+         </div>
+      </div>
+   </div>
+</div>
+</div
+

@@ -39,6 +39,8 @@ def main(global_config, **settings):
     
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
+    config.add_static_view('bootstrap', 'bootstrap', cache_max_age=3600)
+
 
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
