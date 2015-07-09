@@ -41,12 +41,12 @@
         background-color: #999;
       }
 
-      div.row-fluid [class*="span"] .center-in-span { 
-         float: none; 
-         margin: 0 auto; 
-         text-align: center; 
-         display: block; 
-         width: auto; 
+      div.row-fluid [class*="span"] .center-in-span {
+         float: none;
+         margin: 0 auto;
+         text-align: center;
+         display: block;
+         width: auto;
          height: auto;
       }
 
@@ -60,9 +60,9 @@
         border-color:#bbbbbb;
         min-height: 40px;
         line-height: 40px;
-        width: 220px; 
-        height:119px; 
-        background-size:220px 119px; 
+        width: 220px;
+        height:119px;
+        background-size:220px 119px;
         background-repeat:no-repeat;
       }
 
@@ -95,8 +95,8 @@
 
       <h1 tal:content="full_name">Name of reaction</h1>
 
-      <div>        
-        <img tal:attributes="src request.route_url('home') + 'img/' + basename + '/generic/image.png'">
+      <div>
+        <img tal:attributes="src link_to_gen_picture">
       </div>
 
       <div>
@@ -116,7 +116,7 @@
 
       <div>
         <p>
-          <strong>Example</strong> 
+          <strong>Example</strong>
           <button id="getButton" class="btn btn-primary btn-outline btn-xs">Refresh</button>
         </p>
         <img tal:attributes="src request.route_url('home') + 'img/' + basename + '/instance/image.png'" id="instanceImage">
