@@ -730,7 +730,7 @@ ATOM_NAMES = {
         "Ti" : "titanium",
         "V" : "vanadium",
         "Cr" : "chromium",
-        "Mg" : "manganese",
+        "Mn" : "manganese",
         "Fe" : "iron",
         "Co" : "cobalt",
         "Ni" : "nickel",
