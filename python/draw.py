@@ -45,7 +45,7 @@ def add_actors_to_ireaction(indigo, actors, func):
         func(imol)
 
 
-def renderReactionToBuffer(reaction):
+def renderReactionToBuffer(reaction, highlight=False):
     (indigo, renderer) = get_indigo()
     indigo.setOption("render-image-size", 940, -1)
     # First, re-create the reaction as an Indigo object
@@ -58,11 +58,18 @@ def renderReactionToBuffer(reaction):
     # Hide hydrogens - experiment
     ireaction.foldHydrogens()
 
+    if highlight:
+        indigo.setOption("render-background-color", 1.0, 0.9, 0.8)
+
     buf = renderer.renderToBuffer(ireaction)
+
+    if highlight:
+        indigo.setOption("render-background-color", 1.0, 0.9, 0.8)
 
     return buf
 
-def renderMoleculeToBuffer(mol):
+def renderMoleculeToBuffer(mol, highlight=False):
+    print str(highlight)
     (indigo, renderer) = get_indigo()
     indigo.setOption("render-image-size", 220, 119)
 
@@ -87,7 +94,16 @@ def renderMoleculeToBuffer(mol):
     # Hide hydrogens - experiment
     imol.foldHydrogens()
 
+    if highlight:
+        print "\n\n* * * MODIFYING RENDERER * * *\n\n"
+        indigo.setOption("render-background-color", 1.0, 0.9, 0.8)
+    else:
+        print "\n\n* * * NOT MODIFYING RENDERER * * *\n\n"
+
     buf = renderer.renderToBuffer(imol)
+
+    if highlight:
+        indigo.setOption("render-background-color", 1.0, 0.9, 0.8)
 
     return buf
 
