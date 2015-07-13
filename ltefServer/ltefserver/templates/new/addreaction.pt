@@ -1,0 +1,10 @@
+
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+
+
+      <p>This tool in not functional yet. When it is, you will be able to draw, type in, or otherwise input a description of a generic reaction. This will help us expand our knowledge base for all tools.</p>
+      <p>The reaction would have to be reviewed before it becomes a part of active knowledge.</p>
+
+  </div>
+</div>

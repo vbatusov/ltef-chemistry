@@ -1,0 +1,10 @@
+
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+
+      <h4>Multistep Synthesis</h4>
+      <p>This tool in not functional yet. When it is, you will be able to draw, type in, or otherwise input a set of reactants and a desired product. We will then try to find a multi-step synthesis that yields the desired product from the given reactants. This task is computationally non-trivial and we are currently conducting experiments to find the best way to do it.</p>
+      <p>Once implemented, this functionality will allow us to create quizzes that involve multistep synthesis. The essential benefit over existing systems would be that the path the synthesis takes is not hard-coded and is limited only by the ever-expanding chemical knowledge of our expert system.</p>
+
+  </div>
+</div>

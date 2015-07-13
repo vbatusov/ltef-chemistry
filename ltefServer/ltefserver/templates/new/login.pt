@@ -1,69 +1,40 @@
-      
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">
- <div class="container lightOpacity">
-         <ol class="breadcrumb">
-            <li><a href="#">Home</a></li>
-            <li class="active">Login</li>
-         </ol>
-         <div class="row">
-            <div class="col-md-4 col-md-offset-7">
-               <div class="panel panel-default">
-                  <div class="panel-heading">
-                     <span class="glyphicon glyphicon-lock"></span> Login
-                  </div>
-                  <div class="panel-body">
-                    
-
-                     <form class="form-horizontal" role="form" method="post" action="${url}">
-                        
-
-                        <div class="form-group">
-                           <label for="inputEmail3" class="col-sm-3 control-label">Username</label>
-                           <div class="col-sm-9">
-                              <input type="text" class="form-control" id="inputUsername" placeholder="Username" name="login" value="${login}" required>
-                           </div>
+        <div class="container lightOpacity">
+            <div class="row">
+                <div class="col-md-4 col-md-offset-7">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <span class="glyphicon glyphicon-lock"></span> Login
                         </div>
-
-
-                        <div class="form-group">
-                           <label for="inputPassword3" class="col-sm-3 control-label">Password</label>
-                           <div class="col-sm-9">
-                              <input type="password" class="form-control" id="inputPassword3" placeholder="Password" name="password" value="${password}" >
-                           </div>
+                        <div class="panel-body">
+                            <form class="form-horizontal" role="form" method="post" action="${url}">
+                                <div class="form-group">
+                                    <label for="inputEmail3" class="col-sm-3 control-label">Username</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="inputUsername" placeholder="Username" name="login" value="${login}" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputPassword3" class="col-sm-3 control-label">Password</label>
+                                    <div class="col-sm-9">
+                                        <input type="password" class="form-control" id="inputPassword3" placeholder="Password" name="password" value="${password}" >
+                                    </div>
+                                </div>
+                                <div class="form-group last">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <button type="submit" class="btn btn-success btn-sm" name="form.submitted">
+                                        Sign in</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
-
-
-                        <div class="form-group">
-                           <div class="col-sm-offset-3 col-sm-9">
-                              <div class="checkbox">
-                                 <label>
-                                 <input type="checkbox"/>
-                                 Remember me
-                                 </label>
-                              </div>
-                           </div>
+                        <div class="panel-footer">
+                            Not Registred? <a href="${request.route_url('select_register')}">Register here</a>
                         </div>
-                        
-                        <div class="form-group last">
-                           <div class="col-sm-offset-3 col-sm-9">
-                              <button type="submit" class="btn btn-success btn-sm" name="form.submitted">
-                              Sign in</button>
-                           </div>
-                        </div>
-
-                     </form>
-
-
-
-                  </div>
-                  <div class="panel-footer">
-                     Not Registred? <a href="">Register here</a>
-                  </div>
-               </div>
+                    </div>
+                </div>
             </div>
-         </div>
-      </div>
-
+        </div>
     </div>
 </div>

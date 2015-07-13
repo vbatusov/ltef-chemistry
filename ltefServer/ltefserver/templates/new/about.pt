@@ -2,7 +2,6 @@
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">
 
-      <h1>About</h1>
       <p>This project is developed by the <a href="http://www.ryerson.ca">Ryerson University</a> <a href="http://scs.ryerson.ca/">Computer Science Department</a> under the LTEF grant from the <a href="http://www.ryerson.ca/lt">Learning and Teaching office</a>.</p>
       <h3>People</h3>
       <p>Vitaliy Batusov - lead developer</p>

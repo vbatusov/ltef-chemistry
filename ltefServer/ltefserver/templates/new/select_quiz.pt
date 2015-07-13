@@ -1,0 +1,78 @@
+
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+ <div class="container-fluid lightOpacity">
+
+
+   <div class="row">
+                                    <div class="col-md-9">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <span class="glyphicon glyphicon-lock"></span> Select a Quiz
+                                            </div>
+                                            <div class="panel-body">
+                                                <form class="form-horizontal" role="form" method="POST" action="${request.route_url('student_register')}">
+                                                    <div class="form-group">
+
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="radio col-sm-3 col-sm-offset-1">
+                                                            <label><input type="radio" name="optradio">Reactants</label>
+                                                        </div>
+                                                        <div class="radio col-sm-3 ">
+                                                            <label><input type="radio" name="optradio">Products</label>
+                                                        </div>
+                                                        <div class="radio col-sm-3 ">
+                                                            <label><input type="radio" name="optradio">Reaction Name</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="col-sm-12 ">
+                                                            Reactants are unknown. You need to fill them in.
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="col-sm-3 control-label">Select a Reaction:</label>
+                                                        <div class="col-sm-9">
+                                                            <select class="form-control" id="sel1">
+                                                             <option value="random">[Random]</option>
+						             <option tal:repeat="base sorted(base_to_full.keys())" tal:content="base_to_full[base]" tal:attributes="value base">Reaction name</option>
+							    </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group last">
+                                                        <div class="col-sm-offset-10 col-sm-2">
+                                                            <button type="submit" name="form_register.submitted"  class="btn btn-success btn-sm">
+                                                            Next</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <div class="panel-footer">
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                Previous Quizes
+                                            </div>
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Quiz Title</th>
+                                                        <th>Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+      </div>
+    </div>
+</div>

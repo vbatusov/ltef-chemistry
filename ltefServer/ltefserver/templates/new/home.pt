@@ -13,7 +13,7 @@
             <span class="text-muted">Browse through arbitrary instances of reactions</span>
          </div>
          <div class="col-xs-6 col-sm-3 placeholder">
-            <h4><a href="">Complete the Reaction</a></h4>
+            <h4><a href="${request.route_url('select_quiz')}">Complete the Reaction</a></h4>
             <span class="text-muted">Fill-in the missing information about the reaction and get immediate feedback.</span>
          </div>
          <div class="col-xs-6 col-sm-3 placeholder">
@@ -34,6 +34,62 @@
          </div>
       </div>
    </div>
+
+<div tal:condition="is_teacher">
+  <div class="panel panel-default">
+
+      <div class="panel-heading">
+         <h3 class="panel-title">Your Classes</h3> 
+      </div>
+
+      <div class="panel-body">
+	  <a href="${request.route_url('createcourse')}" class="btn btn-primary btn-md" role="button">Create Class</a>
+      
+     <div class="row placeholders">
+         <div tal:repeat="teacher_course teacher_courses" class="col-xs-6 col-sm-3 placeholder">
+            <h4><a tal:content="teacher_course.name"  href="${request.route_url('learning')}"></a></h4>
+            <span tal:content="teacher_course.description" class="text-muted"></span>
+         </div>
+	</div>
 </div>
-</div
+</div>
+</div>
+<div tal:condition="is_student">
+  <div class="panel panel-default">
+
+      <div class="panel-heading">
+         <h3 class="panel-title">Your Classes</h3>
+      </div>
+
+      <div class="panel-body">
+<div class="col-xs-12" ><a href="${request.route_url('course_signup')}" class="btn btn-primary btn-md" role="button">Signup to a Course</a></div>
+
+
+ <div tal:repeat="(student_course, student_enrolled) student_courses" class="col-xs-6 col-sm-3 placeholder">
+            <h4><a tal:content="student_course.name"  href="${request.route_url('learning')}"></a></h4>
+            <span tal:content="student_course.description" class="text-muted"></span>
+         </div>
+
+
+
+
+
+      </div>
+
+</div>
+</div>
+  <div class="panel panel-default">
+      
+      <div class="panel-heading">
+         <h3 class="panel-title">Settings</h3>
+      </div>
+
+      <div class="panel-body">
+      </div>
+
+</div>
+
+
+</div>
+</div>
 

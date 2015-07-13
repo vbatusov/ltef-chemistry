@@ -4,6 +4,7 @@ from pyramid.response import FileResponse, Response
 from pyramid.request import Request
 from pyramid.httpexceptions import (HTTPFound, HTTPNotFound)
 
+
 from sqlalchemy.exc import DBAPIError
 from .models import (
     DBSession,
@@ -11,6 +12,8 @@ from .models import (
     User,
     Reac,
     List,
+    Course,
+    Enrolled,
     )
 
 from pyramid.security import (
@@ -35,6 +38,9 @@ import draw
 import catalog
 import copy
 
+
+
+
 # Create a catalog object upon loading this module
 # Let's not use 'global' keyword in functions since we should not be
 # modifying this anyway.
@@ -45,6 +51,8 @@ cat = catalog.Catalog()
 # containing the reaction image without reactants, and a set of possible answer images,
 # complete with boolean flags to indicate whether they are right or wrong
 quiz_problems = {}
+
+current_user = {}
 
 
 # Experiment
@@ -71,24 +79,35 @@ def logged_layout():
     layout = renderer.implementation().macros['logged_layout']
     return layout
 
-@view_config(route_name='manageusers', renderer='templates/manageusers.pt', permission='dominate')
+
+
+@view_config(route_name='manageusers', renderer='templates/new/manageusers.pt', permission='dominate')
 def manageusers_view(request):
 
     message = ""
 
     if 'addform.submitted' in request.params:
         # TODO: add checks for valid input
-        u = request.params['login']
+        u = request.params['username']
+	firstname = request.params['first_name']
+	lastname = request.params['last_name']
+	id = request.params['id_number']
+	email = request.params['email']
         g = request.params['group']
         p = request.params['password']
+	password_confirm = request.params['confirm_password']
+	
+	if p == password_confirm:
+             if DBSession.query(User).filter_by(username=u).first() is None:
+                DBSession.add(User(username=u, group=g,firstname=firstname, lastname=lastname, studentNumber=id, email=email, phash=getHash(p)))
+                message = "User '" + u + "' has been added"
+             else:
+                message = "User '" + u + "' already exists"
 
-        if DBSession.query(User).filter_by(username=u).first() is None:
-            DBSession.add(User(username=u, group=g, phash=getHash(p)))
-            message = "User '" + u + "' has been added"
-        else:
-            message = "User '" + u + "' already exists"
-
-        #return HTTPFound(location = request.route_url('manageusers'))
+                #return HTTPFound(location = request.route_url('manageusers'))
+	else:
+	     message = "Passwords do not match"
+	
 
     elif 'editform.username' in request.params:
         u = request.params['editform.username']
@@ -121,14 +140,15 @@ def manageusers_view(request):
 
     groups = DBSession.query(Group).all()
 
-    return {"layout" : site_layout(), 
+    return {"layout" : logged_layout(), 
             "logged_in" : request.authenticated_userid,
             "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
             "groups" : groups,
             "message" : message,
+	    "page_title" : "Manage Users"
             }
 
-@view_config(route_name='managelists', renderer='templates/managelists.pt', permission='educate')
+@view_config(route_name='managelists', renderer='templates/new/managelists.pt', permission='educate')
 def managelists_view(request):
     message = ""
 
@@ -178,10 +198,11 @@ def managelists_view(request):
     if user is not None:
         lists = [(l.title, l.desc) for l in DBSession.query(List).filter(List.owner == user.id).all()]
 
-    return {"layout" : site_layout(), 
+    return {"layout" : logged_layout(), 
             "logged_in" : request.authenticated_userid,
             "lists" : lists,
             "message" : message,
+	    "page_title" : "Manage Reaction Lists"
             }
 
 @view_config(route_name='editlist', renderer='templates/editlist.pt', permission='educate')
@@ -230,7 +251,9 @@ def home_view(request):
     is_admin = None
     is_teacher = None
     is_student = None
-
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    teacher_courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all() 
+    student_courses = DBSession.query(Course,Enrolled).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).all() 
     user = DBSession.query(User).filter_by(username=request.authenticated_userid).first()
     if user is not None:
         group = DBSession.query(Group).filter_by(id=user.group).first()
@@ -243,15 +266,19 @@ def home_view(request):
     return {"layout" : logged_layout(), 
             "base_to_full" : cat.base_to_full, 
             "logged_in" : request.authenticated_userid,
+	    "teacher_courses" : teacher_courses,
+	    "student_courses" : student_courses,
             "is_guest" : is_guest, "is_admin" : is_admin, "is_teacher" : is_teacher, "is_student" : is_student,
-            }
+            "page_title" : "Overview"
+	     }
 
 
-@view_config(route_name='learning', renderer='templates/learning.pt', permission='study')
+@view_config(route_name='learning', renderer='templates/new/learning.pt', permission='study')
 def learning_view(request):
     return {"layout" : logged_layout(), 
             "base_to_full" : cat.base_to_full, 
-            "logged_in" : request.authenticated_userid }
+            "logged_in" : request.authenticated_userid,
+	    "page_title" : "Learn By Example" }
 
 
 @view_config(route_name='learning_reaction', renderer='templates/learning_reaction.pt', permission='study')
@@ -519,7 +546,7 @@ def quiz_reactants_view(request):
         }
 
 
-@view_config(route_name='quiz_products', renderer='templates/quiz_products.pt', permission='study')
+@view_config(route_name='quiz_products', renderer='templates/new/quiz_products.pt', permission='study')
 def quiz_products_view(request):
     global quiz_problems
     session = request.session
@@ -654,8 +681,9 @@ def quiz_products_view(request):
 
      
     return {
-            "layout": site_layout(),
+            "layout": logged_layout(),
             "basename" : basename,
+	    "page_title" : full_name,
             "full_name" : full_name,
             "problem_id" : problem_id,
             "indeces" : range(0, len(quiz_problems[problem_id][1])),
@@ -836,21 +864,98 @@ def quiz_history_view(request):
         }
 
 
-@view_config(route_name='synthesis', renderer='templates/synthesis.pt', permission='study')
+@view_config(route_name='synthesis', renderer='templates/new/synthesis.pt', permission='study')
 def synthesis_view(request):
-    return {"layout": site_layout(),
-            "logged_in" : request.authenticated_userid }
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+	    "page_title" : "Multistep Synthesis"	 }
 
-@view_config(route_name='addreaction', renderer='templates/addreaction.pt', permission='study')
+@view_config(route_name='addreaction', renderer='templates/new/addreaction.pt', permission='study')
 def addreaction_view(request):
-    return {"layout": site_layout(),
-            "logged_in" : request.authenticated_userid }
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+	    "page_title" : "Add New Reaction"			 }
 
 
 @view_config(route_name='about', renderer='templates/new/about.pt', permission='study')
 def about_view(request):
     return {"layout": logged_layout(),
-            "logged_in" : request.authenticated_userid }
+            "logged_in" : request.authenticated_userid, 
+	    "page_title" : "About Us"		}
+
+@view_config(route_name='select_quiz', renderer='templates/new/select_quiz.pt', permission='study')
+def select_quiz_view(request):
+    return {"layout": logged_layout(),
+	    "base_to_full" : cat.base_to_full,
+            "logged_in" : request.authenticated_userid,
+            "page_title" : "Select Quiz"           }
+
+@view_config(route_name='createcourse', renderer='templates/new/createcourse.pt', permission='study')
+def create_course_view(request):
+
+    # N9TT-9G0A-B7FQ-RANC
+    message = ""
+    class_title = ""   
+    course_description = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first() 
+    courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all()
+    
+    if 'submit.createcourse' in request.params:
+	 class_title = request.params['class_title']
+	 course_description = request.params['course_description']
+	 new_course_code = str(uuid.uuid4())[0:16].upper()  # or whatever
+ 	 
+	 if DBSession.query(Course).filter_by(name=class_title).first() is None:
+               DBSession.add(Course(name=class_title, owner=currentuser.id, description=course_description,  access_code=new_course_code))
+               message = "Class " + class_title + " has been added"
+               courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all()
+	 else:
+               message = "Class Title " + class_title + " already exists"
+ 
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+            "message" : message,
+	    "courses" : courses,
+	    "page_title" : "Create Class"           }
+
+@view_config(route_name='course_signup', renderer='templates/new/course_signup.pt', permission='study')
+def course_signup_view(request):
+
+    message = ""
+    access_code = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    
+    print "######################## " + str(currentuser.id) + " ###########################" 
+    enrolls = DBSession.query(Enrolled).filter(Enrolled.userid == currentuser.id ).all()
+    courses =  DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
+    
+    if 'submit.coursesignup' in request.params:
+	access_code = request.params['access_code']
+	print access_code
+	message = access_code
+	
+	if DBSession.query(Course).filter_by(access_code=access_code).first() is None:
+		message = "Invalid access code"
+   	else:
+		
+	    course_id = DBSession.query(Course).filter(Course.access_code == access_code ).first()
+            if DBSession.query(Enrolled).filter(Enrolled.userid==currentuser.id).filter(Enrolled.courseid==course_id.id ).first() is None:
+		
+		course1 = DBSession.query(Course).filter_by(access_code=access_code).first()
+		DBSession.add(Enrolled(userid=currentuser.id, courseid=course1.id))
+		message = "You have successfully added "  + course1.name 
+		courses = DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
+	    else: 
+		message = "You are already enrolled in the Course"
+		
+
+
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+            "message" : message,
+	    "courses" : courses,
+	    "page_title" : "Signup to a Course"           }
+
 
 
 @view_config(route_name='contact', renderer='templates/new/contact.pt', permission='study')
@@ -867,15 +972,67 @@ def contact_view(request):
 
     return {"layout": logged_layout(), 
             "state" : state,
-            "logged_in" : request.authenticated_userid }
+            "logged_in" : request.authenticated_userid,
+	    "page_title" : "Contact Us"			}
 
 
+@view_config(route_name='student_register', renderer='templates/new/student_register.pt')
+def student_register_view(request):
+    
+
+    message= ""
+    username = ""
+    first_name = ""
+    last_name = ""
+    student_number = ""
+    email = "" 
+    password = ""
+    confirm_password = ""
+    
+    if 'form_register.submitted' in request.params: 
+        first_name = request.params['first_name']
+	username = request.params['username']
+        last_name = request.params['last_name']
+  	student_number = request.params['student_number']
+	email = request.params['email']
+	password = request.params['password']
+	confirm_password = request.params['confirm_password']
+	
+	
+	if len(first_name) <= 0 & len(last_name) <= 0:
+		message = "Missing inputs"
+	else:
+	    if password <> confirm_password: 
+		 message = "Passwords are not matching"
+	
+	# Check if there are no existing usernames  
+	if DBSession.query(User).filter_by(username=username).first() is None:
+            DBSession.add(User(username=username, email=email, firstname=first_name, lastname=last_name, group=4, phash=getHash(password)))
+            message = "User '" + username + "' has been added"
+        else:
+            message = "User '" + username + "' already exists"
+	
+
+ 
+    # there can not be two of the same emails return a message user has been registered 
+
+    # both password and confirm password must be the same or else return a message 
+
+   
+    return {"layout": main_layout(),
+	    "message": message
+	   } 
+
+@view_config(route_name='select_register', renderer='templates/new/select_register.pt')
+def select_register_view(request):
+    return {"layout": main_layout()
+            }
 
 
 @view_config(route_name='login', renderer='templates/new/login.pt')
 @forbidden_view_config(renderer='templates/new/login.pt')
 def login(request):
-    
+
     login_url = request.route_url('login')
     referrer = request.url
     if referrer == login_url:
@@ -892,7 +1049,7 @@ def login(request):
 
             print "Logged in as " + login + "; creating a blank history"
             history[login] = []
-
+	    current_user = request.params
             return HTTPFound(location = came_from,
                              headers = headers)
         message = 'Failed login'

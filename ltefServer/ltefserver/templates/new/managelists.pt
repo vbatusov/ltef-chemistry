@@ -1,0 +1,61 @@
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+    <script>
+      $(document).on('click', "a.listlink", function(event) {
+        event.preventDefault();
+        $('#editlistformtitle').val($(this).data('title'));
+        $('#editlistform').submit();        
+      });
+    </script>
+
+    <div class="container">
+
+
+      <div class="row">
+        <div class="span9">          
+          <div tal:condition="message" class="alert alert-info" role="alert">${message}</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span9">
+          <table class="table">
+            <!--caption></caption-->
+            <thead>
+              <tr>
+                <th>You are the owner of the following lists:</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr tal:repeat="(title, desc) lists">
+                <td><a href="#" tal:content="title" tal:attributes="data-title title; class 'listlink'"></a><span tal:content="' - ' + desc"></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <form id="editlistform" style="display:none" action="${request.route_url('editlist')}" method="post">
+        <input type="hidden" name="editlistformtitle" id="editlistformtitle">
+      </form>
+
+      <div class="row">
+        <div class="span9">
+          <form class="form-inline" action="${request.route_url('editlist')}" method="post">
+            <button class="btn btn-medium btn-primary" type="submit" name="newlistform.submitted">Create a new list</button>
+          </form>
+        </div>
+      </div>
+
+    </div> <!-- /container -->
+  </div>
+</div>

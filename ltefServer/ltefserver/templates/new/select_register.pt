@@ -1,0 +1,27 @@
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+        <div class="container lightOpacity">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <span class="glyphicon glyphicon-lock"></span> Register Selected User
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <div class="btn-group btn-group-justified">
+                                    <div class="btn-group">
+                                        <a href="#" class="btn btn-default" role="button">Teacher</a>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="${request.route_url('student_register')}" class="btn btn-default" role="button">Student</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

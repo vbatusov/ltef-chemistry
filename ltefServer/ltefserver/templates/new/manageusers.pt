@@ -1,0 +1,155 @@
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+
+                                <div class="container lightOpacity">
+                                    <div class="row">
+                                        <div class="col-md-9 ">
+                                            <div class="panel panel-default">
+                                                <div class="panel-heading">
+                                                    <span class="glyphicon glyphicon-lock"></span> Create User
+                                                </div>
+                                                <div class="panel-body">
+                                                    <form class="form-horizontal" role="form" method="POST" action="${request.route_url('manageusers')}">
+                                                        <div class="form-group">
+                                                            <div class="col-sm-9 col-sm-offset-3">
+                                                                <div tal:condition="message" class="alert alert-warning" role="alert"  >${message}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="inputEmail3" class="col-sm-3 control-label">
+                                                            First Name:</label>
+                                                            <div class="col-sm-9">
+                                                                <input type="text" class="form-control" name="first_name" placeholder="First Name" required="">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="inputEmail3" class="col-sm-3 control-label">
+                                                            Last Name:</label>
+                                                            <div class="col-sm-9">
+                                                                <input type="text" class="form-control" name="last_name"  placeholder="Last Name" required="">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="inputEmail3" class="col-sm-3 control-label">
+                                                            ID:</label>
+                                                            <div class="col-sm-9">
+                                                                <input type="number" class="form-control" name="id_number"  placeholder="Id" required="">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="col-sm-3 control-label">
+                                                            Username:</label>
+                                                            <div class="col-sm-9">
+                                                                <input type="text" class="form-control" name="username" placeholder="UserName" required="">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="inputEmail3" class="col-sm-3 control-label">
+                                                            Email:</label>
+                                                            <div class="col-sm-9">
+                                                                <input type="email" class="form-control" name="email"  placeholder="Email" required="">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label  class="col-sm-3 control-label">
+                                                            User Type:</label>
+                                                            <div class="col-sm-9 ">
+                                                                <select class="form-control" name="group" id="sel1">
+                                                                 <option tal:repeat="group groups" tal:content="group.desc" tal:attributes="value group.id"></option>
+								</select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="inputPassword3" class="col-sm-3 control-label">
+                                                            Password:</label>
+                                                            <div class="col-sm-9">
+                                                                <input type="password" class="form-control" name="password"  id="inputPassword3" placeholder="Password" required="">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="inputPassword3" class="col-sm-3 control-label">
+                                                            Confirm Password:</label>
+                                                            <div class="col-sm-9">
+                                                                <input type="password" class="form-control" name="confirm_password" id="inputPassword3"  placeholder="Confirm Password" required="">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group last">
+                                                            <div class="col-sm-offset-3 col-sm-9">
+                                                                <button type="submit" name="addform.submitted"  class="btn btn-success btn-sm">
+                                                                Create User</button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="panel-footer">
+                                                </div>
+                                            </div>
+
+ <div class="panel panel-default">
+                                    <div class="panel-heading">
+Users                                    
+</div>
+
+
+  <table class="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>First Name</th>
+                                                            <th>Last Name</th>
+                                                            <th>ID</th>
+                                                            <th>Email</th>
+                                                            <th>Username</th>
+                                                            <th>Group</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr tal:repeat="(u,g) admins">
+                                                            <td tal:content="u.firstname"></td>
+                                                            <td tal:content="u.lastname"></td>
+                                                            <td tal:content="u.studentNumber"></td>
+                                                            <td tal:content="u.email"></td>
+                                                            <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
+                                                            <td tal:content="g.desc"> </td>
+                                                        </tr>
+                                                        <tr tal:repeat="(u,g) teachers">
+                                                            <td tal:content="u.firstname"></td>
+                                                            <td tal:content="u.lastname"></td>
+                                                            <td tal:content="u.studentNumber"></td>
+                                                            <td tal:content="u.email"></td>
+                                                            <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
+                                                            <td><span tal:content="g.desc"></span> </td>
+                                                        </tr>
+                                                        <tr tal:repeat="(u,g) students">
+                                                            <td tal:content="u.firstname"></td>
+                                                            <td tal:content="u.lastname"></td>
+                                                            <td tal:content="u.studentNumber"></td>
+                                                            <td tal:content="u.email"></td>
+                                                            <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
+                                                            <td><span tal:content="g.desc"></span> </td>
+                                                        </tr>
+                                                        <tr tal:repeat="(u,g) guests">
+                                                            <td tal:content="u.firstname"></td>
+                                                            <td tal:content="u.lastname"></td>
+                                                            <td tal:content="u.studentNumber"></td>
+                                                            <td tal:content="u.email"></td>
+                                                            <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
+                                                            <td><span tal:content="g.desc"></span> </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+
+
+					</div>
+                                            
+                                        </div>
+                                    </div>
+
+
+
+                                </div>
+
+                               
+
+
+    </div>
+</div>

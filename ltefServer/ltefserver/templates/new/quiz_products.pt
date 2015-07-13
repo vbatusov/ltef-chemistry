@@ -2,14 +2,7 @@
     <div metal:fill-slot="content">
 
     <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
 
-      .container-molecules {
-        margin: 0 auto;
-        max-width: 700px;
-      }
 
       .show-grid {
         margin-top: 10px;
@@ -105,19 +98,23 @@
 
     </script>
 
-    <div class="container">
+    <div class="container-fluid">
 
+              <div class="container-fluid lightOpacity">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="panel panel-default">
 
       <span style="white-space: nowrap">        
-        <!--h1 tal:condition="state == 'ask'" style="display:inline">?</h1-->        
         <img tal:attributes="src request.route_url('home') + 'img/q_' + problem_id + '/reaction.png'">
       </span>
 
       <div tal:condition="state == 'ask'">
+
         <p tal:condition="state == 'ask'" >What would the products be? Select those (and only those) molecules that would complete and balance the reaction. You can select and de-select molecules by clicking on them.</p>
 
         <div tal:condition="state == 'ask'" id="molContainer" class="row-fluid">
-          <div tal:condition="state == 'ask'" class="span12">
+         <div tal:condition="state == 'ask'" class="span12">
             <div tal:condition="state == 'ask'" id="molSpan" class="row-fluid center-in-span show-grid">
               <div tal:condition="state == 'ask'"  tal:repeat="i indeces" tal:attributes="id str(i); style style_t[0] + str(i) + style_t[1]" class="molecule"></div>
             </div>       
@@ -138,6 +135,10 @@
       <form>
       </div>
 
+  </div>
+</div>
+</div>
+</div>
     </div> <!-- /container -->
   </div>
 </div>

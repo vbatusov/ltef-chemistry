@@ -38,6 +38,23 @@ class Group(Base):
     id = Column(Integer, primary_key=True)
     desc = Column(Text, unique=True)
 
+class Course(Base):
+    __tablename__ = 'courses'
+
+    id = Column(Integer, primary_key=True)  # Will be auto-filled
+    name = Column(Text, unique=True)        # Will need to be unique
+    description = Column(Text)
+    owner = Column(ForeignKey("users.id"))  # Link to another table's column
+    access_code = Column(Text, unique=True)        # Again, needs to be unique
+
+class Enrolled(Base):
+    __tablename__ = 'enrollment'
+
+    # Simply linking up two fields from different tables
+    id = Column(Integer, primary_key=True)  # Will be auto-filled
+    userid = Column(ForeignKey("users.id"))
+    courseid = Column( ForeignKey("courses.id"))
+
 class User(Base):
     __tablename__ = 'users'
 
@@ -45,6 +62,10 @@ class User(Base):
     GUEST = "guest"
 
     id = Column(Integer, primary_key=True)
+    firstname = Column(Text)  
+    lastname = Column(Text)
+    studentNumber = Column(Integer)
+    email = Column(Text, unique=True)	    
     username = Column(Text, unique=True)
     group = Column(ForeignKey("groups.id"))
     phash = Column(Text)

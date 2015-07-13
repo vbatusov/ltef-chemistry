@@ -43,7 +43,17 @@ def main(global_config, **settings):
 
 
     config.add_route('login', '/login')
+
+
     config.add_route('logout', '/logout')
+
+    config.add_route('student_register', '/student_register')
+    config.add_route('select_register', '/select_register')
+    config.add_route('select_quiz', '/select_quiz')
+    # Route to teacher's course creation page
+    config.add_route('createcourse', '/tools/createcourse')
+    # Route to student's course sign up page
+    config.add_route('course_signup', '/tools/course_signup')
 
     config.add_route('home', '/')
     config.add_route('synthesis', '/tools/synthesis')
