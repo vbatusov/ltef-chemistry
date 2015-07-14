@@ -1032,13 +1032,24 @@ def student_register_view(request):
 	else:
 	    if password <> confirm_password: 
 		 message = "Passwords are not matching"
-	
-	# Check if there are no existing usernames  
-	if DBSession.query(User).filter_by(username=username).first() is None:
-            DBSession.add(User(username=username, email=email, firstname=first_name, lastname=last_name, group=4, phash=getHash(password)))
-            message = "User '" + username + "' has been added"
-        else:
-            message = "User '" + username + "' already exists"
+	    else:	
+		# Check if there are no existing usernames  
+		if DBSession.query(User).filter_by(username=username).first() is None:
+            	    if DBSession.query(User).filter_by(email=email).first() is None:
+		        DBSession.add(User(username=username, email=email, firstname=first_name, lastname=last_name, group=4, phash=getHash(password)))
+            	        message = "User '" + username + "' has been added"
+			if checkCredentials(username, password):
+		            headers = remember(request, username)
+			    print "Logged in as " + username + "; creating a blank history"
+            		    history[username] = []
+            		    current_user = request.params
+            		    came_from = request.params.get('came_from', '/') 
+			    return HTTPFound(location = came_from, headers = headers)
+
+		    else: 
+			message = "Email '" + email + "' already exists"
+        	else:
+            	    message = "Username '" + username + "' already exists"
 	
 
  
