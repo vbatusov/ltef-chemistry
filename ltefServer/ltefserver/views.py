@@ -274,13 +274,16 @@ def learning_reaction_view(request):
         link_to_gen_picture = request.route_url('home') + 'img/' + basename + '/generic/image.png'
     # End of the hack
 
+    svg_data = draw.renderReactionToBufferSVG(reaction, layout=False).tostring()
+
     return {"layout" : site_layout(),
             "basename" : basename,
             "full_name" : reaction.full_name,
             "reaction_description" : reaction.desc,
             "rgroups" : reaction.rgroups,
             "logged_in" : request.authenticated_userid,
-            "link_to_gen_picture" : link_to_gen_picture}
+            "link_to_gen_picture" : link_to_gen_picture,
+            "svg_data" : svg_data}
 
 
 @view_config(route_name='img', permission='study')

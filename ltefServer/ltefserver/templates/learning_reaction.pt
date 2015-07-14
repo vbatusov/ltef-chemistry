@@ -96,6 +96,11 @@
       <h1 tal:content="full_name">Name of reaction</h1>
 
       <div>
+        <p>This is a new-style image (original RXN layout):</p>
+        ${structure: svg_data}
+      </div>
+      <div>
+        <p>This is the old-style image (questionable automatic layout):</p>
         <img tal:attributes="src link_to_gen_picture">
       </div>
 
