@@ -117,7 +117,9 @@
             <script src="${request.static_url('ltefserver:bootstrap/js/jquery-2.1.4.min.js')}"></script>
             <!-- Bootstrap Core JavaScript -->
             <script src="${request.static_url('ltefserver:bootstrap/js/bootstrap.min.js')}"></script>
-            <!-- Menu Toggle Script -->
+            <!-- Custom Scripts --> 
+	    <script  tal:repeat="custom_script custom_scripts" src="${request.application_url}${custom_script}" ></script> 
+	    <!-- Menu Toggle Script -->
             <script src="${request.static_url('ltefserver:bootstrap/js/toggle.js')}"></script>
         </body>
     </html>

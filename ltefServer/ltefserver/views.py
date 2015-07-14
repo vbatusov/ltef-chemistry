@@ -64,6 +64,7 @@ history = {}
 # Unrelated note to self: add a 'dismiss' button to skip a problem
 
 
+
 def main_layout():
     renderer = get_renderer("templates/main_layout.pt")
     layout = renderer.implementation().macros['main_layout']
@@ -85,7 +86,9 @@ def logged_layout():
 def manageusers_view(request):
 
     message = ""
-
+    
+    custom_scripts = []
+    custom_scripts.append("/bootstrap/js/manageusers.js")
     if 'addform.submitted' in request.params:
         # TODO: add checks for valid input
         u = request.params['username']
@@ -144,6 +147,7 @@ def manageusers_view(request):
             "logged_in" : request.authenticated_userid,
             "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
             "groups" : groups,
+  	    "custom_scripts" : custom_scripts,
             "message" : message,
 	    "page_title" : "Manage Users"
             }
@@ -199,7 +203,8 @@ def managelists_view(request):
         lists = [(l.title, l.desc) for l in DBSession.query(List).filter(List.owner == user.id).all()]
 
     return {"layout" : logged_layout(), 
-            "logged_in" : request.authenticated_userid,
+            "custom_scripts" : custom_scripts,
+	    "logged_in" : request.authenticated_userid,
             "lists" : lists,
             "message" : message,
 	    "page_title" : "Manage Reaction Lists"
@@ -247,6 +252,8 @@ def editlist_view(request):
 def home_view(request):
     #print "Home view fired up, authenticated_userid is " + str(request.authenticated_userid)
 
+    custom_scripts = []
+
     is_guest = Group.GUEST
     is_admin = None
     is_teacher = None
@@ -263,7 +270,8 @@ def home_view(request):
             is_student = (group.desc == Group.STUDENT)
 
 
-    return {"layout" : logged_layout(), 
+    return {"layout" : logged_layout(),
+            "custom_scripts" : custom_scripts, 
             "base_to_full" : cat.base_to_full, 
             "logged_in" : request.authenticated_userid,
 	    "teacher_courses" : teacher_courses,
@@ -275,13 +283,15 @@ def home_view(request):
 
 @view_config(route_name='learning', renderer='templates/new/learning.pt', permission='study')
 def learning_view(request):
+    custom_scripts = []
     return {"layout" : logged_layout(), 
             "base_to_full" : cat.base_to_full, 
-            "logged_in" : request.authenticated_userid,
+            "custom_scripts" : custom_scripts,
+	    "logged_in" : request.authenticated_userid,
 	    "page_title" : "Learn By Example" }
 
 
-@view_config(route_name='learning_reaction', renderer='templates/learning_reaction.pt', permission='study')
+@view_config(route_name='learning_reaction', renderer='templates/new/learning_reaction.pt', permission='study')
 def learning_reaction_view(request):
     # Sessions experiment; ignore
     # session = request.session
@@ -293,13 +303,15 @@ def learning_reaction_view(request):
     # else:
     #     print 'Fred was not in the session'
     # End of session experiment
-
-
+    custom_scripts = []
+    custom_scripts.append('/bootstrap/js/learning_reactions.js')
     basename = request.matchdict["basename"]
     reaction = cat.get_reaction_by_basename(basename)
 
-    return {"layout" : site_layout(),
+    return {"layout" : logged_layout(),
             "basename" : basename, 
+	    "page_title" : reaction.full_name,
+	    "custom_scripts" : custom_scripts,
             "full_name" : reaction.full_name, 
             "reaction_description" : reaction.desc, 
             "rgroups" : reaction.rgroups, 
@@ -394,7 +406,7 @@ def img_from_history_view(request):
     return response
 
 
-@view_config(route_name='quiz_reactants', renderer='templates/quiz_reactants.pt', permission='study')
+@view_config(route_name='quiz_reactants', renderer='templates/new/quiz_reactants.pt', permission='study')
 def quiz_reactants_view(request):
     global quiz_problems
     session = request.session
@@ -406,8 +418,8 @@ def quiz_reactants_view(request):
     message = ""
     result = False
     state = "ask"
-
-
+    custom_scripts = []
+    custom_scripts.append("/bootstrap/js/quiz_reactants.js")
     # Generate a problem, store the objects, present to user
     if 'quiz_type' not in session or session['quiz_type'] != 'reactants' or session['problem_id'] not in quiz_problems.keys():
         session.invalidate()
@@ -533,7 +545,9 @@ def quiz_reactants_view(request):
 
      
     return {
-            "layout": site_layout(),
+            "layout": logged_layout(),
+	    "custom_scripts" : custom_scripts,
+	    "page_title" : full_name,
             "basename" : basename,
             "full_name" : full_name,
             "problem_id" : problem_id,
@@ -866,26 +880,35 @@ def quiz_history_view(request):
 
 @view_config(route_name='synthesis', renderer='templates/new/synthesis.pt', permission='study')
 def synthesis_view(request):
+    custom_scripts = []
     return {"layout": logged_layout(),
-            "logged_in" : request.authenticated_userid,
+            "custom_scripts" : custom_scripts,
+	    "logged_in" : request.authenticated_userid,
 	    "page_title" : "Multistep Synthesis"	 }
 
 @view_config(route_name='addreaction', renderer='templates/new/addreaction.pt', permission='study')
 def addreaction_view(request):
+    custom_scripts = []
     return {"layout": logged_layout(),
+	    "custom_scripts" : custom_scripts,
             "logged_in" : request.authenticated_userid,
 	    "page_title" : "Add New Reaction"			 }
 
 
 @view_config(route_name='about', renderer='templates/new/about.pt', permission='study')
 def about_view(request):
+    custom_scripts = []
     return {"layout": logged_layout(),
+            "custom_scripts" : custom_scripts,
             "logged_in" : request.authenticated_userid, 
 	    "page_title" : "About Us"		}
 
 @view_config(route_name='select_quiz', renderer='templates/new/select_quiz.pt', permission='study')
 def select_quiz_view(request):
+    custom_scripts = []
+
     return {"layout": logged_layout(),
+            "custom_scripts" : custom_scripts,
 	    "base_to_full" : cat.base_to_full,
             "logged_in" : request.authenticated_userid,
             "page_title" : "Select Quiz"           }
@@ -893,7 +916,7 @@ def select_quiz_view(request):
 @view_config(route_name='createcourse', renderer='templates/new/createcourse.pt', permission='study')
 def create_course_view(request):
 
-    # N9TT-9G0A-B7FQ-RANC
+    custom_scripts = []
     message = ""
     class_title = ""   
     course_description = ""
@@ -915,12 +938,14 @@ def create_course_view(request):
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
+            "custom_scripts" : custom_scripts,
 	    "courses" : courses,
 	    "page_title" : "Create Class"           }
 
 @view_config(route_name='course_signup', renderer='templates/new/course_signup.pt', permission='study')
 def course_signup_view(request):
 
+    custom_scripts = []
     message = ""
     access_code = ""
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
@@ -952,7 +977,8 @@ def course_signup_view(request):
 
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
-            "message" : message,
+            "custom_scripts" : custom_scripts,
+	    "message" : message,
 	    "courses" : courses,
 	    "page_title" : "Signup to a Course"           }
 
@@ -960,6 +986,7 @@ def course_signup_view(request):
 
 @view_config(route_name='contact', renderer='templates/new/contact.pt', permission='study')
 def contact_view(request):
+    custom_scripts = []
     state = "new form"
     if "txtComment" in request.POST:
         state = "sent"        
@@ -970,7 +997,8 @@ def contact_view(request):
             myfile.write("----END OF MESSAGE----\n\n")
 
 
-    return {"layout": logged_layout(), 
+    return {"layout": logged_layout(),
+            "custom_scripts" : custom_scripts, 
             "state" : state,
             "logged_in" : request.authenticated_userid,
 	    "page_title" : "Contact Us"			}

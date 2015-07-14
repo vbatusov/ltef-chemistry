@@ -1,11 +1,6 @@
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">
 
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
 
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 
@@ -50,7 +45,6 @@
 
       </script>
 
-    <div class="container">
 
       <h1>Manage users</h1>
 
@@ -106,7 +100,6 @@
         </div>
       </div>
 
-    </div> <!-- /container -->
   </div>
 </div>
 
