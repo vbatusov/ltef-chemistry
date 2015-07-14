@@ -28,10 +28,6 @@
             <h4><a href="${request.route_url('managelists')}">Manage reaction lists</a></h4>
             <span class="text-muted">Create, edit, or remove lists of reactions.</span>
          </div>
-         <div class="col-xs-6 col-sm-3 placeholder" tal:condition="is_admin">
-            <h4><a href="${request.route_url('manageusers')}">Manage users</a></h4>
-            <span class="text-muted">Manage users</span>
-         </div>
       </div>
    </div>
 
@@ -85,7 +81,21 @@
       </div>
 
       <div class="panel-body">
+
+
       </div>
+
+  <div class="row placeholders">
+         <div class="col-xs-6 col-sm-3 placeholder" tal:condition="is_admin">
+            <h4><a href="${request.route_url('manageusers')}">Manage users</a></h4>
+            <span class="text-muted">Manage users</span>
+         </div>
+	   <div class="col-xs-6 col-sm-3 placeholder" tal:condition="is_admin">
+            <h4><a href="${request.route_url('manageusers')}">Edit Account</a></h4>
+            <span class="text-muted">Edit Account</span>
+         </div>
+      </div>
+
 
 </div>
 

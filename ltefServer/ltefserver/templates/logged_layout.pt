@@ -56,8 +56,7 @@
                         <li>
                             <a href="${request.route_url('addreaction')}">Add new Reaction</a>
                         </li>
-<!--
-                     <div  tal:condition="is_teacher or is_admin">
+                        <div  tal:condition="is_teacher or is_admin">
                         <li>
                             <a href="${request.route_url('managelists')}">Manage Reaction List</a>
                         </li>
@@ -70,7 +69,6 @@
 </div>
 
 
--->
 </ul>
 <ul class="nav-sidebar">
 

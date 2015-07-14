@@ -86,7 +86,7 @@ def logged_layout():
 def manageusers_view(request):
 
     message = ""
-    
+    group = group_security(request.authenticated_userid)  
     custom_scripts = []
     custom_scripts.append("/bootstrap/js/manageusers.js")
     if 'addform.submitted' in request.params:
@@ -146,6 +146,7 @@ def manageusers_view(request):
     return {"layout" : logged_layout(), 
             "logged_in" : request.authenticated_userid,
             "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "groups" : groups,
   	    "custom_scripts" : custom_scripts,
             "message" : message,
@@ -155,8 +156,9 @@ def manageusers_view(request):
 @view_config(route_name='managelists', renderer='templates/new/managelists.pt', permission='educate')
 def managelists_view(request):
     message = ""
-
+    group = group_security(request.authenticated_userid) 
     user = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    custom_scripts = []
 
     if 'btnDiscard' in request.params: # from editlist
         message = "No changes made"
@@ -206,6 +208,7 @@ def managelists_view(request):
             "custom_scripts" : custom_scripts,
 	    "logged_in" : request.authenticated_userid,
             "lists" : lists,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "message" : message,
 	    "page_title" : "Manage Reaction Lists"
             }
@@ -281,13 +284,34 @@ def home_view(request):
 	     }
 
 
+def group_security(user):
+    is_guest = Group.GUEST
+    is_admin = None
+    is_teacher = None
+    is_student = None
+    
+    user = DBSession.query(User).filter_by(username=user).first()
+    if user is not None:
+        group = DBSession.query(Group).filter_by(id=user.group).first()
+        if group is not None:
+            is_admin = (group.desc == Group.ADMIN)
+            is_teacher = (group.desc == Group.TEACHER)
+            is_student = (group.desc == Group.STUDENT)
+    return { "is_guest" : is_guest, "is_admin" : is_admin, "is_teacher" : is_teacher, "is_student" : is_student} 
+
+
+
 @view_config(route_name='learning', renderer='templates/new/learning.pt', permission='study')
 def learning_view(request):
     custom_scripts = []
+
+    group = group_security(request.authenticated_userid)
+      
     return {"layout" : logged_layout(), 
             "base_to_full" : cat.base_to_full, 
             "custom_scripts" : custom_scripts,
 	    "logged_in" : request.authenticated_userid,
+	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "Learn By Example" }
 
 
@@ -307,8 +331,9 @@ def learning_reaction_view(request):
     custom_scripts.append('/bootstrap/js/learning_reactions.js')
     basename = request.matchdict["basename"]
     reaction = cat.get_reaction_by_basename(basename)
-
+    group = group_security(request.authenticated_userid)
     return {"layout" : logged_layout(),
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "basename" : basename, 
 	    "page_title" : reaction.full_name,
 	    "custom_scripts" : custom_scripts,
@@ -411,6 +436,7 @@ def quiz_reactants_view(request):
     global quiz_problems
     session = request.session
 
+    group = group_security(request.authenticated_userid)
     mode = request.matchdict["basename"]
     problem_id = ""
     basename = ""
@@ -555,6 +581,7 @@ def quiz_reactants_view(request):
             "style_t" : style_t,
             "message" : message,
             "result" : result,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "state" : state,
             "logged_in" : request.authenticated_userid 
         }
@@ -564,7 +591,7 @@ def quiz_reactants_view(request):
 def quiz_products_view(request):
     global quiz_problems
     session = request.session
-
+    group = group_security(request.authenticated_userid)
     mode = request.matchdict["basename"]
     #print "Mode: " + mode
     problem_id = ""
@@ -705,6 +732,7 @@ def quiz_products_view(request):
             "message" : message,
             "result" : result,
             "state" : state,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "logged_in" : request.authenticated_userid 
         }
 
@@ -881,37 +909,44 @@ def quiz_history_view(request):
 @view_config(route_name='synthesis', renderer='templates/new/synthesis.pt', permission='study')
 def synthesis_view(request):
     custom_scripts = []
+    group = group_security(request.authenticated_userid)
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "logged_in" : request.authenticated_userid,
 	    "page_title" : "Multistep Synthesis"	 }
 
 @view_config(route_name='addreaction', renderer='templates/new/addreaction.pt', permission='study')
 def addreaction_view(request):
     custom_scripts = []
+    group = group_security(request.authenticated_userid)
     return {"layout": logged_layout(),
 	    "custom_scripts" : custom_scripts,
             "logged_in" : request.authenticated_userid,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],	   
 	    "page_title" : "Add New Reaction"			 }
 
 
 @view_config(route_name='about', renderer='templates/new/about.pt', permission='study')
 def about_view(request):
     custom_scripts = []
+    group = group_security(request.authenticated_userid)
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
             "logged_in" : request.authenticated_userid, 
+	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "About Us"		}
 
 @view_config(route_name='select_quiz', renderer='templates/new/select_quiz.pt', permission='study')
 def select_quiz_view(request):
     custom_scripts = []
-
+    group = group_security(request.authenticated_userid)
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
 	    "base_to_full" : cat.base_to_full,
             "logged_in" : request.authenticated_userid,
-            "page_title" : "Select Quiz"           }
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+	    "page_title" : "Select Quiz"           }
 
 @view_config(route_name='createcourse', renderer='templates/new/createcourse.pt', permission='study')
 def create_course_view(request):
@@ -922,7 +957,8 @@ def create_course_view(request):
     course_description = ""
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first() 
     courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all()
-    
+    group = group_security(request.authenticated_userid)    
+
     if 'submit.createcourse' in request.params:
 	 class_title = request.params['class_title']
 	 course_description = request.params['course_description']
@@ -939,6 +975,7 @@ def create_course_view(request):
             "logged_in" : request.authenticated_userid,
             "message" : message,
             "custom_scripts" : custom_scripts,
+	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "courses" : courses,
 	    "page_title" : "Create Class"           }
 
@@ -949,7 +986,8 @@ def course_signup_view(request):
     message = ""
     access_code = ""
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
-    
+    group = group_security(request.authenticated_userid)    
+
     print "######################## " + str(currentuser.id) + " ###########################" 
     enrolls = DBSession.query(Enrolled).filter(Enrolled.userid == currentuser.id ).all()
     courses =  DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
@@ -980,12 +1018,14 @@ def course_signup_view(request):
             "custom_scripts" : custom_scripts,
 	    "message" : message,
 	    "courses" : courses,
+	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "Signup to a Course"           }
 
 
 
 @view_config(route_name='contact', renderer='templates/new/contact.pt', permission='study')
 def contact_view(request):
+    group = group_security(request.authenticated_userid)
     custom_scripts = []
     state = "new form"
     if "txtComment" in request.POST:
@@ -1000,7 +1040,8 @@ def contact_view(request):
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts, 
             "state" : state,
-            "logged_in" : request.authenticated_userid,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+	    "logged_in" : request.authenticated_userid,
 	    "page_title" : "Contact Us"			}
 
 
