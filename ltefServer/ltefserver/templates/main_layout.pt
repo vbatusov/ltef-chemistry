@@ -16,7 +16,7 @@
       <!--  ------------------------------------ Custom core CSS ------------------------------------ -->
       <link href="${request.static_url('ltefserver:bootstrap/css/custom.css')}" rel="stylesheet">
    </head>
-   <body class="main-background">
+   <body>
       <nav class="navbar navbar-default navbar-fixed-top lightOpacity">
          <div class="container">
             <!-- Brand and toggle get grouped for better mobile display -->
@@ -43,7 +43,7 @@
       
       <div class="container" metal:define-slot="content"></div>
 
-      <footer class="footer col-xs-12 col-md-12   ">
+      <footer class="footer col-xs-12 col-md-12 lightOpacity">
          <div class="container">
             <p class="text-muted">&#169; Place footer content here.</p>
          </div>

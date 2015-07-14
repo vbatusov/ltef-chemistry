@@ -13,7 +13,7 @@
         <!-- Bootstrap Core CSS -->
         <link href="${request.static_url('ltefserver:bootstrap/css/bootstrap.min.css')} " rel="stylesheet">
         <!-- Custom CSS -->
-        <link href="${request.static_url('ltefserver:bootstrap/css/simple-sidebar.css')} " rel="stylesheet">
+        <link href="${request.static_url('ltefserver:bootstrap/css/sidebar.css')} " rel="stylesheet">
         <link href="${request.static_url('ltefserver:bootstrap/css/custom.css')}" rel="stylesheet">
     </head>
     <body>
@@ -21,28 +21,25 @@
             <div class="container-fluid">
                 <!-- Brand and toggle get grouped for better mobile display -->
                 <div class="navbar-header">
-                    <!-- <a href="#menu-toggle" class=" "  navbar-brand menu-toggle" > -->
                     <button type="button"  class="navside-bar-toggle toggle" >
                     <span class="icon-side-bar"></span>
                     <span class="icon-side-bar"></span>
                     <span class="icon-side-bar"></span>
                     </button>
-                    <!-- <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span> -->
-                    <!-- </a> -->
                     <a class="navbar-brand" href="${request.route_url('home')}"><span class="glyphicon glyphicon-book" aria-hidden="true"></span> LTEF Chemistry</a>
         
 
 </div>
                 <!-- Collect the nav links, forms, and other content for toggling -->
-                </div><!-- /.container -->
+                </div><!-- /.container-fluid -->
             </nav>
             <div id="wrapper">
                 <!-- Sidebar -->
                 <div id="sidebar-wrapper"  class="lightOpacity"  >
-		 <ul class="sidebar-nav">
+		 <ul class="nav-sidebar">
 
    <li>Welcome <strong>${logged_in}</strong></li>
-                        <li class=" active sidebar-brand">
+                        <li class="active">
                             <a href="${request.route_url('home')}">
                             Overview
                             </a>
@@ -74,17 +71,22 @@
 
 
 -->
+</ul>
+<ul class="nav-sidebar">
+
        <li>
                             <a href="${request.route_url('contact')}">Contact</a>
                         </li>
                    <li>
                             <a href="${request.route_url('about')}">About</a>
                         </li>
-                        <li>
+                </ul>
+		<ul class="nav-sidebar">
+		        <li>
                             <a href="${request.application_url}/logout">Logout <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a>
                             
                         </li>
-                    </ul>
+		</ul>
                 </div>
                 <!-- /#sidebar-wrapper -->
                 <!-- Page Content -->
