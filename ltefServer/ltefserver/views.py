@@ -1080,7 +1080,7 @@ def login(request):
 	    current_user = request.params
             return HTTPFound(location = came_from,
                              headers = headers)
-        message = 'Failed login'
+        message = 'Incorrect username or password.'
 
     return dict(
         layout = main_layout(),
