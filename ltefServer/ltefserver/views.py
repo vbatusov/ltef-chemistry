@@ -34,6 +34,7 @@ import chem
 import draw
 import catalog
 import copy
+import re
 
 # Create a catalog object upon loading this module
 # Let's not use 'global' keyword in functions since we should not be
@@ -275,6 +276,14 @@ def learning_reaction_view(request):
     # End of the hack
 
     svg_data = draw.renderReactionToBufferSVG(reaction, layout=False).tostring()
+
+    # Chop off the xml tag
+    svg_data = svg_data[svg_data.find('\n') + 1:]
+    # Modify height and width of the svg tag
+    svgline = svg_data[:svg_data.find('\n')]
+    svglineparts = re.split('width=".*?" height=".*?"', svgline)
+    svgline = svglineparts[0] + 'width="90%"' + svglineparts[1]
+    svg_data = svgline + "\n" + svg_data[svg_data.find('\n') + 1 :]
 
     return {"layout" : site_layout(),
             "basename" : basename,
