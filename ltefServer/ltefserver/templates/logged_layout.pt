@@ -9,7 +9,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
-        <title>Simple Sidebar - Start Bootstrap Template</title>
+        <title>LTEF Chemistry</title>
         <!-- Bootstrap Core CSS -->
         <link href="${request.static_url('ltefserver:bootstrap/css/bootstrap.min.css')} " rel="stylesheet">
         <!-- Custom CSS -->

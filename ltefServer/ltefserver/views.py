@@ -589,6 +589,8 @@ def quiz_reactants_view(request):
 
 @view_config(route_name='quiz_products', renderer='templates/new/quiz_products.pt', permission='study')
 def quiz_products_view(request):
+    custom_scripts = []
+    custom_scripts.append("/bootstrap/js/quiz_reactants.js") 
     global quiz_problems
     session = request.session
     group = group_security(request.authenticated_userid)
@@ -725,6 +727,7 @@ def quiz_products_view(request):
             "layout": logged_layout(),
             "basename" : basename,
 	    "page_title" : full_name,
+  	    "custom_scripts" : custom_scripts,
             "full_name" : full_name,
             "problem_id" : problem_id,
             "indeces" : range(0, len(quiz_problems[problem_id][1])),
@@ -941,6 +944,19 @@ def about_view(request):
 def select_quiz_view(request):
     custom_scripts = []
     group = group_security(request.authenticated_userid)
+
+    quiz_type = ""
+    reaction_selector = ""
+
+    if 'submit.selected_quiz' in request.params:
+
+        quiz_type = request.params['quiz_type']
+        reaction_selector = request.params['reaction_selector']
+	url = request.route_url(quiz_type, basename=reaction_selector )
+	print "######################################################################### " + str(url) + "#############################"	
+	return HTTPFound(location=url)
+	 
+  
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
 	    "base_to_full" : cat.base_to_full,

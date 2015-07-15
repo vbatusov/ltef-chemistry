@@ -1,7 +1,6 @@
 
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">
- <div class="container-fluid lightOpacity">
 
 
    <div class="row">
@@ -11,19 +10,19 @@
                                                 <span class="glyphicon glyphicon-lock"></span> Select a Quiz
                                             </div>
                                             <div class="panel-body">
-                                                <form class="form-horizontal" role="form" method="POST" action="${request.route_url('student_register')}">
+                                                <form class="form-horizontal" role="form" method="POST" action="${request.route_url('select_quiz')}">
                                                     <div class="form-group">
 
                                                     </div>
                                                     <div class="form-group">
                                                         <div class="radio col-sm-3 col-sm-offset-1">
-                                                            <label><input type="radio" name="optradio">Reactants</label>
+                                                            <label><input type="radio" value="quiz_reactants" name="quiz_type">Reactants</label>
                                                         </div>
                                                         <div class="radio col-sm-3 ">
-                                                            <label><input type="radio" name="optradio">Products</label>
+                                                            <label><input type="radio" value="quiz_products" name="quiz_type">Products</label>
                                                         </div>
                                                         <div class="radio col-sm-3 ">
-                                                            <label><input type="radio" name="optradio">Reaction Name</label>
+                                                            <label><input type="radio" value="quiz_reaction" name="quiz_type">Reaction Name</label>
                                                         </div>
                                                     </div>
                                                     <div class="form-group">
@@ -34,8 +33,8 @@
                                                     <div class="form-group">
                                                         <label class="col-sm-3 control-label">Select a Reaction:</label>
                                                         <div class="col-sm-9">
-                                                            <select class="form-control" id="sel1">
-                                                             <option value="random">[Random]</option>
+                                                            <select class="form-control" name="reaction_selector" id="sel1">
+                                                             <option  value="random">[Random]</option>
 						             <option tal:repeat="base sorted(base_to_full.keys())" tal:content="base_to_full[base]" tal:attributes="value base">Reaction name</option>
 							    </select>
                                                         </div>
@@ -43,7 +42,7 @@
 
                                                     <div class="form-group last">
                                                         <div class="col-sm-offset-10 col-sm-2">
-                                                            <button type="submit" name="form_register.submitted"  class="btn btn-success btn-sm">
+                                                            <button type="submit" name="submit.selected_quiz"  class="btn btn-success btn-sm">
                                                             Next</button>
                                                         </div>
                                                     </div>
@@ -73,6 +72,5 @@
                                 </div>
 
 
-      </div>
     </div>
 </div>
