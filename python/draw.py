@@ -3,7 +3,7 @@
 
 import chem
 import sys
-sys.path.append('../ltefServer/indigo-python-1.1.12/')
+#sys.path.append('../ltefServer/indigo-python-1.2.1-linux/')
 from indigo import *
 from indigo_renderer import *
 
