@@ -32,6 +32,9 @@ def add_actors_to_ireaction(indigo, actors, func, layout=True):
             # Set charge if there is one
             if "CHG" in atom.attribs.keys():
                 iatom.setCharge(int(atom.attribs["CHG"]))
+            # Set original RXN XYZ coordinates
+            iatom.setXYZ(atom.x, atom.y, atom.z)
+
             aam_to_iatom[atom.aam] = iatom
         for bond in mol.bondList:
             iatom1 = aam_to_iatom[bond.fromAtom.aam]
