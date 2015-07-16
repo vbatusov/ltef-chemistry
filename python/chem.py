@@ -21,7 +21,7 @@ class Atom:
         return "<Atom " + self.symbol + " at (" + ", ".join([str(self.x), str(self.y), str(self.z)]) + ") with AAM=" + str(self.aam) + " (old rxn " + str(self.rxnAAM) + ") and attribs " + str(self.attribs) + " />"
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.symbol == other.symbol and self.aam == other.aam
+        return type(self) == type(other) and self.symbol == other.symbol and self.aam == other.aam and self.charge == other.charge
 
 class Bond:
     'v3000 bond information container'
@@ -41,8 +41,14 @@ class Bond:
         #print "(comparing bonds)"
         #print "  self: " + str(self)
         #print "  other: " + str(other)
-        
+
         return type(self) == type(other) and self.order == other.order and ((self.fromAtom == other.fromAtom and self.toAtom == other.toAtom) or (self.fromAtom == other.toAtom and self.toAtom == other.fromAtom))
+
+    def getOtherAtom(self, atom):
+        if self.fromAtom == atom:
+            return self.toAtom
+        else:
+            return self.fromAtom
 
 class Molecule:
     """ A molecule can be either a complete molecule or a fragment.
@@ -89,7 +95,7 @@ class Molecule:
                 self.atomList.append(b.fromAtom)
                 #print "Adding atom with aam " + str(b.fromAtom.aam)
     def isDiatomicHalogen(self):
-        if (len(self.bondList) == 1 and len(self.atomList) == 2 and 
+        if (len(self.bondList) == 1 and len(self.atomList) == 2 and
                 self.atomList[0].symbol == "X" and self.atomList[1].symbol == "X"):
             #print "This molecule is a diatomic halogen: " + str(self)
             return True
@@ -145,7 +151,7 @@ class Molecule:
 
         #print "molecule.getInstance: ORIGINAL\n" + str(self)
         #print "molecule.getInstance: RESULT\n" + str(newmol)
-            
+
         return newmol
 
         # FINISHED, UNTESTED
@@ -354,7 +360,7 @@ class Reaction:
         #print "Building a reaction instance...\n"
         #print "Generic / source:\n" + str(self)
 
-        # This will be returned 
+        # This will be returned
         reactionInst = Reaction(self.name + "_instance")
 
         # Select specific generic fragments to be used as R-groups
@@ -470,8 +476,8 @@ def pseudoatomToList(string):
         return [string]
 
 
-def getInstanceByName(atom): 
-    """ 
+def getInstanceByName(atom):
+    """
         This method returns an actual instance of a pseudoatom.
     """
     #print "Getting instance of " + sanitize_symbol(atom.symbol)
@@ -502,7 +508,7 @@ def buildAlkyl(anchorAAM, args):
     molecule.anchor = root
 
     if size == 100: # special case
-        
+
         # Starting atom of the ring
         c1 = None
 
@@ -523,7 +529,7 @@ def buildAlkyl(anchorAAM, args):
             c1 = root
 
         # build a ring
-        
+
         c2 = Atom("C", 0, 0, 0, 0, 0)
         c3 = Atom("C", 0, 0, 0, 0, 0)
         c4 = Atom("C", 0, 0, 0, 0, 0)
@@ -540,7 +546,7 @@ def buildAlkyl(anchorAAM, args):
     else:   # arbitrary tree without rings
 
         (size1, size2, size3) = splitThreeWays(size - 1)
-        
+
         buildAlkylTree(molecule, root, size1)
         buildAlkylTree(molecule, root, size2)
         buildAlkylTree(molecule, root, size3)
@@ -564,7 +570,7 @@ def buildAlkylTree(molecule, anchor, size) :
             molecule.addBond(Bond(0, 1, anchor, atom))
 
         (size1, size2, size3) = splitThreeWays(size - 1)
-        
+
         buildAlkylTree(molecule, atom, size1)
         buildAlkylTree(molecule, atom, size2)
         buildAlkylTree(molecule, atom, size3)
@@ -664,7 +670,7 @@ def buildAmmonia(anchorAAM, args):
     molecule.addBond(Bond(0, 1, root, h1))
     molecule.addBond(Bond(0, 1, root, h2))
     molecule.addBond(Bond(0, 1, root, h3))
-    
+
     return molecule
 
 def buildWater(anchorAAM, args):
@@ -679,7 +685,7 @@ def buildWater(anchorAAM, args):
     molecule.addAtom(h2)
     molecule.addBond(Bond(0, 1, root, h1))
     molecule.addBond(Bond(0, 1, root, h2))
-    
+
     return molecule
 
 def buildAlkaliMetal(anchorAAM, args):
@@ -691,8 +697,8 @@ PSEUDO = {
         "alkyl" : (
                 buildAlkyl,     # function that builds it
                 { "size" : [1, 2, 3, 100] }     # arguments the function takes
-            ), 
-        "halogen" : (buildHalogen, {}), 
+            ),
+        "halogen" : (buildHalogen, {}),
         "alkalimetal" : (buildAlkaliMetal, {}),
         "methyl" : (buildAlkyl, { "size" : [1] }),
         "lindlarscatalyst" : (buildLindlarsCatalyst, {}),
@@ -712,7 +718,7 @@ ATOM_NAMES = {
         "Be" : "beryllium",
         "B" : "boron",
         "C" : "carbon",
-        "N" : "nitrogen",   
+        "N" : "nitrogen",
         "O" : "oxygen",
         "F" : "fluorine",
         "Ne" : "neon",
@@ -821,7 +827,7 @@ LIST_TRANSLATION = {
 #         return latestMol
 #     else:
 #         # find the outgoing bond
-#         for bond in mol.bonds:            
+#         for bond in mol.bonds:
 #             if bond.fromAtom == atom and bond.toAtom not in latestMol.atoms:
 #                 # store bond and atom it leads to, repeat for the latter
 #                 latestMol.atoms.append(bond.toAtom)

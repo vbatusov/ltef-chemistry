@@ -23,6 +23,7 @@ def add_actors_to_ireaction(indigo, actors, func, layout=True):
     aam_to_iatom = {}
     for mol in actors:
         imol = indigo.createMolecule()
+        sc = {}  # stereocentres; map iatom index to a tuple (parity, [pyramid atom indeces])
         for atom in mol.atomList:
             iatom = None
             if atom.symbol[0]=="R":
@@ -35,11 +36,26 @@ def add_actors_to_ireaction(indigo, actors, func, layout=True):
             # Set original RXN XYZ coordinates
             iatom.setXYZ(atom.x, atom.y, atom.z)
 
+            if "CFG" in atom.attribs.keys():
+                print "\n\n **** STEREO ATOM with " + atom.attribs["CFG"] + " ***"
+                # Here, remember stereocenter and its parity
+                sc[iatom.index()] = [int(atom.attribs["CFG"]), []]
+
             aam_to_iatom[atom.aam] = iatom
         for bond in mol.bondList:
             iatom1 = aam_to_iatom[bond.fromAtom.aam]
             iatom2 = aam_to_iatom[bond.toAtom.aam]
             ibond = iatom1.addBond(iatom2, bond.order)
+
+            if "CFG" in bond.attribs.keys():
+                print "\n\n **** STEREO BOND with " + bond.attribs["CFG"] + " ***"
+                # I don't see how this can be used - Indigo doesn't allow to specify UP and DOWN (?)
+
+            # Here, prepare the pyramids for stereo
+
+
+        # here, addStereocenter(type, idx1, idx2, idx3, [idx4]) using centres and pyramids
+
         if layout:
             imol.layout()
 
