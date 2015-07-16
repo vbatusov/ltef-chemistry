@@ -1,7 +1,7 @@
 """
 Let us maintain a single catalog instance for the entire server;
 Let the catalog contain a dictionary { "reaction_basename" : generic_reaction_object }
-This way, we parse each reaction file once on startup. Parsing is based on paths and names 
+This way, we parse each reaction file once on startup. Parsing is based on paths and names
 given in YAML file; reaction objects are assigned their full names and descriptions (from .txt)
 as attributes.
 
@@ -19,7 +19,7 @@ import yaml
 import os
 import datetime
 import sys
-sys.path.append('../python')
+#sys.path.append('../python')
 import rxn
 import chem
 
@@ -124,14 +124,14 @@ class Catalog:
         list_all = [reac.id for reac in DBSession.query(Reac).all()]
         # Get the admin's id
         admin_id = DBSession.query(User).filter(User.username=="admin").first().id
-        # Add the new list back        
+        # Add the new list back
         DBSession.add(List(owner=admin_id, title=List.ALL_TITLE, desc=List.ALL_DESC, data=list_all))
 
-        transaction.commit()        
+        transaction.commit()
 
     def _get_yaml_object(self):
         global YAML_PATH
-        
+
         f_config = open(YAML_PATH, 'r')
         yml_data = f_config.read()
         f_config.close()
@@ -153,7 +153,7 @@ class Catalog:
                 f = open(filepath, 'w')
                 f.write(desc + "\n")
                 f.close()
-                
+
         except Exception, e:
             print e
 
@@ -179,7 +179,7 @@ class Catalog:
 
         list_of_all_ids = DBSession.query(List).filter(List.id == all_reacs_list_id).first().data
         list_of_right_ids = DBSession.query(List).filter(List.id == list_id).first().data
-        
+
         print "+++++++++++++++++++++++++++++++++++"
         print "List of all   ids: " + str(list_of_all_ids)
         print "List of right ids: " + str(list_of_right_ids)
@@ -230,15 +230,12 @@ class Catalog:
     #     return obj["reactions"]
 
     # def get_reaction_names_sorted():
-    #     return sorted(get_reaction_names(), key=lambda k: k['basename']) 
+    #     return sorted(get_reaction_names(), key=lambda k: k['basename'])
 
     # def get_reaction_dict():
     #     """ basename -> full name
     #     """
-    #     dictionary = {}    
+    #     dictionary = {}
     #     for entry in get_reaction_names_sorted():
     #         dictionary[entry["basename"]] = entry["name"]
     #     return dictionary
-
-
-

@@ -30,13 +30,14 @@ import uuid
 import bcrypt
 #import base64
 import datetime
-sys.path.append('../python')
-sys.path.append('./indigo-python')
+#sys.path.append('../python')
+#sys.path.append('./indigo-python-1.2.1-linux')
 import rxn
 import chem
 import draw
 import catalog
 import copy
+import re
 
 
 
@@ -170,14 +171,14 @@ def managelists_view(request):
         tit = request.params["txtTitle"]
 
         # Create a new list
-        if "isNew" in request.params:          
+        if "isNew" in request.params:
             if DBSession.query(List).filter_by(title=tit).first() is None:
                 DBSession.add(List(owner=user.id, title=tit,\
                     desc=request.params["txtDesc"], data=newlist))
                 message = "List '" + tit + "' has been created"
             else:
-                message = "List '" + tit + "' already exists; no changes made"  
-        # Update existing list     
+                message = "List '" + tit + "' already exists; no changes made"
+        # Update existing list
         else:
             if tit == List.ALL_TITLE:
                 message = "List '" + tit + "' is locked and cannot be edited"
@@ -189,7 +190,7 @@ def managelists_view(request):
                 else:
                     # This cannot occur
                     message = "Error: Editing a list that cannot be found in the database!"
-            
+
     elif 'btnRemove' in request.params:
         tit = request.params["txtTitle"]
 
@@ -240,15 +241,15 @@ def editlist_view(request):
     if title == List.ALL_TITLE:
         message = "This list is locked and cannot be changed"
 
-    return {"layout" : site_layout(), 
-            "logged_in" : request.authenticated_userid,            
+    return {"layout" : site_layout(),
+            "logged_in" : request.authenticated_userid,
             "message" : message,
             "title" : title,
             "desc" : desc,
             "leftbox" : leftbox,
             "rightbox" : rightbox,
             "new" : new,
-            }          
+            }
 
 
 @view_config(route_name='home', renderer='templates/new/home.pt', permission='study')
@@ -317,6 +318,7 @@ def learning_view(request):
 
 @view_config(route_name='learning_reaction', renderer='templates/new/learning_reaction.pt', permission='study')
 def learning_reaction_view(request):
+    custom_scripts = []
     # Sessions experiment; ignore
     # session = request.session
     # if 'abc' in session:
@@ -332,15 +334,40 @@ def learning_reaction_view(request):
     basename = request.matchdict["basename"]
     reaction = cat.get_reaction_by_basename(basename)
     group = group_security(request.authenticated_userid)
+
+    # A hack for Sharonna
+    # Display an external image in place of the generic reaction image (if there is one)
+    link_to_gen_picture = None
+    static_image_filename = basename + '.png'
+    static_image_path = 'ltefserver/static/reaction_images'
+
+    if os.path.isfile(os.path.join(static_image_path, static_image_filename)) :
+        link_to_gen_picture = request.static_url('ltefserver:static/reaction_images/' + static_image_filename)
+    else:
+        link_to_gen_picture = request.route_url('home') + 'img/' + basename + '/generic/image.png'
+    # End of the hack
+
+    svg_data = draw.renderReactionToBufferSVG(reaction, layout=False).tostring()
+
+    # Chop off the xml tag
+    svg_data = svg_data[svg_data.find('\n') + 1:]
+    # Modify height and width of the svg tag
+    svgline = svg_data[:svg_data.find('\n')]
+    svglineparts = re.split('width=".*?" height=".*?"', svgline)
+    svgline = svglineparts[0] + 'width="90%"' + svglineparts[1]
+    svg_data = svgline + "\n" + svg_data[svg_data.find('\n') + 1 :]
+
     return {"layout" : logged_layout(),
-            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "basename" : basename, 
-	    "page_title" : reaction.full_name,
+            "basename" : basename,
 	    "custom_scripts" : custom_scripts,
-            "full_name" : reaction.full_name, 
-            "reaction_description" : reaction.desc, 
-            "rgroups" : reaction.rgroups, 
-            "logged_in" : request.authenticated_userid }
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "full_name" : reaction.full_name,
+            "reaction_description" : reaction.desc,
+            "page_title" : reaction.full_name,
+	    "rgroups" : reaction.rgroups,
+            "logged_in" : request.authenticated_userid,
+            "link_to_gen_picture" : link_to_gen_picture,
+            "svg_data" : svg_data}
 
 
 @view_config(route_name='img', permission='study')
@@ -362,7 +389,7 @@ def img_view(request):
     elif mode == "instance":
         instance = reaction.getInstance()
         response = Response(content_type='image/png', body=draw.renderReactionToBuffer(instance).tostring())
-    
+
     # Renders a generic r-group molecule using params
     elif mode == "rgroup":
         params = param_str.split(",")
@@ -373,7 +400,7 @@ def img_view(request):
             buf = draw.renderRGroupToBuffer(reaction, params[0].upper(), int(params[1]))
             if buf is not None:
                 response = Response(content_type='image/png', body=buf.tostring())
-    
+
     # Renders an instance without reactants
     elif mode == "noreactants":
         instance = reaction.getInstance()
@@ -453,7 +480,7 @@ def quiz_reactants_view(request):
         session['quiz_type'] = 'reactants'
         session['problem_id'] = problem_id
         state = "ask"
-        
+
         # select a reaction randomly
         if mode == "random":
             basename = random.choice(cat.get_sorted_basenames())
@@ -463,7 +490,7 @@ def quiz_reactants_view(request):
         full_name = reaction.full_name
 
         # prepare instance, cut off reactants
-        instance = reaction.getInstance()        
+        instance = reaction.getInstance()
         instance_full = copy.deepcopy(instance)
 
         fullImage = draw.renderReactionToBuffer(instance).tostring()
@@ -569,7 +596,7 @@ def quiz_reactants_view(request):
             ".png');"
         )
 
-     
+
     return {
             "layout": logged_layout(),
 	    "custom_scripts" : custom_scripts,
@@ -583,7 +610,7 @@ def quiz_reactants_view(request):
             "result" : result,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "state" : state,
-            "logged_in" : request.authenticated_userid 
+            "logged_in" : request.authenticated_userid
         }
 
 
@@ -611,7 +638,7 @@ def quiz_products_view(request):
         session['quiz_type'] = 'products'
         session['problem_id'] = problem_id
         state = "ask"
-        
+
         # select a reaction randomly
         if mode == "random":
             basename = random.choice(cat.get_sorted_basenames())
@@ -713,7 +740,7 @@ def quiz_products_view(request):
                 problem_h['status'] = 'pass'
 
             # Once user has made a choice, replace cut reaction with a full one
-            
+
             quiz_problems[problem_id][0] = quiz_problems[problem_id][2]
 
     # prepare styles
@@ -722,7 +749,7 @@ def quiz_products_view(request):
             ".png');"
         )
 
-     
+
     return {
             "layout": logged_layout(),
             "basename" : basename,
@@ -760,7 +787,7 @@ def quiz_reaction_view(request):
         session['quiz_type'] = 'reaction'
         session['problem_id'] = problem_id
         state = "ask"
-        
+
         # select a reaction randomly
         basename = random.choice(cat.get_sorted_basenames())
         reaction = cat.get_reaction_by_basename(basename)
@@ -837,7 +864,7 @@ def quiz_reaction_view(request):
             "result" : result,
             "state" : state,
             "base_to_full" : cat.base_to_full,
-            "logged_in" : request.authenticated_userid 
+            "logged_in" : request.authenticated_userid
         }
 
 @view_config(route_name='quiz_history', renderer='templates/quiz_history.pt', permission='study')
@@ -905,7 +932,7 @@ def quiz_history_view(request):
             "rest" : rest,
 
             "layout": site_layout(),
-            "logged_in" : request.authenticated_userid 
+            "logged_in" : request.authenticated_userid
         }
 
 
@@ -1045,7 +1072,7 @@ def contact_view(request):
     custom_scripts = []
     state = "new form"
     if "txtComment" in request.POST:
-        state = "sent"        
+        state = "sent"
         with open("contact.txt", "a") as myfile:
             myfile.write(str(datetime.datetime.now()) + "\n")
             myfile.write("-------MESSAGE--------\n")
