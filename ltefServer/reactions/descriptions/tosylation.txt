@@ -1,1 +1,1 @@
-(No description available)
+The tosylation of  an alcohol using tosyl chloride in the presence of a base (pyridine) is used to produce a good leaving group. Due to tosyl group being a very good leaving group, in Sn2 type reactions, weak nucleophiles (ex. Water) can be substituted onto the original tosylated molecule. The tosyl group can also be used as a protecting group for amine to prevent the amine from undergoing nucleophilic attacks on potential electrophiles.    

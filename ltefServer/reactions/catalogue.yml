@@ -47,4 +47,4 @@ reactions:
 - {basename: hydration_of_alkenes, name: Hydration of alkenes}
 - {basename: halogenation_of_alkynes, name: Halogenation of alkynes}
 #- {basename: reaction_of_alkyne_with_HX, name: Reaction of an alkyne with HX}
-
+- {basename: synthesis_of_acid_chlorides_from_carboxylic_acids, name: Acid chloride synthesis}
