@@ -87,7 +87,7 @@ def logged_layout():
 def manageusers_view(request):
 
     message = ""
-    group = group_security(request.authenticated_userid)  
+    group = group_security(request.authenticated_userid)
     custom_scripts = []
     custom_scripts.append("/bootstrap/js/manageusers.js")
     if 'addform.submitted' in request.params:
@@ -100,7 +100,7 @@ def manageusers_view(request):
         g = request.params['group']
         p = request.params['password']
 	password_confirm = request.params['confirm_password']
-	
+
 	if p == password_confirm:
              if DBSession.query(User).filter_by(username=u).first() is None:
                 DBSession.add(User(username=u, group=g,firstname=firstname, lastname=lastname, studentNumber=id, email=email, phash=getHash(p)))
@@ -111,7 +111,7 @@ def manageusers_view(request):
                 #return HTTPFound(location = request.route_url('manageusers'))
 	else:
 	     message = "Passwords do not match"
-	
+
 
     elif 'editform.username' in request.params:
         u = request.params['editform.username']
@@ -144,7 +144,7 @@ def manageusers_view(request):
 
     groups = DBSession.query(Group).all()
 
-    return {"layout" : logged_layout(), 
+    return {"layout" : logged_layout(),
             "logged_in" : request.authenticated_userid,
             "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
@@ -157,7 +157,7 @@ def manageusers_view(request):
 @view_config(route_name='managelists', renderer='templates/new/managelists.pt', permission='educate')
 def managelists_view(request):
     message = ""
-    group = group_security(request.authenticated_userid) 
+    group = group_security(request.authenticated_userid)
     user = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     custom_scripts = []
 
@@ -205,7 +205,7 @@ def managelists_view(request):
     if user is not None:
         lists = [(l.title, l.desc) for l in DBSession.query(List).filter(List.owner == user.id).all()]
 
-    return {"layout" : logged_layout(), 
+    return {"layout" : logged_layout(),
             "custom_scripts" : custom_scripts,
 	    "logged_in" : request.authenticated_userid,
             "lists" : lists,
@@ -263,8 +263,8 @@ def home_view(request):
     is_teacher = None
     is_student = None
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
-    teacher_courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all() 
-    student_courses = DBSession.query(Course,Enrolled).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).all() 
+    teacher_courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all()
+    student_courses = DBSession.query(Course,Enrolled).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).all()
     user = DBSession.query(User).filter_by(username=request.authenticated_userid).first()
     if user is not None:
         group = DBSession.query(Group).filter_by(id=user.group).first()
@@ -275,8 +275,8 @@ def home_view(request):
 
 
     return {"layout" : logged_layout(),
-            "custom_scripts" : custom_scripts, 
-            "base_to_full" : cat.base_to_full, 
+            "custom_scripts" : custom_scripts,
+            "base_to_full" : cat.base_to_full,
             "logged_in" : request.authenticated_userid,
 	    "teacher_courses" : teacher_courses,
 	    "student_courses" : student_courses,
@@ -290,7 +290,7 @@ def group_security(user):
     is_admin = None
     is_teacher = None
     is_student = None
-    
+
     user = DBSession.query(User).filter_by(username=user).first()
     if user is not None:
         group = DBSession.query(Group).filter_by(id=user.group).first()
@@ -298,7 +298,7 @@ def group_security(user):
             is_admin = (group.desc == Group.ADMIN)
             is_teacher = (group.desc == Group.TEACHER)
             is_student = (group.desc == Group.STUDENT)
-    return { "is_guest" : is_guest, "is_admin" : is_admin, "is_teacher" : is_teacher, "is_student" : is_student} 
+    return { "is_guest" : is_guest, "is_admin" : is_admin, "is_teacher" : is_teacher, "is_student" : is_student}
 
 
 
@@ -307,9 +307,9 @@ def learning_view(request):
     custom_scripts = []
 
     group = group_security(request.authenticated_userid)
-      
-    return {"layout" : logged_layout(), 
-            "base_to_full" : cat.base_to_full, 
+
+    return {"layout" : logged_layout(),
+            "base_to_full" : cat.base_to_full,
             "custom_scripts" : custom_scripts,
 	    "logged_in" : request.authenticated_userid,
 	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
@@ -347,7 +347,7 @@ def learning_reaction_view(request):
         link_to_gen_picture = request.route_url('home') + 'img/' + basename + '/generic/image.png'
     # End of the hack
 
-    svg_data = draw.renderReactionToBufferSVG(reaction, layout=False).tostring()
+    svg_data = draw.renderReactionToBuffer(reaction, render_format="svg", layout=False).tostring()
 
     # Chop off the xml tag
     svg_data = svg_data[svg_data.find('\n') + 1:]
@@ -383,12 +383,12 @@ def img_view(request):
 
     # Renders a generic reaction from catalog
     if mode == "generic":
-        response = Response(content_type='image/png', body=draw.renderReactionToBuffer(reaction).tostring())
+        response = Response(content_type='image/png', body=draw.renderReactionToBuffer(reaction, layout=False).tostring())
 
     # Renders an instance generated from generic using parameters
     elif mode == "instance":
         instance = reaction.getInstance()
-        response = Response(content_type='image/png', body=draw.renderReactionToBuffer(instance).tostring())
+        response = Response(content_type='image/png', body=draw.renderReactionToBuffer(instance, layout=True).tostring())
 
     # Renders a generic r-group molecule using params
     elif mode == "rgroup":
@@ -397,7 +397,7 @@ def img_view(request):
         # second arg is the list index of specific molecule which the group could be
         # e.g. "...?R1,0" is for the first choice of R1
         if len(params) == 2:
-            buf = draw.renderRGroupToBuffer(reaction, params[0].upper(), int(params[1]))
+            buf = draw.renderRGroupToBuffer(reaction, params[0].upper(), int(params[1]), layout=True)
             if buf is not None:
                 response = Response(content_type='image/png', body=buf.tostring())
 
@@ -405,7 +405,7 @@ def img_view(request):
     elif mode == "noreactants":
         instance = reaction.getInstance()
         instance.reactants = []
-        response = Response(content_type='image/png', body=draw.renderReactionToBuffer(instance).tostring())
+        response = Response(content_type='image/png', body=draw.renderReactionToBuffer(instance, layout=True).tostring())
 
     # Bad URL
     else:
@@ -450,7 +450,7 @@ def img_from_history_view(request):
 
 
     if problem is not None:
-        image = draw.renderReactionToBuffer(problem["instance_full"]).tostring()
+        image = draw.renderReactionToBuffer(problem["instance_full"], layout=True).tostring()
         response = Response(content_type='image/png', body=image)
     else:
         response = HTTPNotFound()
@@ -493,7 +493,7 @@ def quiz_reactants_view(request):
         instance = reaction.getInstance()
         instance_full = copy.deepcopy(instance)
 
-        fullImage = draw.renderReactionToBuffer(instance).tostring()
+        fullImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
 
         reactants = instance.reactants
 
@@ -503,17 +503,17 @@ def quiz_reactants_view(request):
         instance.reactants = [molecule]
 
         # Reaction image without reactants
-        mainImage = draw.renderReactionToBuffer(instance).tostring()
+        mainImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
 
         reactantImages = []
         for mol in reactants:
-            image = draw.renderMoleculeToBuffer(mol).tostring()
+            image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, True])    # indicate that these are correct answers
 
 
         # Generate wrong answers here, add to reactantImages
         for mol in chem.mutateMolecules(reactants):
-            image = draw.renderMoleculeToBuffer(mol).tostring()
+            image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, False])    # indicate that these are wrong answers
 
         random.shuffle(reactantImages)
@@ -617,7 +617,7 @@ def quiz_reactants_view(request):
 @view_config(route_name='quiz_products', renderer='templates/new/quiz_products.pt', permission='study')
 def quiz_products_view(request):
     custom_scripts = []
-    custom_scripts.append("/bootstrap/js/quiz_reactants.js") 
+    custom_scripts.append("/bootstrap/js/quiz_reactants.js")
     global quiz_problems
     session = request.session
     group = group_security(request.authenticated_userid)
@@ -652,7 +652,7 @@ def quiz_products_view(request):
 
         instance_full = copy.deepcopy(instance)
 
-        fullImage = draw.renderReactionToBuffer(instance).tostring()
+        fullImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
 
         products = instance.products
 
@@ -662,17 +662,17 @@ def quiz_products_view(request):
         instance.products = [molecule]
 
         # Reaction image without products
-        mainImage = draw.renderReactionToBuffer(instance).tostring()
+        mainImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
 
         reactantImages = []
         for mol in products:
-            image = draw.renderMoleculeToBuffer(mol).tostring()
+            image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, True])    # indicate that these are correct answers
 
 
         # Generate wrong answers here, add to reactantImages
         for mol in chem.mutateMolecules(products):
-            image = draw.renderMoleculeToBuffer(mol).tostring()
+            image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, False])    # indicate that these are wrong answers
 
         random.shuffle(reactantImages)
@@ -763,7 +763,7 @@ def quiz_products_view(request):
             "result" : result,
             "state" : state,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "logged_in" : request.authenticated_userid 
+            "logged_in" : request.authenticated_userid
         }
 
 
@@ -795,7 +795,7 @@ def quiz_reaction_view(request):
 
         # prepare instance
         instance = reaction.getInstance()
-        mainImage = draw.renderReactionToBuffer(instance).tostring()
+        mainImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
 
         quiz_problems[problem_id] = (mainImage, basename, full_name)
 
@@ -953,7 +953,7 @@ def addreaction_view(request):
     return {"layout": logged_layout(),
 	    "custom_scripts" : custom_scripts,
             "logged_in" : request.authenticated_userid,
-            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],	   
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "Add New Reaction"			 }
 
 
@@ -963,7 +963,7 @@ def about_view(request):
     group = group_security(request.authenticated_userid)
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
-            "logged_in" : request.authenticated_userid, 
+            "logged_in" : request.authenticated_userid,
 	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "About Us"		}
 
@@ -980,10 +980,10 @@ def select_quiz_view(request):
         quiz_type = request.params['quiz_type']
         reaction_selector = request.params['reaction_selector']
 	url = request.route_url(quiz_type, basename=reaction_selector )
-	print "######################################################################### " + str(url) + "#############################"	
+	print "######################################################################### " + str(url) + "#############################"
 	return HTTPFound(location=url)
-	 
-  
+
+
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
 	    "base_to_full" : cat.base_to_full,
@@ -996,24 +996,24 @@ def create_course_view(request):
 
     custom_scripts = []
     message = ""
-    class_title = ""   
+    class_title = ""
     course_description = ""
-    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first() 
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all()
-    group = group_security(request.authenticated_userid)    
+    group = group_security(request.authenticated_userid)
 
     if 'submit.createcourse' in request.params:
 	 class_title = request.params['class_title']
 	 course_description = request.params['course_description']
 	 new_course_code = str(uuid.uuid4())[0:16].upper()  # or whatever
- 	 
+
 	 if DBSession.query(Course).filter_by(name=class_title).first() is None:
                DBSession.add(Course(name=class_title, owner=currentuser.id, description=course_description,  access_code=new_course_code))
                message = "Class " + class_title + " has been added"
                courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all()
 	 else:
                message = "Class Title " + class_title + " already exists"
- 
+
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
@@ -1029,31 +1029,31 @@ def course_signup_view(request):
     message = ""
     access_code = ""
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
-    group = group_security(request.authenticated_userid)    
+    group = group_security(request.authenticated_userid)
 
-    print "######################## " + str(currentuser.id) + " ###########################" 
+    print "######################## " + str(currentuser.id) + " ###########################"
     enrolls = DBSession.query(Enrolled).filter(Enrolled.userid == currentuser.id ).all()
     courses =  DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
-    
+
     if 'submit.coursesignup' in request.params:
 	access_code = request.params['access_code']
 	print access_code
 	message = access_code
-	
+
 	if DBSession.query(Course).filter_by(access_code=access_code).first() is None:
 		message = "Invalid access code"
    	else:
-		
+
 	    course_id = DBSession.query(Course).filter(Course.access_code == access_code ).first()
             if DBSession.query(Enrolled).filter(Enrolled.userid==currentuser.id).filter(Enrolled.courseid==course_id.id ).first() is None:
-		
+
 		course1 = DBSession.query(Course).filter_by(access_code=access_code).first()
 		DBSession.add(Enrolled(userid=currentuser.id, courseid=course1.id))
-		message = "You have successfully added "  + course1.name 
+		message = "You have successfully added "  + course1.name
 		courses = DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
-	    else: 
+	    else:
 		message = "You are already enrolled in the Course"
-		
+
 
 
     return {"layout": logged_layout(),
@@ -1081,7 +1081,7 @@ def contact_view(request):
 
 
     return {"layout": logged_layout(),
-            "custom_scripts" : custom_scripts, 
+            "custom_scripts" : custom_scripts,
             "state" : state,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "logged_in" : request.authenticated_userid,
@@ -1090,18 +1090,18 @@ def contact_view(request):
 
 @view_config(route_name='student_register', renderer='templates/new/student_register.pt')
 def student_register_view(request):
-    
+
 
     message= ""
     username = ""
     first_name = ""
     last_name = ""
     student_number = ""
-    email = "" 
+    email = ""
     password = ""
     confirm_password = ""
-    
-    if 'form_register.submitted' in request.params: 
+
+    if 'form_register.submitted' in request.params:
         first_name = request.params['first_name']
 	username = request.params['username']
         last_name = request.params['last_name']
@@ -1109,15 +1109,15 @@ def student_register_view(request):
 	email = request.params['email']
 	password = request.params['password']
 	confirm_password = request.params['confirm_password']
-	
-	
+
+
 	if len(first_name) <= 0 & len(last_name) <= 0:
 		message = "Missing inputs"
 	else:
-	    if password <> confirm_password: 
+	    if password <> confirm_password:
 		 message = "Passwords are not matching"
-	    else:	
-		# Check if there are no existing usernames  
+	    else:
+		# Check if there are no existing usernames
 		if DBSession.query(User).filter_by(username=username).first() is None:
             	    if DBSession.query(User).filter_by(email=email).first() is None:
 		        DBSession.add(User(username=username, email=email, firstname=first_name, lastname=last_name, group=4, phash=getHash(password)))
@@ -1127,24 +1127,24 @@ def student_register_view(request):
 			    print "Logged in as " + username + "; creating a blank history"
             		    history[username] = []
             		    current_user = request.params
-            		    came_from = request.params.get('came_from', '/') 
+            		    came_from = request.params.get('came_from', '/')
 			    return HTTPFound(location = came_from, headers = headers)
 
-		    else: 
+		    else:
 			message = "Email '" + email + "' already exists"
         	else:
             	    message = "Username '" + username + "' already exists"
-	
 
- 
-    # there can not be two of the same emails return a message user has been registered 
 
-    # both password and confirm password must be the same or else return a message 
 
-   
+    # there can not be two of the same emails return a message user has been registered
+
+    # both password and confirm password must be the same or else return a message
+
+
     return {"layout": main_layout(),
 	    "message": message
-	   } 
+	   }
 
 @view_config(route_name='select_register', renderer='templates/new/select_register.pt')
 def select_register_view(request):

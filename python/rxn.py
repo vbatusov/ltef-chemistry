@@ -29,6 +29,8 @@ aamMap = [0, {}]
 def get_working_aam(rxnAAM):
     """ Use the global map to obtain a working aam number
     which corresponds to a non-zero rxn aam number.
+
+    0 is not a proper aam number because it stands for "unmapped"
     """
     if rxnAAM == 0:
         return 0
@@ -41,7 +43,7 @@ def get_working_aam(rxnAAM):
     return aamMap[1][rxnAAM]
 
 def parse_attribs(attribs):
-    """ Parse the silly RXNv3000 atom/bond parameter string 
+    """ Parse the silly RXNv3000 atom/bond parameter string
     and store each key-value pair as a dictionary. """
 
     attribDict = {}
@@ -68,7 +70,7 @@ def parse_record(record, rgroup=False):
     Thus, an R-group should be a list of molecules, and so parse_record
     should return not simply a molecule, but also a note about
     which R-group the molecule belongs to."""
-    
+
     # This will be returned
     molecule = chem.Molecule()
 
@@ -87,12 +89,12 @@ def parse_record(record, rgroup=False):
             symbol = symbol[1:-1]
 
         # Correct the symbol if it is an R-group atom
-        # Warning: the rgroup flag indicates that we are parsing an **R-group record**. This is 
+        # Warning: the rgroup flag indicates that we are parsing an **R-group record**. This is
         #          different from processing an atom which happens to denote an R-group
         if symbol == "R#":
             symbol = "R" + attrDict["RGROUPS"][0]
-        
-        # Prepare the new aam for atom based on the old one        
+
+        # Prepare the new aam for atom based on the old one
         aam = get_working_aam(int(rxnAAM))
         if aam == 0 and not rgroup:
             # If rxnAAM is zero, assign the next available number to it
@@ -127,7 +129,7 @@ def parse_record(record, rgroup=False):
         molecule.addBond(bond)
 
     #print str(molecule) + "\n"
-    
+
     return molecule
 
 def parse_rxn(rxn, fsm=os.path.join(os.path.dirname(os.path.abspath(__file__)), "rxn.fsm")):
