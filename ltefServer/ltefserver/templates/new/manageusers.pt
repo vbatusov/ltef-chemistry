@@ -89,8 +89,8 @@
 Users                                    
 </div>
 
-
-  <table class="table">
+<div class="panel-body">
+  <table id="dataTable" cellspacing="0"  class="table display">
                                                     <thead>
                                                         <tr>
                                                             <th>First Name</th>
@@ -136,7 +136,7 @@ Users
                                                         </tr>
                                                     </tbody>
                                                 </table>
-
+</div>
 
 					</div>
                                             
