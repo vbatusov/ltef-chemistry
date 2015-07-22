@@ -1,0 +1,47 @@
+<div metal:use-macro="layout">
+    <div metal:fill-slot="content">
+        <div class="row">
+            <div class="col-md-9 ">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+
+                    </div>
+                    <div class="panel-body">
+
+                        <form class="form-horizontal" method="post"  role="form">
+
+                            <div class="form-group">
+                                <div class=" col-sm-offset-3 col-sm-9" tal:condition="message">
+                                    <div class="alert alert-info" role="alert">${message}</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+
+                                <label class="col-sm-3 control-label">
+                                Title:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" name="chapter_title" class="form-control" placeholder="Title" required="">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">
+                                Description:</label>
+                                <div class="col-sm-9">
+                                    <textarea class="form-control" name="chapter_description" rows="5" id="comment"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group last">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <button type="submit" name="submit.create_chapter" class="btn btn-success btn-sm">
+                                    Create Chapter</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="panel-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

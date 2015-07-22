@@ -92,6 +92,14 @@ class List(Base):
     desc = Column(Text)
     data = Column(PickleType)
 
+class Chapter(Base):
+    __tablename__ = 'chapter'
+   
+    id = Column(Integer, primary_key=True)
+    course = Column(ForeignKey("courses.id"))
+    title = Column(Text, unique=True)
+    description = Column(Text)
+    
 # Authorization
 class RootFactory(object):
     __acl__ = [ (Allow, Group.ADMIN, 'dominate'),

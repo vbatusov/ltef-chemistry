@@ -49,10 +49,10 @@ def main(argv=sys.argv):
         print "Creating guest..."
         guestgroup = DBSession.query(Group).filter_by(desc=Group.GUEST).first().id
         guesthash = bcrypt.hashpw('', bcrypt.gensalt())
-        DBSession.add(User(username=User.GUEST, group=guestgroup, phash=guesthash))
+        DBSession.add(User(firstname=User.GUEST, lastname=User.GUEST, studentNumber="000000000",  username=User.GUEST, group=guestgroup, phash=guesthash))
 
         print "Creating superuser..."
         admingroup = DBSession.query(Group).filter_by(desc=Group.ADMIN).first().id
         adminpw = getpass.getpass()
         adminhash = bcrypt.hashpw(adminpw, bcrypt.gensalt())
-        DBSession.add(User(username=User.ADMIN, group=admingroup, phash=adminhash))
+        DBSession.add(User( firstname=User.ADMIN, lastname=User.ADMIN, studentNumber="000000000", username=User.ADMIN, group=admingroup, phash=adminhash))

@@ -48,6 +48,7 @@ def main(global_config, **settings):
     config.add_route('logout', '/logout')
 
     config.add_route('student_register', '/student_register')
+    config.add_route('add_course', '/add_course')
     config.add_route('select_register', '/select_register')
     config.add_route('select_quiz', '/select_quiz')
     # Route to teacher's course creation page
@@ -73,6 +74,13 @@ def main(global_config, **settings):
     config.add_route('manageusers', '/manageusers')
     config.add_route('managelists', '/tools/managelists')
     config.add_route('editlist', '/tools/managelists/edit')
+
+    # Course
+    config.add_route('class', '/class/{basename}')
+
+    # Chapter
+    config.add_route('create_chapter', '/class/{basename}/create_chapter')
+
     
     config.scan()
 

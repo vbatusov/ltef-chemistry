@@ -1,10 +1,11 @@
 <div metal:use-macro="layout">
-<div metal:fill-slot="content">
-   <div class="panel panel-default">
+    <div metal:fill-slot="content">   
+
+<div class="panel panel-default" tal:condition="is_teacher or is_admin" >
       <div class="panel-heading">
          <h3 class="panel-title">LTEF Chemistry Tools</h3>
       </div>
-      <div class="panel-body">
+      <div class="panel-body"  >
          <p>Please select a tool. "Learning by example" and "Complete the reaction" are nearing completion; "Multistep synthesis" is very non-trivial and should be expected by the end of year.</p>
       </div>
       <div class="row placeholders">
@@ -43,8 +44,8 @@
       
      <div class="row placeholders">
          <div tal:repeat="teacher_course teacher_courses" class="col-xs-6 col-sm-3 placeholder">
-            <h4><a tal:content="teacher_course.name"  href="${request.route_url('learning')}"></a></h4>
-            <span tal:content="teacher_course.description" class="text-muted"></span>
+            <h4><a tal:content="teacher_course.name" tal:attributes="href request.route_url('home') + 'class/' + teacher_course.name"></a></h4>
+            <span tal:content="teacher_course.description[:140] + '...'" class="text-muted"></span>
          </div>
 	</div>
 </div>
@@ -60,17 +61,18 @@
       <div class="panel-body">
 <div class="col-xs-12" ><a href="${request.route_url('course_signup')}" class="btn btn-primary btn-md" role="button">Signup to a Course</a></div>
 
+ <div class="row placeholders">
 
- <div tal:repeat="(student_course, student_enrolled) student_courses" class="col-xs-6 col-sm-3 placeholder">
-            <h4><a tal:content="student_course.name"  href="${request.route_url('learning')}"></a></h4>
+
+	 <div tal:repeat="(student_course, student_enrolled) student_courses" class="col-xs-6 col-sm-3 placeholder">
+            <h4><a tal:content="student_course.name"   tal:attributes="href request.route_url('home') + 'class/' + student_course.name"></a></h4>
             <span tal:content="student_course.description" class="text-muted"></span>
          </div>
 
 
+</div>
 
-
-
-      </div>
+</div>      
 
 </div>
 </div>
@@ -90,7 +92,11 @@
             <h4><a href="${request.route_url('manageusers')}">Manage users</a></h4>
             <span class="text-muted">Manage users</span>
          </div>
-	   <div class="col-xs-6 col-sm-3 placeholder" tal:condition="is_admin">
+	   <div class="col-xs-6 col-sm-3 placeholder" tal:condition=" is_admin">
+            <h4><a href="${request.route_url('manageusers')}">Edit Accounts</a></h4>
+            <span class="text-muted">Edit Account</span>
+         </div>
+   <div class="col-xs-6 col-sm-3 placeholder" tal:condition=" is_student or is_teacher">
             <h4><a href="${request.route_url('manageusers')}">Edit Account</a></h4>
             <span class="text-muted">Edit Account</span>
          </div>
@@ -102,4 +108,3 @@
 
 </div>
 </div>
-

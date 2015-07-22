@@ -14,6 +14,7 @@ from .models import (
     List,
     Course,
     Enrolled,
+    Chapter
     )
 
 from pyramid.security import (
@@ -251,28 +252,37 @@ def editlist_view(request):
             "new" : new,
             }
 
+def student_courses(request):
+
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    student_courses = DBSession.query(Course,Enrolled).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).all()
+    group = group_security(request.authenticated_userid)
+
+    if len(student_courses) == 0 and group["is_student"]  :
+        url = request.route_url("course_signup")
+        return HTTPFound(location=url)
+    else:
+        return student_courses
+
+
 
 @view_config(route_name='home', renderer='templates/new/home.pt', permission='study')
 def home_view(request):
     #print "Home view fired up, authenticated_userid is " + str(request.authenticated_userid)
-
+    message = ""
     custom_scripts = []
 
-    is_guest = Group.GUEST
-    is_admin = None
-    is_teacher = None
-    is_student = None
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     teacher_courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all() 
-    student_courses = DBSession.query(Course,Enrolled).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).all() 
-    user = DBSession.query(User).filter_by(username=request.authenticated_userid).first()
-    if user is not None:
-        group = DBSession.query(Group).filter_by(id=user.group).first()
-        if group is not None:
-            is_admin = (group.desc == Group.ADMIN)
-            is_teacher = (group.desc == Group.TEACHER)
-            is_student = (group.desc == Group.STUDENT)
+    group = group_security(request.authenticated_userid)
+   
+    student_courses = DBSession.query(Course,Enrolled).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).all()
+    group = group_security(request.authenticated_userid)
 
+    if len(student_courses) == 0 and group["is_student"]:
+        url = request.route_url("add_course")
+        return HTTPFound(location=url)
+     
 
     return {"layout" : logged_layout(),
             "custom_scripts" : custom_scripts, 
@@ -280,9 +290,10 @@ def home_view(request):
             "logged_in" : request.authenticated_userid,
 	    "teacher_courses" : teacher_courses,
 	    "student_courses" : student_courses,
-            "is_guest" : is_guest, "is_admin" : is_admin, "is_teacher" : is_teacher, "is_student" : is_student,
-            "page_title" : "Overview"
-	     }
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"], 
+            "page_title" : "Overview",
+	    "message" : message
+	    }
 
 
 def group_security(user):
@@ -946,6 +957,28 @@ def synthesis_view(request):
 	    "logged_in" : request.authenticated_userid,
 	    "page_title" : "Multistep Synthesis"	 }
 
+@view_config(route_name='class', renderer='templates/new/course.pt', permission='study')
+def course_view(request):
+    basename = "" 
+    custom_scripts = []
+    group = group_security(request.authenticated_userid)
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    basename = request.matchdict["basename"]
+    students =  DBSession.query(Course,Enrolled,User).filter(Course.name == basename).filter(Course.id==Enrolled.courseid).filter(Course.owner==currentuser.id).filter(User.id == Enrolled.userid).all()
+    chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).all()
+    course = DBSession.query(Course).filter(Course.name == basename).filter(Course.owner==currentuser.id).first()
+
+    return {"layout": logged_layout(),
+            "custom_scripts" : custom_scripts,
+            "students" : students,
+	    "course" : course,
+	    "basename" : basename,
+	    "chapters" : chapters,
+	    "logged_in" : request.authenticated_userid,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "page_title" : basename  }
+
+
 @view_config(route_name='addreaction', renderer='templates/new/addreaction.pt', permission='study')
 def addreaction_view(request):
     custom_scripts = []
@@ -980,7 +1013,6 @@ def select_quiz_view(request):
         quiz_type = request.params['quiz_type']
         reaction_selector = request.params['reaction_selector']
 	url = request.route_url(quiz_type, basename=reaction_selector )
-	print "######################################################################### " + str(url) + "#############################"	
 	return HTTPFound(location=url)
 	 
   
@@ -991,7 +1023,42 @@ def select_quiz_view(request):
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "Select Quiz"           }
 
-@view_config(route_name='createcourse', renderer='templates/new/createcourse.pt', permission='study')
+
+@view_config(route_name='create_chapter', renderer='templates/new/create_chapter.pt', permission='educate')
+def create_chapter_view(request):
+
+
+    basename = request.matchdict["basename"]
+    custom_scripts = []
+    message = ""
+    chapter_title = ""
+    course_description = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
+    group = group_security(request.authenticated_userid)
+
+    if 'submit.create_chapter' in request.params:
+         chapter_title = request.params['chapter_title']
+         chapter_description = request.params['chapter_description']
+
+         if DBSession.query(Chapter).filter_by(title=chapter_title).first() is None:
+               course = DBSession.query(Course).filter(Course.owner == currentuser.id).filter(Course.name == basename ).first() 
+	       DBSession.add(Chapter(title=chapter_title, course=course.id, description=chapter_description))
+	       chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
+               message = "Chapter " + chapter_title + " has been added"
+         else:
+               message = "Class Title " + chapter_title + " already exists"
+
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+	    "message" : message,
+            "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "chapters" : chapters,
+            "page_title" : "Add Chapter"           }
+
+
+@view_config(route_name='createcourse', renderer='templates/new/createcourse.pt', permission='educate')
 def create_course_view(request):
 
     custom_scripts = []
@@ -1030,11 +1097,15 @@ def course_signup_view(request):
     access_code = ""
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     group = group_security(request.authenticated_userid)    
-
-    print "######################## " + str(currentuser.id) + " ###########################" 
-    enrolls = DBSession.query(Enrolled).filter(Enrolled.userid == currentuser.id ).all()
-    courses =  DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
     
+    
+    enrolls = DBSession.query(Enrolled).filter(Enrolled.userid == currentuser.id ).all()
+    student_courses =  DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
+
+    if len(student_courses) == 0 :
+  	message = "To enroll in a course, please provide the course key below." 
+
+ 
     if 'submit.coursesignup' in request.params:
 	access_code = request.params['access_code']
 	print access_code
@@ -1050,7 +1121,9 @@ def course_signup_view(request):
 		course1 = DBSession.query(Course).filter_by(access_code=access_code).first()
 		DBSession.add(Enrolled(userid=currentuser.id, courseid=course1.id))
 		message = "You have successfully added "  + course1.name 
-		courses = DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
+		student_courses = DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
+		if len(student_courses) == 1:
+  		    return HTTPFound(location = request.route_url('home'))
 	    else: 
 		message = "You are already enrolled in the Course"
 		
@@ -1060,7 +1133,7 @@ def course_signup_view(request):
             "logged_in" : request.authenticated_userid,
             "custom_scripts" : custom_scripts,
 	    "message" : message,
-	    "courses" : courses,
+	    "student_courses" : student_courses,
 	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "Signup to a Course"           }
 
@@ -1110,7 +1183,6 @@ def student_register_view(request):
 	password = request.params['password']
 	confirm_password = request.params['confirm_password']
 	
-	
 	if len(first_name) <= 0 & len(last_name) <= 0:
 		message = "Missing inputs"
 	else:
@@ -1120,27 +1192,21 @@ def student_register_view(request):
 		# Check if there are no existing usernames  
 		if DBSession.query(User).filter_by(username=username).first() is None:
             	    if DBSession.query(User).filter_by(email=email).first() is None:
-		        DBSession.add(User(username=username, email=email, firstname=first_name, lastname=last_name, group=4, phash=getHash(password)))
+		        DBSession.add(User(username=username, email=email, firstname=first_name, lastname=last_name, group=4, studentNumber=student_number, phash=getHash(password)))
             	        message = "User '" + username + "' has been added"
 			if checkCredentials(username, password):
 		            headers = remember(request, username)
 			    print "Logged in as " + username + "; creating a blank history"
             		    history[username] = []
             		    current_user = request.params
-            		    came_from = request.params.get('came_from', '/') 
-			    return HTTPFound(location = came_from, headers = headers)
+	    		    came_from = request.params.get('came_from', '/') 
+			    return HTTPFound(location = came_from, headers = headers)			   
 
 		    else: 
 			message = "Email '" + email + "' already exists"
         	else:
             	    message = "Username '" + username + "' already exists"
 	
-
- 
-    # there can not be two of the same emails return a message user has been registered 
-
-    # both password and confirm password must be the same or else return a message 
-
    
     return {"layout": main_layout(),
 	    "message": message
@@ -1150,6 +1216,37 @@ def student_register_view(request):
 def select_register_view(request):
     return {"layout": main_layout()
             }
+
+@view_config(route_name='add_course', renderer='templates/new/add_course.pt')
+def add_course_view(request):
+
+    message = ""
+    access_code = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+
+    enrolls = DBSession.query(Enrolled).filter(Enrolled.userid == currentuser.id ).all()
+    student_courses =  DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
+
+    if 'submit.coursesignup' in request.params:
+        access_code = request.params['access_code']
+
+        if DBSession.query(Course).filter_by(access_code=access_code).first() is None:
+                message = "Invalid access code"
+        else:
+
+            course_id = DBSession.query(Course).filter(Course.access_code == access_code ).first()
+            if DBSession.query(Enrolled).filter(Enrolled.userid==currentuser.id).filter(Enrolled.courseid==course_id.id ).first() is None:
+
+                course = DBSession.query(Course).filter_by(access_code=access_code).first()
+                DBSession.add(Enrolled(userid=currentuser.id, courseid=course.id))
+                student_courses = DBSession.query(Course,Enrolled,User).filter(Course.id==Enrolled.courseid).filter(Enrolled.userid==currentuser.id).filter(Course.id==User.id).all()
+                if len(student_courses) == 1:
+                    return HTTPFound(location = request.route_url('home'))   
+
+
+    return {"layout": main_layout(),
+            "message": message 
+	   }
 
 
 @view_config(route_name='login', renderer='templates/new/login.pt')
@@ -1169,7 +1266,8 @@ def login(request):
         password = request.params['password']
         if checkCredentials(login, password):
             headers = remember(request, login)
-
+  	    
+	    
             print "Logged in as " + login + "; creating a blank history"
             history[login] = []
 	    current_user = request.params

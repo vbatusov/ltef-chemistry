@@ -114,3 +114,15 @@ body {
 .lightOpacity {
     opacity: 0.90;
 }
+
+#expandable_folders{
+
+    padding-top:10px;
+
+}
+
+.indicator{
+    padding-right:10px;
+
+}
+

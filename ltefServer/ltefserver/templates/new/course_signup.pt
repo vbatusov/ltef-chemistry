@@ -1,6 +1,5 @@
 <div metal:use-macro="layout">
    <div metal:fill-slot="content">
-      <div class="container-fluid lightOpacity">
          <div class="row">
             <div class="col-md-9 ">
  
@@ -51,7 +50,7 @@
       </tr>
     </thead>
     <tbody>
-     <tr tal:repeat="(c,e,u) courses">
+     <tr tal:repeat="(c,e,u) student_courses">
 	<td tal:content="c.name"></td>
       <td tal:content="u.firstname"></td>
       <td tal:content="c.access_code"></td>
@@ -81,7 +80,6 @@
 
 
 
-      </div>
    </div>
 </div>
 ~

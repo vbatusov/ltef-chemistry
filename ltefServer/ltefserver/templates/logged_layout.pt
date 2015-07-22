@@ -12,6 +12,8 @@
         <title>LTEF Chemistry</title>
         <!-- Bootstrap Core CSS -->
         <link href="${request.static_url('ltefserver:bootstrap/css/bootstrap.min.css')} " rel="stylesheet">
+ 	<!-- DataTables CSS -->
+	<link href="${request.static_url('ltefserver:bootstrap/DataTables-1.10.7/media/css/jquery.dataTables.css')}" type="text/css" rel="stylesheet">
         <!-- Custom CSS -->
         <link href="${request.static_url('ltefserver:bootstrap/css/sidebar.css')} " rel="stylesheet">
         <link href="${request.static_url('ltefserver:bootstrap/css/custom.css')}" rel="stylesheet">
@@ -39,12 +41,13 @@
 		 <ul class="nav-sidebar">
 
    <li>Welcome <strong>${logged_in}</strong></li>
-                        <li class="active">
+                        <li>
                             <a href="${request.route_url('home')}">
                             Overview
                             </a>
                         </li>
-                        <li>
+                          <div  tal:condition="is_teacher or is_admin">
+			<li>
                             <a href="${request.route_url('learning')}">Learn By Examples</a>
                         </li>
                         <li>
@@ -56,13 +59,12 @@
                         <li>
                             <a href="${request.route_url('addreaction')}">Add new Reaction</a>
                         </li>
-                        <div  tal:condition="is_teacher or is_admin">
                         <li>
                             <a href="${request.route_url('managelists')}">Manage Reaction List</a>
                         </li>
                         </div>
-                        <div  tal:condition="is_admin">
-                        <li>
+                            <div  tal:condition=" is_admin">
+			<li>
                             <a href="${request.route_url('manageusers')}">Manage Users</a>
 
                         </li>
@@ -70,6 +72,18 @@
 
 
 </ul>
+<ul tal:condition="is_student" class="nav-sidebar">
+<li>Your Classes<li>
+
+
+
+
+       		<!--	<li tal:repeat="(student_course, student_enrolled) student_courses"  >
+                        <a tal:content="student_course.name"   tal:attributes="href request.route_url('home') + 'class/' + student_course.name"></a>
+			</li> -->
+
+<li><a>Enroll into  Class</a></li>
+</ul> 
 <ul class="nav-sidebar">
 
        <li>
@@ -80,7 +94,9 @@
                         </li>
                 </ul>
 		<ul class="nav-sidebar">
-		        <li>
+		        
+<li><a>Edit Account</a></li>
+			<li>
                             <a href="${request.application_url}/logout">Logout <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a>
                             
                         </li>
@@ -115,6 +131,8 @@
             <script src="${request.static_url('ltefserver:bootstrap/js/jquery-2.1.4.min.js')}"></script>
             <!-- Bootstrap Core JavaScript -->
             <script src="${request.static_url('ltefserver:bootstrap/js/bootstrap.min.js')}"></script>
+    	    <!-- DataTables -->
+	    <script type="text/javascript" charset="utf8" src="${request.static_url('ltefserver:bootstrap/DataTables-1.10.7/media/js/jquery.dataTables.js')}"></script>
             <!-- Custom Scripts --> 
 	    <script  tal:repeat="custom_script custom_scripts" src="${request.application_url}${custom_script}" ></script> 
 	    <!-- Menu Toggle Script -->
