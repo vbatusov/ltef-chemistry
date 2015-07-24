@@ -48,3 +48,17 @@ reactions:
 - {basename: halogenation_of_alkynes, name: Halogenation of alkynes}
 #- {basename: reaction_of_alkyne_with_HX, name: Reaction of an alkyne with HX}
 - {basename: synthesis_of_acid_chlorides_from_carboxylic_acids, name: Acid chloride synthesis}
+- {basename: amide_synthesis_from_an_acid_chloride, name: Amide synthesis from an acid chloride}
+- {basename: bromination_of_an_alkene_in_the_dark, name: Bromination of an alkene in the dark}
+- {basename: conversion_of_an_alcohol_into_a_bromide, name: Conversaion of an alcohol into a bromide}
+- {basename: cyclopropane_synthesis_from_an_alkene, name: Cyclopropane synthesis from an alkene}
+- {basename: deprotection_of_carboxylic_acids_using_hydroxide, name: Deprotonation of a carboxylic acid using hydroxide}
+- {basename: e1_reaction_using_sulferic_acid, name: E1 reaction using sulfuric acid}
+- {basename: ester_synthesis_from_an_acid_chloride_and_an_amine, name: Ester synthesis from an acid chloride and an amine}
+- {basename: halohydrin_formation_from_an_alkene, name: Halohydrin formation from an alkene}
+- {basename: hydrolysis_of_an_acid_chloride, name: Hydrolysis of an acid chloride}
+- {basename: hydrolysis_of_an_amine, name: Hydrolysis of an amine}
+- {basename: hydrolysis_of_an_ester_with_acid, name: Hydrolysis of an ester with acid}
+- {basename: oxidation_of_an_aldehyde_using_pcc, name: Oxidation of an alcohol using PCC}
+- {basename: sn1_using_silver_nitrate, name: Sn1 using silver nitrate}
+- {basename: sn2_reaction, name: Sn2 reaction}
