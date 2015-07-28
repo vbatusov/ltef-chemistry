@@ -1,6 +1,26 @@
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">   
 
+<div tal:condition="is_teacher">
+  <div class="panel panel-default">
+
+      <div class="panel-heading">
+         <h3 class="panel-title">Your Classes</h3>
+      </div>
+
+      <div class="panel-body">
+          <a href="${request.route_url('createcourse')}" class="btn btn-primary btn-md" role="button">Create Class</a>
+
+     <div class="row placeholders">
+         <div tal:repeat="teacher_course teacher_courses" class="col-xs-6 col-sm-3 placeholder">
+            <h4><a tal:content="teacher_course.name" tal:attributes="href request.route_url('home') + 'class/' + teacher_course.name"></a></h4>
+            <span tal:content="teacher_course.description[:140] + '...'" class="text-muted"></span>
+         </div>
+     </div>
+     </div>
+</div>
+</div>
+
 <div class="panel panel-default" tal:condition="is_teacher or is_admin" >
       <div class="panel-heading">
          <h3 class="panel-title">LTEF Chemistry Tools</h3>
@@ -47,8 +67,8 @@
             <h4><a tal:content="teacher_course.name" tal:attributes="href request.route_url('home') + 'class/' + teacher_course.name"></a></h4>
             <span tal:content="teacher_course.description[:140] + '...'" class="text-muted"></span>
          </div>
-	</div>
-</div>
+     </div>
+     </div>
 </div>
 </div>
 <div tal:condition="is_student">
@@ -66,7 +86,7 @@
 
 	 <div tal:repeat="(student_course, student_enrolled) student_courses" class="col-xs-6 col-sm-3 placeholder">
             <h4><a tal:content="student_course.name"   tal:attributes="href request.route_url('home') + 'class/' + student_course.name"></a></h4>
-            <span tal:content="student_course.description" class="text-muted"></span>
+            <span tal:content="student_course.description[:140]" class="text-muted"></span>
          </div>
 
 

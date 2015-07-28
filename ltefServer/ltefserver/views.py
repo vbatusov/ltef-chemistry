@@ -14,7 +14,8 @@ from .models import (
     List,
     Course,
     Enrolled,
-    Chapter
+    Chapter,
+    Customizable_reaction	
     )
 
 from pyramid.security import (
@@ -215,17 +216,18 @@ def managelists_view(request):
 	    "page_title" : "Manage Reaction Lists"
             }
 
-@view_config(route_name='editlist', renderer='templates/editlist.pt', permission='educate')
+@view_config(route_name='editlist', renderer='templates/new/editlist.pt', permission='educate')
 def editlist_view(request):
 
     message = ""
-
     title = ""
     desc = ""
     new = True
     # Data for select boxes: lists of pairs (full reaction name, reaction id)
     leftbox = []
     rightbox = []
+    custom_scripts=""
+    group = group_security(request.authenticated_userid)
 
     if 'editlistformtitle' in request.params:
         list_title = request.params['editlistformtitle']
@@ -242,7 +244,7 @@ def editlist_view(request):
     if title == List.ALL_TITLE:
         message = "This list is locked and cannot be changed"
 
-    return {"layout" : site_layout(),
+    return {"layout" : logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
             "title" : title,
@@ -250,6 +252,9 @@ def editlist_view(request):
             "leftbox" : leftbox,
             "rightbox" : rightbox,
             "new" : new,
+	    "custom_scripts" : custom_scripts,
+ 	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+	    "page_title" : "Manage Reaction Lists",
             }
 
 def student_courses(request):
@@ -962,11 +967,23 @@ def course_view(request):
     basename = "" 
     custom_scripts = []
     group = group_security(request.authenticated_userid)
+   
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     basename = request.matchdict["basename"]
-    students =  DBSession.query(Course,Enrolled,User).filter(Course.name == basename).filter(Course.id==Enrolled.courseid).filter(Course.owner==currentuser.id).filter(User.id == Enrolled.userid).all()
-    chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).all()
-    course = DBSession.query(Course).filter(Course.name == basename).filter(Course.owner==currentuser.id).first()
+
+    if group["is_teacher"]:
+    	students =  DBSession.query(Course,Enrolled,User).filter(Course.name == basename).filter(Course.id==Enrolled.courseid).filter(Course.owner==currentuser.id).filter(User.id == Enrolled.userid).all()
+    	chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).all()
+    	course = DBSession.query(Course).filter(Course.name == basename).filter(Course.owner==currentuser.id).first()
+    elif group["is_student"]:
+        students = [] 
+	chapters = DBSession.query(Course, Chapter).filter(Enrolled.userid == currentuser.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).all()
+	course = DBSession.query(Course).filter(Course.name == basename).filter(Enrolled.courseid == Course.id ).filter(Enrolled.userid == currentuser.id  ).first()
+
+    customizable_reactions = {}
+
+    for (course, chapter) in chapters:
+        customizable_reactions[chapter.id] = DBSession.query(Customizable_reaction).filter(Customizable_reaction.chapter == chapter.id ).all()
 
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
@@ -974,6 +991,7 @@ def course_view(request):
 	    "course" : course,
 	    "basename" : basename,
 	    "chapters" : chapters,
+	    "customizable_reactions" : customizable_reactions,
 	    "logged_in" : request.authenticated_userid,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "page_title" : basename  }
@@ -1056,6 +1074,81 @@ def create_chapter_view(request):
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "chapters" : chapters,
             "page_title" : "Add Chapter"           }
+
+@view_config(route_name='add_selectable_reaction', renderer='templates/new/add_selectable_reaction.pt', permission='educate')
+def add_selectable_reaction_view(request):
+
+    message = ""
+    custom_scripts = []
+    group = group_security(request.authenticated_userid)
+    list_title = List.ALL_TITLE
+    list_id = DBSession.query(List).filter(List.title == list_title).first().id
+    (rightbox, leftbox) = cat.get_selectbox_lists_by_list_id(list_id)   
+
+    basename = request.matchdict["basename"]
+    chapter_name = request.matchdict["chapter"]
+
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    chapter =  DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Course.name == basename).filter(Chapter.title == chapter_name ).first()    
+
+    customizable_title = ""
+    customizable_description = ""
+
+    if 'submit.reaction.addanother' in request.params:
+
+        reaction_id = request.params['reaction']
+        customizable_title = request.params['reaction_title']
+        customizable_description = request.params['reaction_description']
+
+
+	if len(customizable_title) > 0 and len(customizable_description) > 0:	
+
+	    customizable_title = request.params['reaction_title']
+	    customizable_description = request.params['reaction_description']
+	    
+	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id,  title=customizable_title, description=customizable_description))
+
+	    message = "Successfully added reaction title and desc"
+
+	elif len(customizable_title) > 0:
+	    
+	    customizable_title = request.params['reaction_title']
+
+	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id, title=customizable_title))
+
+	    message = "Successfully added reaction only title"
+
+	elif len(customizable_description) > 0:
+	    
+	    customizable_description = request.params['reaction_description']
+	
+	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id, description=customizable_description))
+	
+	    message = "Successfully added reaction with only desc"
+	else: 
+
+
+            DBSession.add(Customizable_reaction( reaction=reaction_id , chapter=chapter.id))
+
+	    message = "All default"	
+
+    elif 'submit.reaction.finish' in request.params:
+        message = "Finished"
+
+
+
+    return {"layout": logged_layout(),
+	    "logged_in" : request.authenticated_userid,
+	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+	    "page_title" : "Add Selectable Reaction",
+            "leftbox" : leftbox,
+	    "custom_scripts" : custom_scripts,
+	    "message" : message,
+	    "basename" : basename,
+	    "chapter" : chapter_name,
+	    }
+
+
 
 
 @view_config(route_name='createcourse', renderer='templates/new/createcourse.pt', permission='educate')

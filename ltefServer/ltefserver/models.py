@@ -70,8 +70,11 @@ class User(Base):
     group = Column(ForeignKey("groups.id"))
     phash = Column(Text)
 
+
+
 class Reac(Base):
-    __tablename__ = 'reactions'
+    __tablename__ = 'reaction'
+
     id = Column(Integer, primary_key=True)
     basename = Column(Text, unique=True)
     source = Column(Text)
@@ -79,6 +82,16 @@ class Reac(Base):
     full_name = Column(Text)
     description = Column(Text)
     #obj = Column(PickleType)
+
+class Customizable_reaction(Base):
+    __tablename__ = 'customizable_reaction'
+   
+    id = Column(Integer, primary_key=True)
+    reaction = Column(ForeignKey("reaction.id"))
+    chapter = Column(ForeignKey("chapter.id"))
+    title = Column(Text)
+    description = Column(Text)
+    setting = Column(PickleType)
 
 class List(Base):
     __tablename__ = 'lists'

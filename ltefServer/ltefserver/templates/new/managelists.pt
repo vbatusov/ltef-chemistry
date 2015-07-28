@@ -19,7 +19,6 @@
 
     <div class="container">
 
-
       <div class="row">
         <div class="span9">          
           <div tal:condition="message" class="alert alert-info" role="alert">${message}</div>

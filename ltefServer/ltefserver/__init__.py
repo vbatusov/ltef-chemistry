@@ -81,7 +81,9 @@ def main(global_config, **settings):
     # Chapter
     config.add_route('create_chapter', '/class/{basename}/create_chapter')
 
-    
+    # Add Selectable reactions to Chapter 
+    config.add_route('add_selectable_reaction', '/class/{basename}/{chapter}/add_selectable_reaction')   
+ 
     config.scan()
 
     return config.make_wsgi_app()

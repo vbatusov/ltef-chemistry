@@ -1,6 +1,39 @@
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">
 
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+
+      .mysel {
+        width:100%;
+        height: 100px;
+        size:10;
+      } 
+
+      #select1, #select2 {
+        height:400px;
+      }
+
+      .myform {
+        width:100%;
+
+      }
+
+      .adddeleteparent{
+        height:400px;
+        display:table;
+      }
+
+      .adddeletediv{
+        display:table-cell; 
+        vertical-align: middle;
+      }
+    </style>
+
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
     <script>
       $().ready(function() {  
          $('#add').click(function() {  
@@ -29,9 +62,51 @@
       });
     </script>
 
-    <div class="container">
 
-      <h1>Manage Reaction Lists</h1>
+
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Select Reaction List</h3>
+  </div>
+  <div class="panel-body">
+
+
+
+ <form class="form-horizontal" method="post"  role="form">
+
+  <div class="col-md-9 form-group">
+      <label for="sel1">Available Reactions (select one):</label>
+      <select class="form-control" id="sel1">
+                  <option tal:repeat="(t, id) leftbox" tal:content="t" tal:attributes="value id">Reaction title</option>
+      </select>
+</div>
+             <div class="form-group">
+                <div class="col-md-9" tal:condition="message">
+                        <div class="alert alert-info" role="alert">${message}</div>
+                </div>
+
+             </div>
+             <div class=" col-md-9 form-group">
+                 <label class="control-label">Reaction title:</label>
+                     <input type="text" name="reaction_title" class="form-control" placeholder="Title" required="">
+               </div>
+               <div class="form-group col-md-9">
+		<label class="control-label">
+                  Description:</label>
+                   <textarea class="form-control" name="reaction_description" rows="5" id="comment"></textarea>
+               </div>
+               <div class="form-group col-md-9 last">
+                 
+                     <button type="submit" name="submit.reaction" class="btn btn-success btn-sm">
+                     Add Reaction</button>
+               
+               </div>
+            </form>
+  </div>
+</div>
+
+
 
       <div class="row">
         <div class="span12">          
@@ -85,6 +160,5 @@
         </div>
       </div>
       </form>
-    </div> <!-- /container -->
   </div>
 </div>

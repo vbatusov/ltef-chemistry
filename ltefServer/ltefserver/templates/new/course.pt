@@ -1,144 +1,207 @@
 <div metal:use-macro="layout">
-<div metal:fill-slot="content">
-<h4>Course Access Code: <span class="text-primary" tal:content="course.access_code"></span></h4>
-<h3>Course Description:</h3>
-<p tal:content="course.description"> <p>
+    <div metal:fill-slot="content">
+        <h4 tal:condition="is_teacher" >Course Access Code: <span class="text-primary"  tal:content="course.access_code"></span></h4>
+        <h3>Course Description:</h3>
+        <p  tal:condition="is_teacher"  tal:content="course.description"> <p>
+        <div class="panel panel-default" tal:condition="is_teacher"  >
+            <div class="panel-heading">
+                <h3 class="panel-title">Chapters</h3>
+            </div>
+            <div class="panel-body">
+                <a class="btn btn-primary btn-md"  tal:attributes="href request.route_url('home') + 'class/' + basename  + '/create_chapter'  "   role="button">Add New Chapter</a>
+                <div id="expandable_folders">
+                    <div tal:define="global number python: 0" class="panel panel-default">
+                        <tal:block repeat="(course, chapter) chapters">
+                        <tal:block define="global number python: number + 1"/>
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" tal:attributes="href string:#collapse${python:number}"> ${chapter.title}</a><i class="indicator glyphicon glyphicon-folder-close  pull-left"></i>
+                            <div class="pull-right"> <a class="label label-primary">Edit</a><a class="label label-danger" >Remove</a></div>
+                            </h4>
+                        </div>
+                        <div tal:attributes="id string:collapse${python:number}" class="panel-collapse collapse ">
+                            <div  class="panel-body">
+                                <p>${chapter.description}</p>
+                                <a class="btn btn-primary btn-md" style="margin-bottom:10px"  tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/add_selectable_reaction'  "   role="button">Add Reaction</a>
+                                <div class="panel-group" role="tablist" aria-multiselectable="true">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading" role="tab" id="headingOne">
+                                            <h4 class="panel-title">
+                                            <a role="button" data-toggle="collapse" data-parent="#accordion" tal:attributes="href string:#collapseOne${python:number}" aria-expanded="true" aria-controls="collapseOne">
+                                            Learn by Example
+                                            </a>
+                                            </h4>
+                                        </div>
+                                        <div tal:attributes="id string:collapseOne${python:number}"  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                                            <div class="panel-body">
+                                                <div class="panel panel-default" tal:repeat="reaction customizable_reactions[chapter.id]" >
+                                                    <div class="panel-heading" role="tab" id="headingOne">
+                                                        <h4 class="panel-title">
+                                                        <a  tal:content="reaction.title"  >
+                                                        Learn by Example
+                                                        </a>
+                                                        </h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading" role="tab" id="headingTwo">
+                                            <h4 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"  tal:attributes="href string:#collapseTwo${python:number}"  aria-expanded="false" aria-controls="collapseTwo">
+                                            Quiz
+                                            </a>
+                                            </h4>
+                                        </div>
+                                        <div tal:attributes="id string:collapseTwo${python:number}"  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                            <div class="panel-body">
+                                                <div class="panel panel-default" tal:repeat="reaction customizable_reactions[chapter.id]" >
+                                                    <div class="panel-heading" role="tab" id="headingOne">
+                                                        <h4 class="panel-title">
+                                                        <a  tal:content="reaction.title"  >
+                                                        Learn by Example
+                                                        </a>
+                                                        </h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </tal:block>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default"  tal:condition="is_teacher" >
+            <div class="panel-heading">
+                <h3 class="panel-title">Students Enrolled</h3>
+            </div>
+            <div class="panel-body">
+                <table id="dataTable" cellspacing="0"  class="table display">
+                    <thead>
+                        <tr>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Student ID</th>
+                            <th>Email</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr tal:repeat="(c,e,u) students">
+                            <td tal:content="u.firstname"></td>
+                            <td tal:content="u.lastname"></td>
+                            <td tal:content="u.studentNumber"></td>
+                            <td tal:content="u.email"></td>
+                            <td><a class="label label-primary">Edit</a> <a class="label label-danger">Remove</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="panel panel-default"  tal:condition="is_teacher" >
+            <div class="panel-heading">
+                <h3 class="panel-title">Featured LTEF Chemistry Tools</h3>
+            </div>
+            <div class="panel-body">
+                <p>Please select a tool. "Learning by example" and "Complete the reaction" are nearing completion; "Multistep synthesis" is very non-trivial and should be expected by the end of year.</p>
+            </div>
+            <div class="row placeholders">
+                <div class="col-xs-6 col-sm-3 placeholder">
+                    <h4><a href="${request.route_url('learning')}">Learn by Examples<a></a></h4>
+                    <span class="text-muted">Browse through arbitrary instances of reactions</span>
+                </div>
+                <div class="col-xs-6 col-sm-3 placeholder">
+                    <h4><a href="${request.route_url('select_quiz')}">Complete the Reaction</a></h4>
+                    <span class="text-muted">Fill-in the missing information about the reaction and get immediate feedback.</span>
+                </div>
+            </div>
+        </div>
+
+
+        <p  tal:condition="is_student"  tal:content="course.description"> <p>
 
 
 
- <div class="panel panel-default">
-      <div class="panel-heading">
-         <h3 class="panel-title">Chapters</h3>
-      </div>
-     <div class="panel-body">
-         <a class="btn btn-primary btn-md"  tal:attributes="href request.route_url('home') + 'class/' + basename  + '/create_chapter'  "   role="button">Add New Chapter</a> 
+ <div class="panel panel-default"  tal:condition="is_student">
+            <div class="panel-heading">
+                <h3 class="panel-title">Chapters</h3>
+            </div>
+            <div class="panel-body">
+                <div id="expandable_folders">
+                    <div tal:define="global number python: 0" class="panel panel-default">
+                        <tal:block repeat="(course, chapter) chapters">
+                        <tal:block define="global number python: number + 1"/>
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" tal:attributes="href string:#collapse${python:number}"> ${chapter.title}</a><i class="indicator glyphicon glyphicon-folder-close  pull-left"></i>
+                            </h4>
+                        </div>
+                        <div tal:attributes="id string:collapse${python:number}" class="panel-collapse collapse ">
+                            <div  class="panel-body">
+                                <p>${chapter.description}</p>
+                                <div class="panel-group" role="tablist" aria-multiselectable="true">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading" role="tab" id="headingOne">
+                                            <h4 class="panel-title">
+                                            <a role="button" data-toggle="collapse" data-parent="#accordion" tal:attributes="href string:#collapseOne${python:number}" aria-expanded="true" aria-controls="collapseOne">
+                                            Learn by Example
+                                            </a>
+                                            </h4>
+                                        </div>
+                                        <div tal:attributes="id string:collapseOne${python:number}"  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                                            <div class="panel-body">
+                                                <div class="panel panel-default" tal:repeat="reaction customizable_reactions[chapter.id]" >
+                                                    <div class="panel-heading" role="tab" id="headingOne">
+                                                        <h4 class="panel-title">
+                                                        <a  tal:content="reaction.title"  >
+                                                        Learn by Example
+                                                        </a>
+                                                        </h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading" role="tab" id="headingTwo">
+                                            <h4 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"  tal:attributes="href string:#collapseTwo${python:number}"  aria-expanded="false" aria-controls="collapseTwo">
+                                            Quiz
+                                            </a>
+                                            </h4>
+                                        </div>
+                                        <div tal:attributes="id string:collapseTwo${python:number}"  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                            <div class="panel-body">
+                                                <div class="panel panel-default" tal:repeat="reaction customizable_reactions[chapter.id]" >
+                                                    <div class="panel-heading" role="tab" id="headingOne">
+                                                        <h4 class="panel-title">
+                                                        <a  tal:content="reaction.title"  >
+                                                        Learn by Example
+                                                        </a>
+                                                        </h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </tal:block>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
 
 
 
-					
-<div id="expandable_folders"> 			
-<div tal:define="global number python: 0" class="panel panel-default">
-<tal:block repeat="(course, chapter) chapters">
 
-<tal:block define="global number python: number + 1"/>
-
-<div class="panel-heading">
-        <h4 class="panel-title">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" tal:attributes="href string:#collapse${python:number}"> ${chapter.title}</a><i class="indicator glyphicon glyphicon-folder-close  pull-left"></i>
-        </h4>
-      </div>
-      <div tal:attributes="id string:collapse${python:number}" class="panel-collapse collapse ">
-        <div  class="panel-body"><p>${chapter.description}</p> 
-
-
-<div class="panel-group" role="tablist" aria-multiselectable="true">
-  <div class="panel panel-default">
-    <div class="panel-heading" role="tab" id="headingOne">
-      <h4 class="panel-title">
-        <a role="button" data-toggle="collapse" data-parent="#accordion" tal:attributes="href string:#collapseOne${python:number}" aria-expanded="true" aria-controls="collapseOne">
-          Learn by Example
-        </a>
-      </h4>
     </div>
-    <div tal:attributes="id string:collapseOne${python:number}"  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
-      <div class="panel-body">
-      </div>
-    </div>
-  </div>
-  <div class="panel panel-default">
-    <div class="panel-heading" role="tab" id="headingTwo">
-      <h4 class="panel-title">
-        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"  tal:attributes="href string:#collapseTwo${python:number}"  aria-expanded="false" aria-controls="collapseTwo">
-          Quiz
-        </a>
-      </h4>
-    </div>
-    <div tal:attributes="id string:collapseTwo${python:number}"  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-      <div class="panel-body">
-      </div>
-    </div>
-  </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-  </div>
-      </div>
-
-    
-  
-</tal:block>
-</div>
-</div>
-</div>
-
-
-
-
-
-
-
-
-
-</div>
- <div class="panel panel-default">
-      <div class="panel-heading">
-         <h3 class="panel-title">Students Enrolled</h3>
-      </div>
-<div class="panel-body">
-<table id="dataTable" cellspacing="0"  class="table display"> 
-<thead>
-      <tr>
-        <th>First Name</th>
-        <th>Last Name</th>
-	<th>Student ID</th> 
-        <th>Email</th>
-	<th></th>
-      </tr>
-    </thead>
-    <tbody>
-     <tr tal:repeat="(c,e,u) students">
-      <td tal:content="u.firstname"></td>
-      <td tal:content="u.lastname"></td>
-      <td tal:content="u.studentNumber"></td>
-      <td tal:content="u.email"></td>
-      <td><a class="label label-primary">Edit</a> <a class="label label-danger">Remove</a></td>
-      </tr>
-    </tbody>
-</table>   
-</div>
-</div>
-   <div class="panel panel-default">
-      <div class="panel-heading">
-         <h3 class="panel-title">Featured LTEF Chemistry Tools</h3>
-      </div>
-      <div class="panel-body">
-         <p>Please select a tool. "Learning by example" and "Complete the reaction" are nearing completion; "Multistep synthesis" is very non-trivial and should be expected by the end of year.</p>
-      </div>
-      <div class="row placeholders">
-         <div class="col-xs-6 col-sm-3 placeholder">
-            <h4><a href="${request.route_url('learning')}">Learn by Examples<a></a></h4>
-            <span class="text-muted">Browse through arbitrary instances of reactions</span>
-         </div>
-         <div class="col-xs-6 col-sm-3 placeholder">
-            <h4><a href="${request.route_url('select_quiz')}">Complete the Reaction</a></h4>
-            <span class="text-muted">Fill-in the missing information about the reaction and get immediate feedback.</span>
-         </div>
-      </div>
-   </div>
-
-
-
-</div>
-</div>
-

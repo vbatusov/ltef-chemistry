@@ -2,7 +2,7 @@
     <div metal:fill-slot="content">
 
                                     <div class="row">
-                                        <div class="col-md-9 ">
+                                        <div class="col-md-12 ">
                                             <div class="panel panel-default">
                                                 <div class="panel-heading">
                                                     <span class="glyphicon glyphicon-lock"></span> Create User
@@ -99,7 +99,9 @@ Users
                                                             <th>Email</th>
                                                             <th>Username</th>
                                                             <th>Group</th>
-                                                        </tr>
+                                                            <th></th>
+							    <th></th>	
+							</tr>
                                                     </thead>
                                                     <tbody>
                                                         <tr tal:repeat="(u,g) admins">
@@ -109,7 +111,9 @@ Users
                                                             <td tal:content="u.email"></td>
                                                             <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
                                                             <td tal:content="g.desc"> </td>
-                                                        </tr>
+						            <td><a class="label label-primary">Edit</a></td>
+                                                            <td>   <a tal:attributes="href string:${request.route_url('manageusers')}?editform.username=${u.username}&editOption=erase"  class="label label-danger">Remove</a></td>
+							</tr>
                                                         <tr tal:repeat="(u,g) teachers">
                                                             <td tal:content="u.firstname"></td>
                                                             <td tal:content="u.lastname"></td>
@@ -117,7 +121,9 @@ Users
                                                             <td tal:content="u.email"></td>
                                                             <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
                                                             <td><span tal:content="g.desc"></span> </td>
-                                                        </tr>
+							    <td><a class="label label-primary">Edit</a></td> 
+                                                            <td><a tal:attributes="href string:${request.route_url('manageusers')}?editform.username=${u.username}&editOption=erase"  class="label label-danger">Remove</a></td>
+							</tr>
                                                         <tr tal:repeat="(u,g) students">
                                                             <td tal:content="u.firstname"></td>
                                                             <td tal:content="u.lastname"></td>
@@ -125,6 +131,8 @@ Users
                                                             <td tal:content="u.email"></td>
                                                             <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
                                                             <td><span tal:content="g.desc"></span> </td>
+                    					    <td><a class="label label-primary">Edit</a></td> 
+                                                            <td>   <a tal:attributes="href string:${request.route_url('manageusers')}?editform.username=${u.username}&editOption=erase"  class="label label-danger">Remove</a></td>  
                                                         </tr>
                                                         <tr tal:repeat="(u,g) guests">
                                                             <td tal:content="u.firstname"></td>
@@ -133,7 +141,9 @@ Users
                                                             <td tal:content="u.email"></td>
                                                             <td><a href="#myModal" role="button" data-toggle="modal" tal:content="u.username" class="openModal" tal:attributes="data-group g.desc; data-username u.username"></a></td>
                                                             <td><span tal:content="g.desc"></span> </td>
-                                                        </tr>
+					                    <td><a class="label label-primary">Edit</a></td> 
+                                                            <td>   <a tal:attributes="href string:${request.route_url('manageusers')}?editform.username=${u.username}&editOption=erase"  class="label label-danger">Remove</a></td>                                                        
+</tr>
                                                     </tbody>
                                                 </table>
 </div>
@@ -146,7 +156,48 @@ Users
 
 
 
-                               
+<div class="modal fade" role="dialog" aria-labelledby="gridSystemModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="gridSystemModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-4">.col-md-4</div>
+            <div class="col-md-4 col-md-offset-4">.col-md-4 .col-md-offset-4</div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 col-md-offset-3">.col-md-3 .col-md-offset-3</div>
+            <div class="col-md-2 col-md-offset-4">.col-md-2 .col-md-offset-4</div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 col-md-offset-3">.col-md-6 .col-md-offset-3</div>
+          </div>
+          <div class="row">
+            <div class="col-sm-9">
+              Level 1: .col-sm-9
+              <div class="row">
+                <div class="col-xs-8 col-sm-6">
+                  Level 2: .col-xs-8 .col-sm-6
+                </div>
+                <div class="col-xs-4 col-sm-6">
+                  Level 2: .col-xs-4 .col-sm-6
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->                               
 
 
     </div>
