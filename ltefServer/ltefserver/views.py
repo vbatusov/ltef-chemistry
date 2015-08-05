@@ -975,19 +975,16 @@ def course_view(request):
     	students =  DBSession.query(Course,Enrolled,User).filter(Course.name == basename).filter(Course.id==Enrolled.courseid).filter(Course.owner==currentuser.id).filter(User.id == Enrolled.userid).all()
     	chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).all()
     	course = DBSession.query(Course).filter(Course.name == basename).filter(Course.owner==currentuser.id).first()
-    
-
-
 
     elif group["is_student"]:
         students = [] 
-	chapters = DBSession.query(Course, Chapter).filter(Enrolled.userid == currentuser.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).all()
+	chapters = DBSession.query(Course, Chapter).filter(Enrolled.userid == currentuser.id).filter(Chapter.course == Course.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).all()
 	course = DBSession.query(Course).filter(Course.name == basename).filter(Enrolled.courseid == Course.id ).filter(Enrolled.userid == currentuser.id  ).first()
 
     customizable_reactions = {}
 
     for (course, chapter) in chapters:
-        customizable_reactions[chapter.id] = DBSession.query(Customizable_reaction).filter(Customizable_reaction.chapter == chapter.id ).all()
+        customizable_reactions[chapter.id] = DBSession.query(Customizable_reaction, Reac).filter(Customizable_reaction.chapter == chapter.id ).filter(Customizable_reaction.reaction == Reac.id).all()
 
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
@@ -1114,6 +1111,74 @@ def student_quiz_history_view(request):
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "chapters" : chapters,
             "page_title" : student + " " + "Quiz History"           }
+
+@view_config(route_name='learn_by_example_reaction', renderer='templates/new/learn_by_example_reaction.pt', permission='study')
+def learn_by_example_reaction_view(request):
+
+    basename = request.matchdict["basename"]
+    chapter_name = request.matchdict["chapter"]
+    reaction_name = request.matchdict["reaction"]
+    custom_scripts = []
+    message = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    group = group_security(request.authenticated_userid)
+
+    custom_scripts.append('/bootstrap/js/learning_reactions.js')
+    reaction = cat.get_reaction_by_basename(reaction_name)
+
+    # A hack for Sharonna
+    # Display an external image in place of the generic reaction image (if there is one)
+    link_to_gen_picture = None
+    static_image_filename = reaction_name + '.png'
+    static_image_path = 'ltefserver/static/reaction_images'
+
+    if os.path.isfile(os.path.join(static_image_path, static_image_filename)) :
+        link_to_gen_picture = request.static_url('ltefserver:static/reaction_images/' + static_image_filename)
+    else:
+        link_to_gen_picture = request.route_url('home') + 'img/' + reaction_name + '/generic/image.png'
+    # End of the hack
+
+    svg_data = draw.renderReactionToBufferSVG(reaction, layout=False).tostring()
+
+    # Chop off the xml tag
+    svg_data = svg_data[svg_data.find('\n') + 1:]
+    # Modify height and width of the svg tag
+    svgline = svg_data[:svg_data.find('\n')]
+    svglineparts = re.split('width=".*?" height=".*?"', svgline)
+    svgline = svglineparts[0] + 'width="90%"' + svglineparts[1]
+    svg_data = svgline + "\n" + svg_data[svg_data.find('\n') + 1 :]
+
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+            "message" : message,
+            "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "page_title" : reaction.full_name, 
+	    "rgroups" : reaction.rgroups,
+	    "link_to_gen_picture" : link_to_gen_picture,
+            "svg_data" : svg_data,
+	    "reaction_description" : reaction.desc,
+	    "reaction" : reaction_name
+    }
+
+@view_config(route_name='quiz', renderer='templates/new/quiz_reaction.pt', permission='study')
+def quiz_view(request):
+
+    basename = request.matchdict["basename"]
+    chapter_name = request.matchdict["chapter"]
+    reaction = request.matchdict["reaction"]
+    custom_scripts = []
+    message = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    group = group_security(request.authenticated_userid)
+
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+            "message" : message,
+            "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "page_title" : reaction    }
+
 
 @view_config(route_name='chapter_action', match_param='action=edit_chapter', renderer='templates/new/edit_chapter.pt', permission='educate')
 def edit_chapter_view(request):

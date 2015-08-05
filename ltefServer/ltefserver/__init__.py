@@ -92,6 +92,10 @@ def main(global_config, **settings):
     # Edit Account
     config.add_route('edit_account', '/edit_account')
 
+    # Chapter reaction
+    config.add_route('learn_by_example_reaction','/class/{basename}/{chapter}/learn_by_example/{reaction}')
+    config.add_route('quiz','/class/{basename}/{chapter}/quiz/{reaction}') 
+
     config.scan()
 
     return config.make_wsgi_app()

@@ -8,10 +8,10 @@
                 <div class="panel-body">
                         <div class="form-group">
                         <div class="col-md-12">
-			     <p>This is a new-style image (original RXN layout):</p>
-		        ${structure: svg_data}
-			</div>
-			</div>
+                             <p>This is a new-style image (original RXN layout):</p>
+                        ${structure: svg_data}
+                        </div>
+                        </div>
                         <div class="form-group">
                             <div class="col-sm-12 col-md-12 ">
                                 <img class="img-responsive" tal:attributes="src link_to_gen_picture">
@@ -52,4 +52,3 @@
             </div> <!-- /container -->
         </div>
     </div>
-    ~
