@@ -1083,34 +1083,23 @@ def student_quiz_history_view(request):
 
 
     basename = request.matchdict["basename"]
-    student = request.matchdict["student"]
+    student_username = request.matchdict["student"]
     custom_scripts = []
     message = ""
     chapter_title = ""
     course_description = ""
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
-    chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
     group = group_security(request.authenticated_userid)
 
-    if 'submit.create_chapter' in request.params:
-         chapter_title = request.params['chapter_title']
-         chapter_description = request.params['chapter_description']
+    student = DBSession.query(User).filter(User.username == student_username).first()
 
-         if DBSession.query(Chapter).filter_by(title=chapter_title).first() is None:
-               course = DBSession.query(Course).filter(Course.owner == currentuser.id).filter(Course.name == basename ).first()
-               DBSession.add(Chapter(title=chapter_title, course=course.id, description=chapter_description))
-               chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
-               message = "Chapter " + chapter_title + " has been added"
-         else:
-               message = "Class Title " + chapter_title + " already exists"
 
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
             "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "chapters" : chapters,
-            "page_title" : student + " " + "Quiz History"           }
+            "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "Quiz History"           }
 
 @view_config(route_name='learn_by_example_reaction', renderer='templates/new/learn_by_example_reaction.pt', permission='study')
 def learn_by_example_reaction_view(request):
@@ -1161,8 +1150,26 @@ def learn_by_example_reaction_view(request):
 	    "reaction" : reaction_name
     }
 
-@view_config(route_name='quiz', renderer='templates/new/quiz_reaction.pt', permission='study')
-def quiz_view(request):
+@view_config(route_name='quiz', match_param='quiz_type=reactant'  , renderer='templates/new/quiz_reactant_reaction.pt', permission='study')
+def quiz_reactant_view(request):
+
+    basename = request.matchdict["basename"]
+    chapter_name = request.matchdict["chapter"]
+    reaction = request.matchdict["reaction"]
+    custom_scripts = []
+    message = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    group = group_security(request.authenticated_userid)
+
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+            "message" : message,
+            "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "page_title" : reaction    }
+
+@view_config(route_name='quiz', match_param='quiz_type=product', renderer='templates/new/quiz_product_reaction.pt', permission='study')
+def quiz_product_view(request):
 
     basename = request.matchdict["basename"]
     chapter_name = request.matchdict["chapter"]

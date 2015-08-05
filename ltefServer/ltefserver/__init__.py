@@ -94,7 +94,7 @@ def main(global_config, **settings):
 
     # Chapter reaction
     config.add_route('learn_by_example_reaction','/class/{basename}/{chapter}/learn_by_example/{reaction}')
-    config.add_route('quiz','/class/{basename}/{chapter}/quiz/{reaction}') 
+    config.add_route('quiz','/class/{basename}/{chapter}/quiz/{quiz_type}/{reaction}') 
 
     config.scan()
 

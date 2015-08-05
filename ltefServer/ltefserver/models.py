@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     )
 
+import datetime #<- will be used to set default dates on models
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy.orm import (
@@ -112,7 +113,17 @@ class Chapter(Base):
     course = Column(ForeignKey("courses.id"))
     title = Column(Text, unique=True)
     description = Column(Text)
-    
+   
+class Quiz_history(Base):
+    __tablename__ = 'quiz_history'
+
+    id = Column(Integer, primary_key=True)
+    chapter = Column(ForeignKey("chapter.id"))
+    user = Column(ForeignKey("users.id"))
+    score = Column(Integer)
+    type = Column(Text)
+    time_submitted = Column(DateTime, default=datetime.datetime.utcnow)    
+
 # Authorization
 class RootFactory(object):
     __acl__ = [ (Allow, Group.ADMIN, 'dominate'),
