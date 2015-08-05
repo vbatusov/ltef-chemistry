@@ -82,7 +82,19 @@
                         <a tal:content="student_course.name"   tal:attributes="href request.route_url('home') + 'class/' + student_course.name"></a>
 			</li> -->
 
-<li><a>Enroll into  Class</a></li>
+<li><a  tal:attributes="href request.route_url('course_signup')"  >Enroll into  Class</a></li>
+</ul>
+<ul tal:condition="is_teacher" class="nav-sidebar">
+<li>Your Classes<li>
+
+
+
+
+                <!--    <li tal:repeat="(student_course, student_enrolled) student_courses"  >
+                        <a tal:content="student_course.name"   tal:attributes="href request.route_url('home') + 'class/' + student_course.name"></a>
+                        </li> -->
+
+<li><a  tal:attributes="href request.route_url('createcourse')"  >Create Class</a></li>
 </ul> 
 <ul class="nav-sidebar">
 
@@ -95,7 +107,7 @@
                 </ul>
 		<ul class="nav-sidebar">
 		        
-<li><a>Edit Account</a></li>
+<li><a tal:attributes="href request.route_url('home') + 'edit_account'"   >Edit Account</a></li>
 			<li>
                             <a href="${request.application_url}/logout">Logout <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a>
                             

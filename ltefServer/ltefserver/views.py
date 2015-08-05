@@ -975,6 +975,10 @@ def course_view(request):
     	students =  DBSession.query(Course,Enrolled,User).filter(Course.name == basename).filter(Course.id==Enrolled.courseid).filter(Course.owner==currentuser.id).filter(User.id == Enrolled.userid).all()
     	chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).all()
     	course = DBSession.query(Course).filter(Course.name == basename).filter(Course.owner==currentuser.id).first()
+    
+
+
+
     elif group["is_student"]:
         students = [] 
 	chapters = DBSession.query(Course, Chapter).filter(Enrolled.userid == currentuser.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).all()
@@ -1042,7 +1046,7 @@ def select_quiz_view(request):
 	    "page_title" : "Select Quiz"           }
 
 
-@view_config(route_name='create_chapter', renderer='templates/new/create_chapter.pt', permission='educate')
+@view_config(route_name='class_action', match_param='action=create_chapter', renderer='templates/new/create_chapter.pt', permission='educate')
 def create_chapter_view(request):
 
 
@@ -1064,6 +1068,8 @@ def create_chapter_view(request):
 	       DBSession.add(Chapter(title=chapter_title, course=course.id, description=chapter_description))
 	       chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
                message = "Chapter " + chapter_title + " has been added"
+
+               return HTTPFound(location=request.route_url('home') + 'class/' + basename )
          else:
                message = "Class Title " + chapter_title + " already exists"
 
@@ -1075,7 +1081,98 @@ def create_chapter_view(request):
             "chapters" : chapters,
             "page_title" : "Add Chapter"           }
 
-@view_config(route_name='add_selectable_reaction', renderer='templates/new/add_selectable_reaction.pt', permission='educate')
+@view_config(route_name='student_quiz_history', renderer='templates/new/student_quiz_history.pt', permission='educate')
+def student_quiz_history_view(request):
+
+
+    basename = request.matchdict["basename"]
+    student = request.matchdict["student"]
+    custom_scripts = []
+    message = ""
+    chapter_title = ""
+    course_description = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
+    group = group_security(request.authenticated_userid)
+
+    if 'submit.create_chapter' in request.params:
+         chapter_title = request.params['chapter_title']
+         chapter_description = request.params['chapter_description']
+
+         if DBSession.query(Chapter).filter_by(title=chapter_title).first() is None:
+               course = DBSession.query(Course).filter(Course.owner == currentuser.id).filter(Course.name == basename ).first()
+               DBSession.add(Chapter(title=chapter_title, course=course.id, description=chapter_description))
+               chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
+               message = "Chapter " + chapter_title + " has been added"
+         else:
+               message = "Class Title " + chapter_title + " already exists"
+
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+            "message" : message,
+            "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "chapters" : chapters,
+            "page_title" : student + " " + "Quiz History"           }
+
+@view_config(route_name='chapter_action', match_param='action=edit_chapter', renderer='templates/new/edit_chapter.pt', permission='educate')
+def edit_chapter_view(request):
+
+
+    basename = request.matchdict["basename"]
+    chapter_name = request.matchdict["chapter"]
+    custom_scripts = []
+    message = ""
+    chapter_title = ""
+    course_description = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
+    group = group_security(request.authenticated_userid)
+
+    current_chapter = DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Chapter.title == chapter_name).first()
+    
+    if 'submit.edit_chapter' in request.params:
+
+         chapter_title = request.params['chapter_title']
+         chapter_description = request.params['chapter_description']
+   
+         DBSession.query(Chapter).filter(Chapter.id == current_chapter.id).update({"title": chapter_title, "description": chapter_description })
+         message = "Chapter " + chapter_title + " already exists"
+
+         return HTTPFound(location=request.route_url('home') + 'class/' + basename )
+      
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+            "message" : message,
+            "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "chapters" : chapters,
+	    "current_chapter" : current_chapter,
+            "page_title" : "Edit Chapter " + chapter_name    }
+
+
+@view_config(route_name='chapter_action', match_param='action=remove_chapter', permission='educate')
+def remove_chapter_view(request):
+
+
+    basename = request.matchdict["basename"]
+    chapter_name = request.matchdict["chapter"]
+    custom_scripts = []
+    message = ""
+    chapter_title = ""
+    course_description = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    group = group_security(request.authenticated_userid)
+
+    current_chapter = DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Chapter.title == chapter_name).first()
+
+    DBSession.query(Chapter).filter(Chapter.id == current_chapter.id).delete() 
+
+    return HTTPFound(location=request.route_url('home') + 'class/' + basename )
+
+
+
+@view_config(route_name='chapter_action', match_param='action=add_selectable_reaction',  renderer='templates/new/add_selectable_reaction.pt', permission='educate')
 def add_selectable_reaction_view(request):
 
     message = ""
@@ -1231,6 +1328,21 @@ def course_signup_view(request):
 	    "page_title" : "Signup to a Course"           }
 
 
+@view_config(route_name='edit_account', renderer='templates/new/edit_account.pt', permission='study')
+def edit_account_view(request):
+    group = group_security(request.authenticated_userid)
+    custom_scripts = []
+
+    
+
+
+    return {"layout": logged_layout(),
+            "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "logged_in" : request.authenticated_userid,
+            "page_title" : "Edit Account"                 }
+
+
 
 @view_config(route_name='contact', renderer='templates/new/contact.pt', permission='study')
 def contact_view(request):
@@ -1309,6 +1421,17 @@ def student_register_view(request):
 def select_register_view(request):
     return {"layout": main_layout()
             }
+
+@view_config(route_name='password_reset', renderer='templates/new/password_reset.pt')
+def password_reset_view(request):
+
+    message = ""
+
+    return {"layout": main_layout(), 
+            "message" : message
+	     }
+
+
 
 @view_config(route_name='add_course', renderer='templates/new/add_course.pt')
 def add_course_view(request):

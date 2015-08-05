@@ -47,6 +47,8 @@ def main(global_config, **settings):
 
     config.add_route('logout', '/logout')
 
+    config.add_route('password_reset', '/password_reset')
+
     config.add_route('student_register', '/student_register')
     config.add_route('add_course', '/add_course')
     config.add_route('select_register', '/select_register')
@@ -78,12 +80,18 @@ def main(global_config, **settings):
     # Course
     config.add_route('class', '/class/{basename}')
 
-    # Chapter
-    config.add_route('create_chapter', '/class/{basename}/create_chapter')
+    # Course action 
+    config.add_route('class_action', '/class/{basename}/{action}')
+    
+    # Student Quiz history 
+    config.add_route('student_quiz_history', '/class/{basename}/{student}/quiz_history')
 
-    # Add Selectable reactions to Chapter 
-    config.add_route('add_selectable_reaction', '/class/{basename}/{chapter}/add_selectable_reaction')   
- 
+    # Chapter action
+    config.add_route('chapter_action', '/class/{basename}/{chapter}/{action}')   
+
+    # Edit Account
+    config.add_route('edit_account', '/edit_account')
+
     config.scan()
 
     return config.make_wsgi_app()
