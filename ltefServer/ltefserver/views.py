@@ -1302,8 +1302,9 @@ def add_selectable_reaction_view(request):
 	    message = "All default"	
 
     elif 'submit.reaction.finish' in request.params:
+        
         message = "Finished"
-
+	return HTTPFound(location=request.route_url('home') + 'class/' + basename )
 
 
     return {"layout": logged_layout(),

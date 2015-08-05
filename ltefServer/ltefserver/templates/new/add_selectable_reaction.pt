@@ -31,11 +31,11 @@
                <div class="form-group col-md-9 last">
 		   <div class="col-md-offset-6 col-md-3">	
                      <button type="submit" name="submit.reaction.addanother" class="btn btn-success btn-sm">
-                     Add another reaction</button>
+                     Add reaction</button>
                   </div>
 		  <div class="col-md-3">   
 		    <button type="submit" name="submit.reaction.finish" class="btn btn-success btn-sm">
-                     Finish</button>
+                     Done</button>
 		  </div>
                </div>
             </form>
