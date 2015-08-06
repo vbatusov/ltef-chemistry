@@ -146,14 +146,25 @@ def manageusers_view(request):
 
     groups = DBSession.query(Group).all()
 
+    current_user = User.current_user(request.authenticated_userid)
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {"layout" : logged_layout(), 
-            "logged_in" : request.authenticated_userid,
+            "logged_in" : current_user.firstname.title() + " " + current_user.lastname.title(),
             "admins" :  admins, "teachers" : teachers, "students" : students, "guests" : guests,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "groups" : groups,
   	    "custom_scripts" : custom_scripts,
             "message" : message,
-	    "page_title" : "Manage Users"
+	    "page_title" : "Manage Users",
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             }
 
 @view_config(route_name='managelists', renderer='templates/new/managelists.pt', permission='educate')
@@ -207,13 +218,23 @@ def managelists_view(request):
     if user is not None:
         lists = [(l.title, l.desc) for l in DBSession.query(List).filter(List.owner == user.id).all()]
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
+
     return {"layout" : logged_layout(), 
             "custom_scripts" : custom_scripts,
 	    "logged_in" : request.authenticated_userid,
             "lists" : lists,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "message" : message,
-	    "page_title" : "Manage Reaction Lists"
+	    "page_title" : "Manage Reaction Lists",
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             }
 
 @view_config(route_name='editlist', renderer='templates/new/editlist.pt', permission='educate')
@@ -244,6 +265,13 @@ def editlist_view(request):
     if title == List.ALL_TITLE:
         message = "This list is locked and cannot be changed"
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {"layout" : logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
@@ -255,6 +283,8 @@ def editlist_view(request):
 	    "custom_scripts" : custom_scripts,
  	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "Manage Reaction Lists",
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             }
 
 def student_courses(request):
@@ -287,9 +317,17 @@ def home_view(request):
     if len(student_courses) == 0 and group["is_student"]:
         url = request.route_url("add_course")
         return HTTPFound(location=url)
-     
+    
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+	enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)      
 
     return {"layout" : logged_layout(),
+	    "owner_courses" : owner_courses,
+ 	    "enrolled_courses" : enrolled_courses,
             "custom_scripts" : custom_scripts, 
             "base_to_full" : cat.base_to_full, 
             "logged_in" : request.authenticated_userid,
@@ -323,13 +361,23 @@ def learning_view(request):
     custom_scripts = []
 
     group = group_security(request.authenticated_userid)
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
       
     return {"layout" : logged_layout(), 
             "base_to_full" : cat.base_to_full, 
             "custom_scripts" : custom_scripts,
 	    "logged_in" : request.authenticated_userid,
 	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-	    "page_title" : "Learn By Example" }
+	    "page_title" : "Learn By Example",
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses }
 
 
 @view_config(route_name='learning_reaction', renderer='templates/new/learning_reaction.pt', permission='study')
@@ -373,6 +421,13 @@ def learning_reaction_view(request):
     svgline = svglineparts[0] + 'width="90%"' + svglineparts[1]
     svg_data = svgline + "\n" + svg_data[svg_data.find('\n') + 1 :]
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {"layout" : logged_layout(),
             "basename" : basename,
 	    "custom_scripts" : custom_scripts,
@@ -383,7 +438,10 @@ def learning_reaction_view(request):
 	    "rgroups" : reaction.rgroups,
             "logged_in" : request.authenticated_userid,
             "link_to_gen_picture" : link_to_gen_picture,
-            "svg_data" : svg_data}
+            "svg_data" : svg_data,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
+}
 
 
 @view_config(route_name='img', permission='study')
@@ -612,6 +670,12 @@ def quiz_reactants_view(request):
             ".png');"
         )
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
     return {
             "layout": logged_layout(),
@@ -626,6 +690,8 @@ def quiz_reactants_view(request):
             "result" : result,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "state" : state,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "logged_in" : request.authenticated_userid
         }
 
@@ -766,6 +832,13 @@ def quiz_products_view(request):
         )
 
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {
             "layout": logged_layout(),
             "basename" : basename,
@@ -778,6 +851,8 @@ def quiz_products_view(request):
             "message" : message,
             "result" : result,
             "state" : state,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "logged_in" : request.authenticated_userid 
         }
@@ -956,8 +1031,19 @@ def quiz_history_view(request):
 def synthesis_view(request):
     custom_scripts = []
     group = group_security(request.authenticated_userid)
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
+
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "logged_in" : request.authenticated_userid,
 	    "page_title" : "Multistep Synthesis"	 }
@@ -986,11 +1072,21 @@ def course_view(request):
     for (course, chapter) in chapters:
         customizable_reactions[chapter.id] = DBSession.query(Customizable_reaction, Reac).filter(Customizable_reaction.chapter == chapter.id ).filter(Customizable_reaction.reaction == Reac.id).all()
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
+
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
             "students" : students,
 	    "course" : course,
 	    "basename" : basename,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
 	    "chapters" : chapters,
 	    "customizable_reactions" : customizable_reactions,
 	    "logged_in" : request.authenticated_userid,
@@ -1002,8 +1098,18 @@ def course_view(request):
 def addreaction_view(request):
     custom_scripts = []
     group = group_security(request.authenticated_userid)
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {"layout": logged_layout(),
 	    "custom_scripts" : custom_scripts,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "logged_in" : request.authenticated_userid,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],	   
 	    "page_title" : "Add New Reaction"			 }
@@ -1013,8 +1119,18 @@ def addreaction_view(request):
 def about_view(request):
     custom_scripts = []
     group = group_security(request.authenticated_userid)
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "logged_in" : request.authenticated_userid, 
 	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "About Us"		}
@@ -1034,10 +1150,18 @@ def select_quiz_view(request):
 	url = request.route_url(quiz_type, basename=reaction_selector )
 	return HTTPFound(location=url)
 	 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
   
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
 	    "base_to_full" : cat.base_to_full,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "logged_in" : request.authenticated_userid,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "Select Quiz"           }
@@ -1070,12 +1194,22 @@ def create_chapter_view(request):
          else:
                message = "Class Title " + chapter_title + " already exists"
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
+
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
 	    "message" : message,
             "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "chapters" : chapters,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "page_title" : "Add Chapter"           }
 
 @view_config(route_name='student_quiz_history', renderer='templates/new/student_quiz_history.pt', permission='educate')
@@ -1093,10 +1227,18 @@ def student_quiz_history_view(request):
 
     student = DBSession.query(User).filter(User.username == student_username).first()
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "Quiz History"           }
@@ -1137,6 +1279,13 @@ def learn_by_example_reaction_view(request):
     svgline = svglineparts[0] + 'width="90%"' + svglineparts[1]
     svg_data = svgline + "\n" + svg_data[svg_data.find('\n') + 1 :]
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
@@ -1146,6 +1295,8 @@ def learn_by_example_reaction_view(request):
 	    "rgroups" : reaction.rgroups,
 	    "link_to_gen_picture" : link_to_gen_picture,
             "svg_data" : svg_data,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
 	    "reaction_description" : reaction.desc,
 	    "reaction" : reaction_name
     }
@@ -1161,10 +1312,19 @@ def quiz_reactant_view(request):
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     group = group_security(request.authenticated_userid)
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
             "custom_scripts" : custom_scripts,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "page_title" : reaction    }
 
@@ -1179,9 +1339,18 @@ def quiz_product_view(request):
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     group = group_security(request.authenticated_userid)
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "page_title" : reaction    }
@@ -1212,6 +1381,13 @@ def edit_chapter_view(request):
          message = "Chapter " + chapter_title + " already exists"
 
          return HTTPFound(location=request.route_url('home') + 'class/' + basename )
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
       
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
@@ -1219,6 +1395,8 @@ def edit_chapter_view(request):
             "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "chapters" : chapters,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
 	    "current_chapter" : current_chapter,
             "page_title" : "Edit Chapter " + chapter_name    }
 
@@ -1306,6 +1484,12 @@ def add_selectable_reaction_view(request):
         message = "Finished"
 	return HTTPFound(location=request.route_url('home') + 'class/' + basename )
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
     return {"layout": logged_layout(),
 	    "logged_in" : request.authenticated_userid,
@@ -1315,6 +1499,8 @@ def add_selectable_reaction_view(request):
 	    "custom_scripts" : custom_scripts,
 	    "message" : message,
 	    "basename" : basename,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
 	    "chapter" : chapter_name,
 	    }
 
@@ -1343,10 +1529,21 @@ def create_course_view(request):
                courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all()
 	 else:
                message = "Class Title " + class_title + " already exists"
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
  
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
-            "message" : message,
+            "owner_courses" : owner_courses,
+	    "enrolled_courses" : enrolled_courses,
+            "custom_scripts" : custom_scripts,
+	    "message" : message,
             "custom_scripts" : custom_scripts,
 	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "courses" : courses,
@@ -1390,12 +1587,19 @@ def course_signup_view(request):
 	    else: 
 		message = "You are already enrolled in the Course"
 		
-
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "custom_scripts" : custom_scripts,
 	    "message" : message,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
 	    "student_courses" : student_courses,
 	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "page_title" : "Signup to a Course"           }
@@ -1406,13 +1610,20 @@ def edit_account_view(request):
     group = group_security(request.authenticated_userid)
     custom_scripts = []
 
-    
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
 
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "logged_in" : request.authenticated_userid,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
             "page_title" : "Edit Account"                 }
 
 
@@ -1430,12 +1641,20 @@ def contact_view(request):
             myfile.write(request.POST["txtComment"] + "\n")
             myfile.write("----END OF MESSAGE----\n\n")
 
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts, 
             "state" : state,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	    "logged_in" : request.authenticated_userid,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
 	    "page_title" : "Contact Us"			}
 
 

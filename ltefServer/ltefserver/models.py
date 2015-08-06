@@ -48,6 +48,11 @@ class Course(Base):
     owner = Column(ForeignKey("users.id"))  # Link to another table's column
     access_code = Column(Text, unique=True)        # Again, needs to be unique
 
+    @classmethod
+    def owner_courses(cls, owner):
+	
+        return DBSession.query(Course).filter(Course.owner == User.current_user(owner).id).all()
+
 class Enrolled(Base):
     __tablename__ = 'enrollment'
 
@@ -55,6 +60,11 @@ class Enrolled(Base):
     id = Column(Integer, primary_key=True)  # Will be auto-filled
     userid = Column(ForeignKey("users.id"))
     courseid = Column( ForeignKey("courses.id"))
+
+    @classmethod
+    def enrolled_courses(cls, username):
+        return DBSession.query(Course).filter(Enrolled.courseid == Course.id).filter(Enrolled.userid == User.current_user(username).id).all()
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -70,6 +80,10 @@ class User(Base):
     username = Column(Text, unique=True)
     group = Column(ForeignKey("groups.id"))
     phash = Column(Text)
+
+    @classmethod
+    def current_user(cls, username):
+        return DBSession.query(User).filter(User.username == username).first()
 
 
 

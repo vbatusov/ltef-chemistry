@@ -78,21 +78,18 @@
 
 
 
-       		<!--	<li tal:repeat="(student_course, student_enrolled) student_courses"  >
-                        <a tal:content="student_course.name"   tal:attributes="href request.route_url('home') + 'class/' + student_course.name"></a>
-			</li> -->
+       		<li tal:repeat="enrolled_course enrolled_courses"  >
+                        <a tal:content="enrolled_course.name"   tal:attributes="href request.route_url('home') + 'class/' + enrolled_course.name"></a>
+			</li> 
 
 <li><a  tal:attributes="href request.route_url('course_signup')"  >Enroll into  Class</a></li>
 </ul>
 <ul tal:condition="is_teacher" class="nav-sidebar">
 <li>Your Classes<li>
 
-
-
-
-                <!--    <li tal:repeat="(student_course, student_enrolled) student_courses"  >
-                        <a tal:content="student_course.name"   tal:attributes="href request.route_url('home') + 'class/' + student_course.name"></a>
-                        </li> -->
+               <li tal:repeat="owner_course owner_courses"  >
+                        <a tal:content="owner_course.name"   tal:attributes="href request.route_url('home') + 'class/' + owner_course.name"></a>
+                        </li> 
 
 <li><a  tal:attributes="href request.route_url('createcourse')"  >Create Class</a></li>
 </ul> 
