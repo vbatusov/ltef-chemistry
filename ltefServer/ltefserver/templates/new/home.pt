@@ -45,7 +45,7 @@
             <h4><a href="${request.route_url('addreaction')}">Add New Reaction</a></h4>
             <span class="text-muted">(In development Stages) Add a new reaction to the knowledge base. After review, it will be appear in all other tools.</span>
          </div>
-         <div class="col-xs-6 col-sm-3 placeholder"  tal:condition="is_teacher or is_admin">
+         <div class="col-xs-6 col-sm-3 placeholder"  tal:condition="is_admin">
             <h4><a href="${request.route_url('managelists')}">Manage reaction lists</a></h4>
             <span class="text-muted">Create, edit, or remove lists of reactions.</span>
          </div>

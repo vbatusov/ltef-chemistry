@@ -59,7 +59,7 @@
                         <li>
                             <a href="${request.route_url('addreaction')}">Add new Reaction</a>
                         </li>
-                        <li>
+                        <li  tal:condition="is_admin" >
                             <a href="${request.route_url('managelists')}">Manage Reaction List</a>
                         </li>
                         </div>
