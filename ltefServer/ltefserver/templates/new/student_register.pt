@@ -67,6 +67,31 @@
                      <input type="password" class="form-control" name="confirm_password" id="inputPassword3"  placeholder="Confirm Password" required="">
                   </div>
                </div>
+
+                <div class="form-group">
+
+                 <label class="col-sm-3 control-label" for="inputEmail3">
+                    Security Question:</label>
+                  <div class="col-sm-9">
+
+                <select class="form-control" name="security_question" id="sel1">
+
+                	<option value="First city visited?">First city visited?</option>
+                	<option value="Where parents met?">Where parents met?</option>
+                	<option value="Last name of best friend?">Last name of best friend?</option>
+                	<option value="Make of first car?">Make of first car?</option>
+               		<option value="Favourite musician?">Favourite musician?</option>
+                	<option value="Favourite concert seen?">Favourite concert seen?</option>
+                	<option value="Favourite author?">Favourite author?</option>
+                	<option value="First girl/boyfriend?">First girl/boyfriend?</option>
+                	<option value="Favourite book?">Favourite book?</option>
+                	<option value="Favourite song?">Favourite song?</option>
+
+                </select>
+  		<input class="form-control" name="answer" placeholder="Answer" required="" type="text">
+                   </div>
+                </div>
+
                <div class="form-group last">
                   <div class="col-sm-offset-3 col-sm-9">
                      <button type="submit" name="form_register.submitted"  class="btn btn-success btn-sm">

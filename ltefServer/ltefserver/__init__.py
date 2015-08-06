@@ -44,13 +44,14 @@ def main(global_config, **settings):
 
     config.add_route('login', '/login')
 
-
     config.add_route('logout', '/logout')
-
     config.add_route('password_reset', '/password_reset')
-
     config.add_route('student_register', '/student_register')
     config.add_route('add_course', '/add_course')
+    
+    #User must add a secret question to be able to reset password
+    config.add_route('add_secret_question', '/add_secret_question')
+    
     config.add_route('select_register', '/select_register')
     config.add_route('select_quiz', '/select_quiz')
     # Route to teacher's course creation page

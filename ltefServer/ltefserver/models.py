@@ -138,6 +138,14 @@ class Quiz_history(Base):
     type = Column(Text)
     time_submitted = Column(DateTime, default=datetime.datetime.utcnow)    
 
+class Security_question(Base):
+    __tablename__ = 'security_question'
+
+    id = Column(Integer, primary_key=True)
+    question = Column(Text)
+    answer = Column(Text)
+    user = Column(ForeignKey("users.id"))
+
 # Authorization
 class RootFactory(object):
     __acl__ = [ (Allow, Group.ADMIN, 'dominate'),

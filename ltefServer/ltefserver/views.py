@@ -1680,6 +1680,7 @@ def student_register_view(request):
 	password = request.params['password']
 	confirm_password = request.params['confirm_password']
 	
+	
 	if len(first_name) <= 0 & len(last_name) <= 0:
 		message = "Missing inputs"
 	else:
@@ -1723,6 +1724,15 @@ def password_reset_view(request):
             "message" : message
 	     }
 
+
+@view_config(route_name='add_secret_question', renderer='templates/new/add_secret_question.pt')
+def add_secret_question(request):
+
+    message = ""
+
+    return{"layout" : main_layout(),
+	   "message" : message
+	  }
 
 
 @view_config(route_name='add_course', renderer='templates/new/add_course.pt')
