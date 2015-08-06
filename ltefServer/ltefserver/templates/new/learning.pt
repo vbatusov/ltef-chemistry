@@ -1,18 +1,16 @@
 <div metal:use-macro="layout">
-    <div metal:fill-slot="content">
-
-
-    <div class="container-fluid">
-
+  <div metal:fill-slot="content">
+    
+    <div class="panel-body">
       <p>Please select a reaction from the list</p>
-
-
-      <div class="row" tal:repeat="base sorted(base_to_full.keys())">
-        <div class="span9">
-          <p><a tal:content="base_to_full[base]" tal:attributes="href request.route_url('learning') + '/' + base"></a></p>
+      <div class="panel panel-default" >
+        <div class="panel-heading"  tal:repeat="base sorted(base_to_full.keys())" role="tab" id="headingOne">
+          <h4 class="panel-title">
+            <a tal:content="base_to_full[base]" tal:attributes="href request.route_url('learning') + '/' + base"></a>
+          </h4>
         </div>
       </div>
+    </div>
 
-    </div> <!-- /container -->
   </div>
 </div>

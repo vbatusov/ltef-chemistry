@@ -89,7 +89,6 @@
                             <th>Email</th>
                             <th>Quiz History</th>
 			    <th></th>
-			    <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -99,7 +98,7 @@
                             <td tal:content="u.studentNumber"></td>
                             <td tal:content="u.email"></td>
 			    <td><a tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + u.username  + '/quiz_history' "   class="label label-primary">Quiz History</a></td>
-                            <td><a class="label label-primary">Edit</a></td><td><a class="label label-danger">Remove</a></td>
+                            <td><a class="label label-danger">Remove</a></td>
                         </tr>
                     </tbody>
                 </table>
