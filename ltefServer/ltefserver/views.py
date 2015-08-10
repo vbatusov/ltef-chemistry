@@ -15,7 +15,8 @@ from .models import (
     Course,
     Enrolled,
     Chapter,
-    Customizable_reaction	
+    Customizable_reaction,
+    Security_question	
     )
 
 from pyramid.security import (
@@ -1670,6 +1671,9 @@ def student_register_view(request):
     email = "" 
     password = ""
     confirm_password = ""
+    question = ""
+    answer = ""
+    
     
     if 'form_register.submitted' in request.params: 
         first_name = request.params['first_name']
@@ -1679,9 +1683,10 @@ def student_register_view(request):
 	email = request.params['email']
 	password = request.params['password']
 	confirm_password = request.params['confirm_password']
+	security_question = request.params['security_question']
+        security_answer = request.params['security_answer']
 	
-	
-	if len(first_name) <= 0 & len(last_name) <= 0:
+	if len(first_name) <= 0 & len(last_name) <= 0 & len(security_question) <= 0 & len(security_answer) <= 0 & len(password) <= 0 & len(confirm_password) <= 0 :
 		message = "Missing inputs"
 	else:
 	    if password <> confirm_password: 
@@ -1691,6 +1696,10 @@ def student_register_view(request):
 		if DBSession.query(User).filter_by(username=username).first() is None:
             	    if DBSession.query(User).filter_by(email=email).first() is None:
 		        DBSession.add(User(username=username, email=email, firstname=first_name, lastname=last_name, group=4, studentNumber=student_number, phash=getHash(password)))
+
+			current_user = User.current_user(username)
+
+			DBSession.add(Security_question(user=current_user.id, question=security_question, answer = security_answer ))
             	        message = "User '" + username + "' has been added"
 			if checkCredentials(username, password):
 		            headers = remember(request, username)
@@ -1719,10 +1728,108 @@ def select_register_view(request):
 def password_reset_view(request):
 
     message = ""
-
+    email= ""
+    
+    if 'email' in request.params:
+        email = request.params['email']
+        
+	if DBSession.query(User).filter(User.email == email).first() is None:
+	    message = "Sorry but that email address is not in our records, please try again."    
+        else:
+            user =  DBSession.query(User).filter(User.email == email).first()
+            return HTTPFound(location=request.route_url('security_question', _query={'email':user.email})) 
+	    
+ 
     return {"layout": main_layout(), 
             "message" : message
 	     }
+
+
+@view_config(route_name='security_question', renderer='templates/new/security_question.pt')
+def security_question_view(request):
+
+    message = ""
+    email = ""
+    question = ""
+
+    if 'email' in request.params:
+        email = request.params['email'] 
+
+        if 'answer' in request.params:
+	    answer = request.params['answer']
+
+            if DBSession.query(User).filter(User.email == email).first() is None:
+
+                return HTTPFound(loddcation=request.route_url('password_reset'))
+
+            elif DBSession.query(Security_question).filter(User.email == email).filter(Security_question.answer == answer).filter(User.id == Security_question.user).first() is None:
+
+                user =  DBSession.query(User).filter(User.email == email).first()
+                security_question = DBSession.query(Security_question).filter(user.id == Security_question.user).first()
+                question = security_question.question
+
+                return {"layout" : main_layout(),
+                        "message" : "Incorrect Answer",
+                        "question" : question,
+                         }
+            else:
+                return HTTPFound(location=request.route_url('reset_password', _query={'email' : email, 'answer' : answer }))
+
+
+	if DBSession.query(User).filter(User.email == email).first() is None:
+
+	   return HTTPFound(location=request.route_url('password_reset'))
+	else:
+	    user =  DBSession.query(User).filter(User.email == email).first()
+	    security_question = DBSession.query(Security_question).filter(user.id == Security_question.user).first()
+	    question = security_question.question
+    else: 
+        return HTTPFound(location=request.route_url('password_reset'))
+
+
+    return {"layout" : main_layout(), 
+	    "message" : message,
+	    "question" : question,
+	    "email" : email,
+	   }
+ 
+
+@view_config(route_name='reset_password', renderer='templates/new/reset_password.pt')
+def reset_password_view(request):
+
+    email = ""
+    answer = ""
+    message = ""
+    password = ""
+    confirm_password =""
+
+    if ('email' in request.params) & ('answer' in request.params):
+        email = request.params['email']
+        answer = request.params['answer']
+
+	# Update password         
+        if('confirm_password' in request.params) & ('password' in request.params):
+            confirm_password = request.params['confirm_password']
+	    password = request.params['password']
+
+	    if DBSession.query(Security_question).filter(User.email == email).filter(Security_question.answer == answer).filter(User.id == Security_question.user).first() is None: 
+	        return HTTPFound(location=request.route_url('home'))
+	    else: 
+	        if password <> confirm_password:
+		    message = "Both passwords don't match. Please try again. "
+		else:  
+		   
+		    DBSession.query(User).filter(User.email == email).update({"phash": getHash(password)})
+		    return HTTPFound(location=request.route_url('login'))
+
+    else: 
+        return HTTPFound(location=request.route_url('password_reset'))
+
+    return { "layout" : main_layout(),
+             "message" : message,
+	     "email" : email,
+	     "answer" : answer,
+	   } 
 
 
 @view_config(route_name='add_secret_question', renderer='templates/new/add_secret_question.pt')

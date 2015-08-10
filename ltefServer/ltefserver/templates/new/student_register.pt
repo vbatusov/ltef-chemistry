@@ -88,7 +88,7 @@
                 	<option value="Favourite song?">Favourite song?</option>
 
                 </select>
-  		<input class="form-control" name="answer" placeholder="Answer" required="" type="text">
+  		<input class="form-control" name="security_answer" placeholder="Answer" required="" type="text">
                    </div>
                 </div>
 
