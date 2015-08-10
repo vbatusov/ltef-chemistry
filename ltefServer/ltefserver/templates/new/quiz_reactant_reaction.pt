@@ -1,9 +1,76 @@
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">
-        
-
-
-
-
-    </div>
-</div>
+        <style>
+            div.row-fluid [class*="span"] .center-in-span {
+                float: none;
+                margin: 0 auto;
+                text-align: center;
+                display: block;
+                width: auto;
+                height: auto;
+            }
+            div.molecule {
+                display: inline-block;
+                margin:20px;
+                border:solid 2px;
+                -webkit-border-radius: 7px;
+                -moz-border-radius: 7px;
+                        border-radius: 7px;
+                border-color:#ffffff;
+                min-height: 40px;
+                line-height: 40px;
+                width: 220px;
+                height:119px;
+                background-size: 220px 119px;
+                background-repeat:no-repeat;
+            }
+            div.molecule:hover {
+                background-color: #eee;
+            }
+        </style>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <div tal:condition="state == 'tell' and result == True" class="alert alert-success" role="alert">${message}</div>
+                        <div tal:condition="state == 'tell' and result == False" class="alert alert-danger" role="alert">${message}</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <img  class="img-responsive" tal:attributes="src request.route_url('home') + 'img/q_' + problem_id + '/reaction.png'">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12 col-md-12 ">
+                        <div tal:condition="state == 'ask'">
+                            <p tal:condition="state == 'ask'" >What should the reactants be? Select those (and only those) molecules that would complete and balance the reaction. You can select and deselect molecules by clicking on them.</p>
+                            <div tal:condition="state == 'ask'" id="molContainer" class="row-fluid">
+                                <div tal:condition="state == 'ask'" class="span12">
+                                    <div tal:condition="state == 'ask'" id="molSpan" class="row-fluid center-in-span show-grid">
+                                        <div tal:condition="state == 'ask'"  tal:repeat="i indeces" tal:attributes="id str(i); style style_t[0] + str(i) + style_t[1]" class="molecule"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group last">
+                    <div class=" col-sm-12  ">
+                        <form tal:condition="state == 'ask'" name="checkSolution" action="${request.current_route_url()}">
+                            <input tal:condition="state == 'ask'" id="answerField" type="hidden" name="answer" />
+                            <button tal:condition="state == 'ask'" id="checkButton" type="submit" class="btn  btn-success btn-outline btn-m">Check</button>
+                            <form>
+                                <form tal:condition="state == 'tell'" name="tryAnother" action="${request.current_route_url()}">
+                                    <button tal:condition="state == 'tell'" id="checkButton" type="submit" class="btn btn-success btn-outline btn-m">Try another one</button>
+                                    <form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-footer">
+                            </div>
+                        </div>
+                    </div>
+                </div>

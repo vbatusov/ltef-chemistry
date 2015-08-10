@@ -1332,16 +1332,146 @@ def learn_by_example_reaction_view(request):
 	    "reaction" : reaction_name
     }
 
-@view_config(route_name='quiz', match_param='quiz_type=reactant'  , renderer='templates/new/quiz_reactant_reaction.pt', permission='study')
+@view_config(route_name='quiz', match_param='quiz_type=reactant', renderer='templates/new/quiz_reactant_reaction.pt', permission='study')
 def quiz_reactant_view(request):
 
-    basename = request.matchdict["basename"]
     chapter_name = request.matchdict["chapter"]
-    reaction = request.matchdict["reaction"]
-    custom_scripts = []
-    message = ""
-    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    mode = request.matchdict["reaction"]
+   
+    global quiz_problems
+    session = request.session
+
     group = group_security(request.authenticated_userid)
+    problem_id = ""
+    basename = ""
+    full_name = ""
+    message = ""
+    result = False
+    state = "ask"
+    custom_scripts = []
+    custom_scripts.append("/bootstrap/js/quiz_reactants.js")
+    # Generate a problem, store the objects, present to user
+    if 'quiz_type' not in session or session['quiz_type'] != 'reactants' or session['problem_id'] not in quiz_problems.keys():
+        session.invalidate()
+        problem_id = str(uuid.uuid4())
+        session['quiz_type'] = 'reactants'
+        session['problem_id'] = problem_id
+        state = "ask"
+
+        # select a reaction randomly
+        if mode == "random":
+            basename = random.choice(cat.get_sorted_basenames())
+        else:
+            basename = mode
+        reaction = cat.get_reaction_by_basename(basename)
+        full_name = reaction.full_name
+
+        # prepare instance, cut off reactants
+        instance = reaction.getInstance()
+        instance_full = copy.deepcopy(instance)
+
+        fullImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
+
+        reactants = instance.reactants
+
+        molecule = chem.Molecule()
+        molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
+
+        instance.reactants = [molecule]
+
+        # Reaction image without reactants
+        mainImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
+
+        reactantImages = []
+        for mol in reactants:
+            image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
+            reactantImages.append([image, True])    # indicate that these are correct answers
+
+
+        # Generate wrong answers here, add to reactantImages
+        for mol in chem.mutateMolecules(reactants):
+            image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
+            reactantImages.append([image, False])    # indicate that these are wrong answers
+
+        random.shuffle(reactantImages)
+
+        quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
+
+        # record problem in history
+        print "Adding problem " + problem_id + " to " + request.authenticated_userid + "'s history as incomplete"
+        if request.authenticated_userid not in history:
+            history[request.authenticated_userid] = []
+        history[request.authenticated_userid].append({'problem_id' : problem_id,
+                                                      'type' : 'reactants',
+                                                      'status' : 'incomplete',
+                                                      'basename' : basename,
+                                                      'instance_full' : instance_full,
+                                                      'instance_part' : instance, })
+
+        session['basename'] = basename
+        print "Started a quiz (reactants) session for " + basename + ", id = " + problem_id
+
+    # Depending on request parameters, either
+    #   - continue session, or
+    #   - present the answer to problem and a show a button to get a new problem
+    else:
+        problem_id = session['problem_id']
+        basename = session['basename']
+        quiz_type = session['quiz_type']
+        print "Resuming a quiz (reactants) session for " + basename + ", id = " + problem_id
+        reaction = cat.get_reaction_by_basename(basename)
+        full_name = reaction.full_name
+
+        if "answer" in request.GET:
+
+            #print "Literally: " + str(request.GET)
+            ans = request.GET["answer"].split(",")
+            #print "Answer given is " + str(ans)
+
+            # Invalidate the session
+            state = "tell"
+            session.invalidate()
+
+            # Check if given answer is correct
+            correctAnswers = []
+            for index in range(0, len(quiz_problems[problem_id][1])):
+                val = quiz_problems[problem_id][1][index][1]
+                if val:
+                    correctAnswers.append(str(index))
+            #print "Correct answer is " + str(set(correctAnswers))
+
+            problem_h = None
+            for p in history[request.authenticated_userid]:
+                    if p['problem_id'] == problem_id:
+                        problem_h = p
+                        break
+
+            if problem_h == None:
+                print "Error: could not find problem in history"
+
+            if set(ans) != set(correctAnswers):
+                message = "Wrong!"
+                result = False
+                #print "Your set: " + str(set(ans))
+                #print "Good set: " + str(set(correctAnswers))
+
+                # record result in history
+                problem_h['status'] = 'fail'
+
+
+            else:
+                message = "Correct! You selected what's necessary and nothing else."
+                result = True
+                problem_h['status'] = 'pass'
+
+            # Once user has made a choice, replace cut reaction with a full one
+            quiz_problems[problem_id][0] = quiz_problems[problem_id][2]
+
+    # prepare styles
+    style_t = (
+            "background-image: url('" + request.route_url("home") + "img/q_" + problem_id + "/",
+            ".png');"
+        )
 
     owner_courses = []
     enrolled_courses = []
@@ -1350,25 +1480,162 @@ def quiz_reactant_view(request):
     elif group["is_student"]:
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
-    return {"layout": logged_layout(),
-            "logged_in" : request.authenticated_userid,
-            "message" : message,
+    return {
+            "layout": logged_layout(),
             "custom_scripts" : custom_scripts,
+            "page_title" : full_name,
+            "basename" : basename,
+            "full_name" : full_name,
+            "problem_id" : problem_id,
+            "indeces" : range(0, len(quiz_problems[problem_id][1])),
+            "style_t" : style_t,
+            "message" : message,
+            "result" : result,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "state" : state,
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
-            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "page_title" : reaction    }
+            "logged_in" : request.authenticated_userid
+        }
 
 @view_config(route_name='quiz', match_param='quiz_type=product', renderer='templates/new/quiz_product_reaction.pt', permission='study')
 def quiz_product_view(request):
 
-    basename = request.matchdict["basename"]
     chapter_name = request.matchdict["chapter"]
-    reaction = request.matchdict["reaction"]
+    mode  = request.matchdict["reaction"]
+    
     custom_scripts = []
-    message = ""
-    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    custom_scripts.append("/bootstrap/js/quiz_reactants.js")
+    global quiz_problems
+    session = request.session
     group = group_security(request.authenticated_userid)
+    #print "Mode: " + mode
+    problem_id = ""
+    basename = ""
+    full_name = ""
+    message = ""
+    result = False
+    state = "ask"
+
+
+    # Generate a problem, store the objects, present to user
+    if 'quiz_type' not in session or session['quiz_type'] != 'products' or session['problem_id'] not in quiz_problems.keys():
+        session.invalidate()
+        problem_id = str(uuid.uuid4())
+        session['quiz_type'] = 'products'
+        session['problem_id'] = problem_id
+        state = "ask"
+
+        # select a reaction randomly
+        if mode == "random":
+            basename = random.choice(cat.get_sorted_basenames())
+        else:
+            basename = mode
+        reaction = cat.get_reaction_by_basename(basename)
+        full_name = reaction.full_name
+
+        # prepare instance, cut off products
+        instance = reaction.getInstance()
+
+        instance_full = copy.deepcopy(instance)
+
+        fullImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
+
+        products = instance.products
+
+        molecule = chem.Molecule()
+        molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
+
+        instance.products = [molecule]
+
+        # Reaction image without products
+        mainImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
+
+        reactantImages = []
+        for mol in products:
+            image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
+            reactantImages.append([image, True])    # indicate that these are correct answers
+
+
+        # Generate wrong answers here, add to reactantImages
+        for mol in chem.mutateMolecules(products):
+            image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
+            reactantImages.append([image, False])    # indicate that these are wrong answers
+
+        random.shuffle(reactantImages)
+
+        quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
+
+        # record problem in history
+        print "Adding problem " + problem_id + " to " + request.authenticated_userid + "'s history as incomplete"
+        if request.authenticated_userid not in history:
+            history[request.authenticated_userid] = []
+        history[request.authenticated_userid].append({'problem_id' : problem_id,
+                                                      'type' : 'products',
+                                                      'status' : 'incomplete',
+                                                      'basename' : basename,
+                                                      'instance_full' : instance_full,
+                                                      'instance_part' : instance })
+
+        session['basename'] = basename
+        print "Started a quiz (products) session for " + basename + ", id = " + problem_id
+
+    # Depending on request parameters, either
+    #   - continue session, or
+    #   - present the answer to problem and a show a button to get a new problem
+    else:
+        problem_id = session['problem_id']
+        basename = session['basename']
+        quiz_type = session['quiz_type']
+        print "Resuming a quiz (products) session for " + basename + ", id = " + problem_id
+        reaction = cat.get_reaction_by_basename(basename)
+        full_name = reaction.full_name
+
+        if "answer" in request.GET:
+
+            #print "Literally: " + str(request.GET)
+            ans = request.GET["answer"].split(",")
+            #print "Answer given is " + str(ans)
+
+            # Invalidate the session
+            state = "tell"
+            session.invalidate()
+
+            # Check if given answer is correct
+            correctAnswers = []
+            for index in range(0, len(quiz_problems[problem_id][1])):
+                val = quiz_problems[problem_id][1][index][1]
+                if val:
+                    correctAnswers.append(str(index))
+            #print "Correct answer is " + str(set(correctAnswers))
+
+            problem_h = None
+            for p in history[request.authenticated_userid]:
+                    if p['problem_id'] == problem_id:
+                        problem_h = p
+                        break
+
+            if set(ans) != set(correctAnswers):
+                message = "Wrong!"
+                result = False
+                problem_h['status'] = 'fail'
+                #print "Your set: " + str(set(ans))
+                #print "Good set: " + str(set(correctAnswers))
+            else:
+                message = "Correct! You selected what's necessary and nothing else."
+                result = True
+                problem_h['status'] = 'pass'
+
+            # Once user has made a choice, replace cut reaction with a full one
+
+            quiz_problems[problem_id][0] = quiz_problems[problem_id][2]
+
+    # prepare styles
+    style_t = (
+            "background-image: url('" + request.route_url("home") + "img/q_" + problem_id + "/",
+            ".png');"
+        )
+
 
     owner_courses = []
     enrolled_courses = []
@@ -1377,14 +1644,26 @@ def quiz_product_view(request):
     elif group["is_student"]:
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
-    return {"layout": logged_layout(),
-            "logged_in" : request.authenticated_userid,
+    return {
+            "layout": logged_layout(),
+            "basename" : basename,
+            "page_title" : full_name,
+            "custom_scripts" : custom_scripts,
+            "full_name" : full_name,
+            "problem_id" : problem_id,
+            "indeces" : range(0, len(quiz_problems[problem_id][1])),
+            "style_t" : style_t,
             "message" : message,
+            "result" : result,
+            "state" : state,
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
-            "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "page_title" : reaction    }
+            "logged_in" : request.authenticated_userid
+        }
+
+
+
 
 
 @view_config(route_name='chapter_action', match_param='action=edit_chapter', renderer='templates/new/edit_chapter.pt', permission='educate')
