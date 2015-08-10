@@ -12,5 +12,6 @@
       <p>The back-end logic is developed in Python. The website is served by <a href="http://www.pylonsproject.org/projects/pyramid/about">Pyramid</a>. The source code for the project is open and available as a <a href="https://github.com/vbatusov/ltef-chemistry">GitHub repository</a>.</p>
       <p><a href="http://www.epam.com/industries/healthcare-and-life-sciences/life-sciences-open-source.html">EPAM</a> - chemical object rendering via <a href="https://github.com/ggasoftware/indigo">Indigo Toolkit</a></p>
       <p><a href="http://www.chemaxon.com">ChemAxon</a> - initial reaction descriptions</p>
+      <p><a href="https://www.datatables.net">DataTables</a> - is a plug-in for the jQuery Javascript library that advances interaction controls to any HTML table.</p>
     </div>
 </div>
