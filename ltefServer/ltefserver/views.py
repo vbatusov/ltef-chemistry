@@ -1417,7 +1417,8 @@ def remove_chapter_view(request):
     current_chapter = DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Chapter.title == chapter_name).first()
 
     DBSession.query(Chapter).filter(Chapter.id == current_chapter.id).delete() 
-
+    DBSession.query(Customizable_reaction).filter(Customizable_reaction.chapter == current_chapter.id).delete()
+    
     return HTTPFound(location=request.route_url('home') + 'class/' + basename )
 
 
@@ -1440,14 +1441,16 @@ def add_selectable_reaction_view(request):
 
     customizable_title = ""
     customizable_description = ""
+    reaction = ""
 
     if 'submit.reaction.addanother' in request.params:
 
         reaction_id = request.params['reaction']
         customizable_title = request.params['reaction_title']
         customizable_description = request.params['reaction_description']
-
-
+	reaction = DBSession.query(Reac).filter(reaction_id == Reac.id).first()
+	
+	# if both description and title have inputs then add them 
 	if len(customizable_title) > 0 and len(customizable_description) > 0:	
 
 	    customizable_title = request.params['reaction_title']
@@ -1461,21 +1464,19 @@ def add_selectable_reaction_view(request):
 	    
 	    customizable_title = request.params['reaction_title']
 
-	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id, title=customizable_title))
+	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id, description=reaction.description,  title=customizable_title))
 
 	    message = "Successfully added reaction only title"
 
 	elif len(customizable_description) > 0:
 	    
 	    customizable_description = request.params['reaction_description']
-	
-	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id, description=customizable_description))
+	    DBSession.add(Customizable_reaction( reaction=reaction_id, title=reaction.full_name, chapter=chapter.id, description=customizable_description))
 	
 	    message = "Successfully added reaction with only desc"
 	else: 
 
-
-            DBSession.add(Customizable_reaction( reaction=reaction_id , chapter=chapter.id))
+            DBSession.add(Customizable_reaction( reaction=reaction_id , title=reaction.full_name, description=reaction.description, chapter=chapter.id))
 
 	    message = "All default"	
 
