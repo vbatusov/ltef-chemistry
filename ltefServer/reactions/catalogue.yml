@@ -5,21 +5,21 @@ reactions:
 - {basename: esterification_of_alcohols, name: Esterification of alcohols}
 - {basename: hydroboration_oxidation, name: Hydroboration oxidation}
 - {basename: corey-kim_oxidation_of_alcohols, name: Corey-Kim oxidation of alcohols}
-- {basename: sn2_substitution_of_alkyl_halides_not_standardized, name: SN2 substitution of alkyl halides}
+#- {basename: sn2_substitution_of_alkyl_halides_not_standardized, name: SN2 substitution of alkyl halides}
 - {basename: e2_anti-zaitsev, name: E2 anti-Zaitsev}
 - {basename: deprotonation_of_alcohol, name: Deprotonation of alcohols}
 - {basename: ozonolysis_of_alkenes, name: Ozonolysis of alkenes}
 - {basename: swern_oxidation_of_alcohols, name: Swern oxidation of alcohols}
-- {basename: hydrolysis_of_esters_to_carboxylic_acids, name: Hydrolysis of esters to carboxylic acids}
+#- {basename: hydrolysis_of_esters_to_carboxylic_acids, name: Hydrolysis of esters to carboxylic acids}
 - {basename: deprotonation_terminal_alkyne, name: Deprotonation of terminal alkynes}
-- {basename: sn1_substitution_of_alkyl_halides_not_standardized, name: SN1 substitution of alkyl halides}
+#- {basename: sn1_substitution_of_alkyl_halides_not_standardized, name: SN1 substitution of alkyl halides}
 - {basename: halohydrin_formation_from_alkene, name: Halohydrin formation from alkenes}
 - {basename: milas_olefin_hydroxylation, name: Milas olefin hydroxylation}
 - {basename: alkyne_hydrogenation_with_lindlars_catalyst, name: Alkyne hydrogenation with Lindlar's catalyst}
 - {basename: dissolving_metal_reduction_of_alkyne, name: Dissolving metal reduction of alkyne}
 - {basename: hydrogen_bromide_addition_to_alkenes_(anti-markovnikov), name: Hydrogen bromide addition to alkenes (anti-Markovnikov)}
 - {basename: oxidation_of_alkenes_with_peracids, name: Oxidation of alkenes with peracids}
-- {basename: halogen_addition_to_alkenes, name: Halogen addition to alkenes}
+#- {basename: halogen_addition_to_alkenes, name: Halogen addition to alkenes}
 - {basename: dess-martin_oxidation_of_alcohols, name: Dess-Martin oxidation of alcohols}
 - {basename: catalytic_hydrogenation_of_alkene, name: Catalytic hydrogenation of alkene}
 - {basename: e2_zaitsev, name: E2 Zaitsev}
@@ -32,9 +32,9 @@ reactions:
 - {basename: bromination_of_alkanes_with_heat, name: Bromination of alkanes with heat}
 - {basename: catalytic_hydrogenation_of_alkyne, name: Catalytic hydrogenation of alkyne}
 - {basename: hydrogen_halide_addition_to_alkenes_(markovnikov), name: Hydrogen halide addition to alkenes (Markovnikov)}
-- {basename: sn2_with_leaving_group, name: SN2 with leaving group}
-- {basename: sn1_with_leaving_group, name: SN1 with leaving group}
-- {basename: synthesis_of_acid_chlorides, name: Synthesis of acid chlorides}
+#- {basename: sn2_with_leaving_group, name: SN2 with leaving group}
+#- {basename: sn1_with_leaving_group, name: SN1 with leaving group}
+#- {basename: synthesis_of_acid_chlorides, name: Synthesis of acid chlorides}
 - {basename: cleavage_of_ethers_with_hi_or_hbr, name: Cleavage of ethers with HI or HBr}
 - {basename: synthesis_of_an_ether_from_an_alcohol, name: Synthesis of an ether from an alcohol}
 - {basename: elimination_of_alkyl_halides, name: Elimination of alkyl halides}
@@ -42,7 +42,7 @@ reactions:
 - {basename: nucleophilic_substitution_of_alkyl_halides, name: Nucleohilic substitution of alkyl halides}
 - {basename: nitration_of_benzene, name: Nitration of benzene}
 - {basename: halogenation_of_benzene, name: Halogenation of benzene}
-- {basename: polymerization_of_alkenes, name: Polymerization of alkenes}
+#- {basename: polymerization_of_alkenes, name: Polymerization of alkenes}
 #- {basename: hydrohalogenation_of_alkynes, name: Hydrohalogenation of alkynes}
 - {basename: hydration_of_alkenes, name: Hydration of alkenes}
 - {basename: halogenation_of_alkynes, name: Halogenation of alkynes}
@@ -51,14 +51,14 @@ reactions:
 - {basename: amide_synthesis_from_an_acid_chloride, name: Amide synthesis from an acid chloride}
 - {basename: bromination_of_an_alkene_in_the_dark, name: Bromination of an alkene in the dark}
 - {basename: conversion_of_an_alcohol_into_a_bromide, name: Conversaion of an alcohol into a bromide}
-- {basename: cyclopropane_synthesis_from_an_alkene, name: Cyclopropane synthesis from an alkene}
-- {basename: deprotection_of_carboxylic_acids_using_hydroxide, name: Deprotonation of a carboxylic acid using hydroxide}
+#- {basename: cyclopropane_synthesis_from_an_alkene, name: Cyclopropane synthesis from an alkene}
+#- {basename: deprotection_of_carboxylic_acids_using_hydroxide, name: Deprotonation of a carboxylic acid using hydroxide}
 - {basename: e1_reaction_using_sulferic_acid, name: E1 reaction using sulfuric acid}
-- {basename: ester_synthesis_from_an_acid_chloride_and_an_amine, name: Ester synthesis from an acid chloride and an amine}
+#- {basename: ester_synthesis_from_an_acid_chloride_and_an_amine, name: Ester synthesis from an acid chloride and an amine}
 - {basename: halohydrin_formation_from_an_alkene, name: Halohydrin formation from an alkene}
 - {basename: hydrolysis_of_an_acid_chloride, name: Hydrolysis of an acid chloride}
 - {basename: hydrolysis_of_an_amine, name: Hydrolysis of an amine}
 - {basename: hydrolysis_of_an_ester_with_acid, name: Hydrolysis of an ester with acid}
-- {basename: oxidation_of_an_aldehyde_using_pcc, name: Oxidation of an alcohol using PCC}
+#- {basename: oxidation_of_an_aldehyde_using_pcc, name: Oxidation of an alcohol using PCC}
 - {basename: sn1_using_silver_nitrate, name: Sn1 using silver nitrate}
-- {basename: sn2_reaction, name: Sn2 reaction}
+#- {basename: sn2_reaction, name: Sn2 reaction}
