@@ -1093,6 +1093,37 @@ def course_view(request):
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "page_title" : basename  }
 
+@view_config(route_name='select_reaction_quiz', renderer='templates/new/select_reaction_quiz.pt', permission='study')
+def select_reaction_quiz_view(request):
+    custom_scripts = []
+    group = group_security(request.authenticated_userid)
+
+    quiz_type = ""
+    reaction_selector = ""
+    
+    if 'quiz_type' in request.params:
+        return HTTPFound(location=request.route_url('quiz', basename=request.matchdict["basename"], chapter=request.matchdict["chapter"], quiz_type=request.params['quiz_type'], reaction=request.matchdict["reaction"]  ))
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
+    return {"layout": logged_layout(),
+            "custom_scripts" : custom_scripts,
+            "base_to_full" : cat.base_to_full,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
+            "logged_in" : request.authenticated_userid,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "page_title" : "Select Quiz"           }
+
+
+
+
+
 
 @view_config(route_name='addreaction', renderer='templates/new/addreaction.pt', permission='study')
 def addreaction_view(request):
@@ -1269,7 +1300,7 @@ def learn_by_example_reaction_view(request):
         link_to_gen_picture = request.route_url('home') + 'img/' + reaction_name + '/generic/image.png'
     # End of the hack
 
-    svg_data = draw.renderReactionToBufferSVG(reaction, layout=False).tostring()
+    svg_data = draw.renderReactionToBuffer(reaction, render_format="svg",  layout=False).tostring()
 
     # Chop off the xml tag
     svg_data = svg_data[svg_data.find('\n') + 1:]

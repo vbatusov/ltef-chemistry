@@ -80,6 +80,7 @@ def main(global_config, **settings):
     config.add_route('managelists', '/tools/managelists')
     config.add_route('editlist', '/tools/managelists/edit')
 
+
     # Course
     config.add_route('class', '/class/{basename}')
 
@@ -98,6 +99,9 @@ def main(global_config, **settings):
     # Chapter reaction
     config.add_route('learn_by_example_reaction','/class/{basename}/{chapter}/learn_by_example/{reaction}')
     config.add_route('quiz','/class/{basename}/{chapter}/quiz/{quiz_type}/{reaction}') 
+    # Quiz
+    config.add_route('select_reaction_quiz', '/class/{basename}/{chapter}/select_reaction_quiz/{reaction}')
+
 
     config.scan()
 

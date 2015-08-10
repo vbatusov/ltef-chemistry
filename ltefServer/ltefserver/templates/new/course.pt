@@ -58,7 +58,7 @@
                                                 <div class="panel panel-default" tal:repeat="(custom_reaction, reaction) customizable_reactions[chapter.id]" >
                                                     <div class="panel-heading" role="tab" id="headingOne">
                                                         <h4 class="panel-title">
-                                                        <a  tal:content="custom_reaction.title"  tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/quiz/' + reaction.basename" >
+                                                        <a  tal:content="custom_reaction.title"  tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/select_reaction_quiz/' + reaction.basename" >
                                                         Learn by Example
                                                         </a>
                                                         </h4>
