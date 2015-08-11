@@ -18,10 +18,10 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <div class="radio col-sm-3 ">
-                                                            <label><input type="radio" value="reactant" checked="checked" name="quiz_type">Reactants</label>
+                                                            <label><input type="radio" value="reactants" checked="checked" name="quiz_type">Reactants</label>
                                                         </div>
                                                         <div class="radio col-sm-3 ">
-                                                            <label><input type="radio" value="product" name="quiz_type">Products</label>
+                                                            <label><input type="radio" value="products" name="quiz_type">Products</label>
                                                         </div>
                                                     </div>
 

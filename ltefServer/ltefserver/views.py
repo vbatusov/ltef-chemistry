@@ -16,7 +16,8 @@ from .models import (
     Enrolled,
     Chapter,
     Customizable_reaction,
-    Security_question	
+    Security_question,	
+    Quiz_history
     )
 
 from pyramid.security import (
@@ -1056,7 +1057,7 @@ def course_view(request):
    
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     basename = request.matchdict["basename"]
-
+    quiz_histories = []
     if group["is_teacher"]:
     	students =  DBSession.query(Course,Enrolled,User).filter(Course.name == basename).filter(Course.id==Enrolled.courseid).filter(Course.owner==currentuser.id).filter(User.id == Enrolled.userid).all()
     	chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).all()
@@ -1066,6 +1067,8 @@ def course_view(request):
         students = [] 
 	chapters = DBSession.query(Course, Chapter).filter(Enrolled.userid == currentuser.id).filter(Chapter.course == Course.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).all()
 	course = DBSession.query(Course).filter(Course.name == basename).filter(Enrolled.courseid == Course.id ).filter(Enrolled.userid == currentuser.id  ).first()
+        quiz_histories = DBSession.query(Quiz_history, Chapter).filter(Quiz_history.user == currentuser.id).filter(Quiz_history.course == course.id).filter(Chapter.id == Quiz_history.chapter).all()
+
 
     customizable_reactions = {}
 
@@ -1087,6 +1090,7 @@ def course_view(request):
 	    "basename" : basename,
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
+	    "quiz_histories" : quiz_histories, 
 	    "chapters" : chapters,
 	    "customizable_reactions" : customizable_reactions,
 	    "logged_in" : request.authenticated_userid,
@@ -1102,7 +1106,7 @@ def select_reaction_quiz_view(request):
     reaction_selector = ""
     
     if 'quiz_type' in request.params:
-        return HTTPFound(location=request.route_url('quiz', basename=request.matchdict["basename"], chapter=request.matchdict["chapter"], quiz_type=request.params['quiz_type'], reaction=request.matchdict["reaction"]  ))
+        return HTTPFound(location=request.route_url('quiz', course=request.matchdict["course"], chapter=request.matchdict["chapter"], quiz_type=request.params['quiz_type'], basename=request.matchdict["basename"]  ))
 
     owner_courses = []
     enrolled_courses = []
@@ -1247,7 +1251,7 @@ def create_chapter_view(request):
 def student_quiz_history_view(request):
 
 
-    basename = request.matchdict["basename"]
+    course_name = request.matchdict["course"]
     student_username = request.matchdict["student"]
     custom_scripts = []
     message = ""
@@ -1256,7 +1260,13 @@ def student_quiz_history_view(request):
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     group = group_security(request.authenticated_userid)
 
+    if group["is_teacher"]:
+         course = DBSession.query(Course).filter(Course.name == course_name, Course.owner == currentuser.id ).first()
+    elif group["is_student"]:
+        course = DBSession.query(Course).filter(Enrolled.courseid == Course.id).filter(Enrolled.userid == currentuser.id).filter(Course.name == course_name).first()
+
     student = DBSession.query(User).filter(User.username == student_username).first()
+    quiz_histories = DBSession.query(Quiz_history, Chapter).filter(Quiz_history.user == student.id).filter(Quiz_history.course == course.id).filter(Chapter.id == Quiz_history.chapter).all()    
 
     owner_courses = []
     enrolled_courses = []
@@ -1271,6 +1281,7 @@ def student_quiz_history_view(request):
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
             "custom_scripts" : custom_scripts,
+	    "quiz_histories" : quiz_histories,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "Quiz History"           }
 
@@ -1332,16 +1343,25 @@ def learn_by_example_reaction_view(request):
 	    "reaction" : reaction_name
     }
 
-@view_config(route_name='quiz', match_param='quiz_type=reactant', renderer='templates/new/quiz_reactant_reaction.pt', permission='study')
+@view_config(route_name='quiz', match_param='quiz_type=reactants', renderer='templates/new/quiz_reactant_reaction.pt', permission='study')
 def quiz_reactant_view(request):
 
+    class_name = request.matchdict["course"]
     chapter_name = request.matchdict["chapter"]
-    mode = request.matchdict["reaction"]
-   
+    mode = request.matchdict["basename"]
+    reaction_type = request.matchdict["quiz_type"]
+    currentuser = User.current_user(request.authenticated_userid)  
+    group = group_security(request.authenticated_userid)
+
+    if group["is_teacher"]:
+         course = DBSession.query(Course).filter(Course.name == class_name, Course.owner == currentuser.id ).first()
+    elif group["is_student"]:
+        course = DBSession.query(Course).filter(Enrolled.courseid == Course.id).filter(Enrolled.userid == currentuser.id).filter(Course.name == class_name).first() 
+
+    chapter = DBSession.query(Chapter).filter( Chapter.title == chapter_name, Chapter.course == course.id  ).first() 
+
     global quiz_problems
     session = request.session
-
-    group = group_security(request.authenticated_userid)
     problem_id = ""
     basename = ""
     full_name = ""
@@ -1457,12 +1477,14 @@ def quiz_reactant_view(request):
 
                 # record result in history
                 problem_h['status'] = 'fail'
-
-
+		DBSession.add(Quiz_history( course = course.id, chapter = chapter.id, user = currentuser.id, score=0, reaction_name = mode, quiz_type=quiz_type))
+		
             else:
                 message = "Correct! You selected what's necessary and nothing else."
                 result = True
                 problem_h['status'] = 'pass'
+		DBSession.add(Quiz_history( course = course.id,  chapter = chapter.id, user = currentuser.id, score=1, reaction_name = mode, quiz_type=quiz_type))
+
 
             # Once user has made a choice, replace cut reaction with a full one
             quiz_problems[problem_id][0] = quiz_problems[problem_id][2]
@@ -1498,17 +1520,29 @@ def quiz_reactant_view(request):
             "logged_in" : request.authenticated_userid
         }
 
-@view_config(route_name='quiz', match_param='quiz_type=product', renderer='templates/new/quiz_product_reaction.pt', permission='study')
+@view_config(route_name='quiz', match_param='quiz_type=products', renderer='templates/new/quiz_product_reaction.pt', permission='study')
 def quiz_product_view(request):
 
+    class_name = request.matchdict["course"]
     chapter_name = request.matchdict["chapter"]
-    mode  = request.matchdict["reaction"]
+    mode  = request.matchdict["basename"]
+    quiz_type = request.matchdict["quiz_type"]
+ 
+    currentuser = User.current_user(request.authenticated_userid)
     
+    group = group_security(request.authenticated_userid)
+    if group["is_teacher"]:
+         course = DBSession.query(Course).filter(Course.name == class_name, Course.owner == currentuser.id ).first()
+    elif group["is_student"]:
+        course = DBSession.query(Course).filter(Enrolled.courseid == Course.id).filter(Enrolled.userid == currentuser.id).filter(Course.name == class_name).first()
+
+    chapter = DBSession.query(Chapter).filter( Chapter.title == chapter_name, Chapter.course == course.id  ).first()
+
+ 
     custom_scripts = []
     custom_scripts.append("/bootstrap/js/quiz_reactants.js")
     global quiz_problems
     session = request.session
-    group = group_security(request.authenticated_userid)
     #print "Mode: " + mode
     problem_id = ""
     basename = ""
@@ -1621,11 +1655,12 @@ def quiz_product_view(request):
                 problem_h['status'] = 'fail'
                 #print "Your set: " + str(set(ans))
                 #print "Good set: " + str(set(correctAnswers))
+		DBSession.add(Quiz_history( course = course.id, chapter = chapter.id, user = currentuser.id, score=0, reaction_name = mode, quiz_type=quiz_type))
             else:
                 message = "Correct! You selected what's necessary and nothing else."
                 result = True
                 problem_h['status'] = 'pass'
-
+	        DBSession.add(Quiz_history( course=course.id, chapter = chapter.id, user = currentuser.id, score=1, reaction_name = mode, quiz_type=quiz_type))
             # Once user has made a choice, replace cut reaction with a full one
 
             quiz_problems[problem_id][0] = quiz_problems[problem_id][2]

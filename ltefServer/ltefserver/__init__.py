@@ -88,7 +88,7 @@ def main(global_config, **settings):
     config.add_route('class_action', '/class/{basename}/{action}')
     
     # Student Quiz history 
-    config.add_route('student_quiz_history', '/class/{basename}/{student}/quiz_history')
+    config.add_route('student_quiz_history', '/class/{course}/{student}/quiz_history')
 
     # Chapter action
     config.add_route('chapter_action', '/class/{basename}/{chapter}/{action}')   
@@ -98,9 +98,9 @@ def main(global_config, **settings):
 
     # Chapter reaction
     config.add_route('learn_by_example_reaction','/class/{basename}/{chapter}/learn_by_example/{reaction}')
-    config.add_route('quiz','/class/{basename}/{chapter}/quiz/{quiz_type}/{reaction}') 
+    config.add_route('quiz','/class/{course}/{chapter}/quiz/{quiz_type}/{basename}') 
     # Quiz
-    config.add_route('select_reaction_quiz', '/class/{basename}/{chapter}/select_reaction_quiz/{reaction}')
+    config.add_route('select_reaction_quiz', '/class/{course}/{chapter}/select_reaction_quiz/{basename}')
 
 
     config.scan()

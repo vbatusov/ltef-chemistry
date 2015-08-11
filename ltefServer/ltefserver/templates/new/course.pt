@@ -181,7 +181,7 @@
                                                 <div class="panel panel-default" tal:repeat="(custom_reaction, reaction) customizable_reactions[chapter.id]" >
                                                     <div class="panel-heading" role="tab" id="headingOne">
                                                         <h4 class="panel-title">
-                                                        <a  tal:content="custom_reaction.title" tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/quiz/' + reaction.basename" >
+                                                        <a  tal:content="custom_reaction.title" tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/select_reaction_quiz/' + reaction.basename" >
                                                         Learn by Example
                                                         </a>
                                                         </h4>
@@ -204,29 +204,28 @@
                 <h3 class="panel-title">Quiz History</h3>
             </div>
             <div class="panel-body">
-                <table id="dataTable" cellspacing="0"  class="table display">
+	      <table id="dataTable" cellspacing="0"  class="table display">
                     <thead>
                         <tr>
                             <th>Chapter</th>
                             <th>Reaction</th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
+                            <th>Quiz Type</th>
+                            <th>Score</th>
+                            <th>Time Submitted</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-			    <td></td>
+                        <tr  tal:repeat="(quiz_history, chapter) quiz_histories"  >
+                            <td tal:content=chapter.title ></td>
+                            <td tal:content=quiz_history.reaction_name></td>
+                            <td tal:content=quiz_history.quiz_type></td>
+                            <td tal:content=quiz_history.score></td>
+                            <td tal:content=quiz_history.time_submitted></td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
+
+		</div>
         </div>
 
 

@@ -132,10 +132,12 @@ class Quiz_history(Base):
     __tablename__ = 'quiz_history'
 
     id = Column(Integer, primary_key=True)
+    course = Column(ForeignKey("courses.id"))
     chapter = Column(ForeignKey("chapter.id"))
     user = Column(ForeignKey("users.id"))
     score = Column(Integer)
-    type = Column(Text)
+    quiz_type = Column(Text)
+    reaction_name = Column(Text)
     time_submitted = Column(DateTime, default=datetime.datetime.utcnow)    
 
 class Security_question(Base):

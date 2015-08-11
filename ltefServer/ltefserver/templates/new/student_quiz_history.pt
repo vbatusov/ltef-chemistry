@@ -12,18 +12,18 @@
                         <tr>
                             <th>Chapter</th>
                             <th>Reaction</th>
-                            <th>Type</th>
+                            <th>Quiz Type</th>
                             <th>Score</th>
 			    <th>Time Submitted</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-			    <td></td>
-                            <td></td>
+                        <tr  tal:repeat="(quiz_history, chapter) quiz_histories"  >
+                            <td tal:content=chapter.title ></td>
+                            <td tal:content=quiz_history.reaction_name></td>
+                            <td tal:content=quiz_history.quiz_type></td>
+			    <td tal:content=quiz_history.score></td>
+                            <td tal:content=quiz_history.time_submitted></td>
                         </tr>
                     </tbody>
                 </table>
