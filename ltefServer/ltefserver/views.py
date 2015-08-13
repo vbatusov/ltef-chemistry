@@ -1206,7 +1206,7 @@ def select_quiz_view(request):
 def create_chapter_view(request):
 
 
-    basename = request.matchdict["basename"]
+    course_name = request.matchdict["basename"]
     custom_scripts = []
     message = ""
     chapter_title = ""
@@ -1219,13 +1219,13 @@ def create_chapter_view(request):
          chapter_title = request.params['chapter_title']
          chapter_description = request.params['chapter_description']
 
-         if DBSession.query(Chapter).filter_by(title=chapter_title).first() is None:
-               course = DBSession.query(Course).filter(Course.owner == currentuser.id).filter(Course.name == basename ).first() 
+         if DBSession.query(Chapter).filter(Chapter.title == chapter_title).filter(Chapter.course == Course.id ).filter(Course.owner == currentuser.id).first() is None:
+               course = DBSession.query(Course).filter(Course.owner == currentuser.id).filter(Course.name == course_name ).first() 
 	       DBSession.add(Chapter(title=chapter_title, course=course.id, description=chapter_description))
 	       chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
                message = "Chapter " + chapter_title + " has been added"
 
-               return HTTPFound(location=request.route_url('home') + 'class/' + basename )
+               return HTTPFound(location=request.route_url('home') + 'class/' + course_name )
          else:
                message = "Class Title " + chapter_title + " already exists"
 
@@ -1869,7 +1869,7 @@ def create_course_view(request):
 	 course_description = request.params['course_description']
 	 new_course_code = str(uuid.uuid4())[0:16].upper()  # or whatever
 
-	 if DBSession.query(Course).filter_by(name=class_title).first() is None:
+	 if DBSession.query(Course).filter(Course.name == class_title).filter(Course.owner == currentuser.id).first() is None:
                DBSession.add(Course(name=class_title, owner=currentuser.id, description=course_description,  access_code=new_course_code))
                message = "Class " + class_title + " has been added"
                courses = DBSession.query(Course).filter(Course.owner == currentuser.id).all()

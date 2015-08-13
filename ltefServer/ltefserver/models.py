@@ -43,7 +43,7 @@ class Course(Base):
     __tablename__ = 'courses'
 
     id = Column(Integer, primary_key=True)  # Will be auto-filled
-    name = Column(Text, unique=True)        # Will need to be unique
+    name = Column(Text)        # Will need to be unique
     description = Column(Text)
     owner = Column(ForeignKey("users.id"))  # Link to another table's column
     access_code = Column(Text, unique=True)        # Again, needs to be unique
@@ -125,7 +125,7 @@ class Chapter(Base):
    
     id = Column(Integer, primary_key=True)
     course = Column(ForeignKey("courses.id"))
-    title = Column(Text, unique=True)
+    title = Column(Text)
     description = Column(Text)
    
 class Quiz_history(Base):
