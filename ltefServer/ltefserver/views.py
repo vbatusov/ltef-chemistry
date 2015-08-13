@@ -1782,7 +1782,7 @@ def add_selectable_reaction_view(request):
     chapter_name = request.matchdict["chapter"]
 
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
-    chapter =  DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Course.name == basename).filter(Chapter.title == chapter_name ).first()    
+    chapter =  DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Course.name == basename).filter(Chapter.course == Course.id).filter(Chapter.title == chapter_name ).first()    
 
     customizable_title = ""
     customizable_description = ""
