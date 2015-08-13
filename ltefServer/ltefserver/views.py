@@ -1219,7 +1219,7 @@ def create_chapter_view(request):
          chapter_title = request.params['chapter_title']
          chapter_description = request.params['chapter_description']
 
-         if DBSession.query(Chapter).filter(Chapter.title == chapter_title).filter(Chapter.course == Course.id ).filter(Course.owner == currentuser.id).first() is None:
+         if DBSession.query(Chapter).filter(Chapter.title == chapter_title).filter(Chapter.course == Course.id ).filter(Course.name == course_name).filter(Course.owner == currentuser.id).first() is None:
                course = DBSession.query(Course).filter(Course.owner == currentuser.id).filter(Course.name == course_name ).first() 
 	       DBSession.add(Chapter(title=chapter_title, course=course.id, description=chapter_description))
 	       chapters =  DBSession.query(Course, Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).all()
