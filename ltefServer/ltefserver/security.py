@@ -31,3 +31,18 @@ def checkCredentials(username, password):
             return True
 
     return False
+
+def group_security(user):
+    is_guest = Group.GUEST
+    is_admin = None
+    is_teacher = None
+    is_student = None
+
+    user = DBSession.query(User).filter_by(username=user).first()
+    if user is not None:
+        group = DBSession.query(Group).filter_by(id=user.group).first()
+        if group is not None:
+            is_admin = (group.desc == Group.ADMIN)
+            is_teacher = (group.desc == Group.TEACHER)
+            is_student = (group.desc == Group.STUDENT)
+    return { "is_guest" : is_guest, "is_admin" : is_admin, "is_teacher" : is_teacher, "is_student" : is_student}

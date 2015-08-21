@@ -36,7 +36,7 @@ def main(global_config, **settings):
     # Set up sessions
     my_session_factory = SignedCookieSessionFactory('itsaseekreet')
     config.set_session_factory(my_session_factory)
-    
+
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_static_view('bootstrap', 'bootstrap', cache_max_age=3600)
@@ -47,13 +47,13 @@ def main(global_config, **settings):
     config.add_route('logout', '/logout')
     config.add_route('password_reset', '/password_reset')
     config.add_route('security_question', '/password_reset/security_question')
-    config.add_route('reset_password', '/reset_password') 
+    config.add_route('reset_password', '/reset_password')
     config.add_route('student_register', '/student_register')
     config.add_route('add_course', '/add_course')
-    
+
     #User must add a secret question to be able to reset password
     config.add_route('add_secret_question', '/add_secret_question')
-    
+
     config.add_route('select_register', '/select_register')
     config.add_route('select_quiz', '/select_quiz')
     # Route to teacher's course creation page
@@ -84,21 +84,24 @@ def main(global_config, **settings):
     # Course
     config.add_route('class', '/class/{basename}')
 
-    # Course action 
+    # Course action
     config.add_route('class_action', '/class/{basename}/{action}')
-    
-    # Student Quiz history 
+
+    # Student Quiz history
     config.add_route('student_quiz_history', '/class/{course}/{student}/quiz_history')
 
+    # Student actions i.e. remove_student
+    config.add_route('remove_student', '/class/{course}/{student}/remove_student')
+
     # Chapter action
-    config.add_route('chapter_action', '/class/{basename}/{chapter}/{action}')   
+    config.add_route('chapter_action', '/class/{basename}/{chapter}/{action}')
 
     # Edit Account
     config.add_route('edit_account', '/edit_account')
 
     # Chapter reaction
     config.add_route('learn_by_example_reaction','/class/{basename}/{chapter}/learn_by_example/{reaction}')
-    config.add_route('quiz','/class/{course}/{chapter}/quiz/{quiz_type}/{basename}') 
+    config.add_route('quiz','/class/{course}/{chapter}/quiz/{quiz_type}/{basename}')
     # Quiz
     config.add_route('select_reaction_quiz', '/class/{course}/{chapter}/select_reaction_quiz/{basename}')
 

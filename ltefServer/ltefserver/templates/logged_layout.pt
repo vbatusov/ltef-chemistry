@@ -2,7 +2,7 @@
 <html lang="en"  xmlns="http://www.w3.org/1999/xhtml"
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       xmlns:tal="http://xml.zope.org/namespaces/tal"
-      metal:define-macro="logged_layout">    
+      metal:define-macro="logged_layout">
 <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -29,7 +29,7 @@
                     <span class="icon-side-bar"></span>
                     </button>
                     <a class="navbar-brand" href="${request.route_url('home')}"><span class="glyphicon glyphicon-book" aria-hidden="true"></span> LTEF Chemistry</a>
-        
+
 
 </div>
                 <!-- Collect the nav links, forms, and other content for toggling -->
@@ -51,7 +51,7 @@
                             <a href="${request.route_url('learning')}">Learn By Examples</a>
                         </li>
                         <li>
-                            <a href="${request.route_url('select_quiz')}">Complete with Reactions</a>
+                            <a href="${request.route_url('select_quiz')}">Complete Reactions</a>
                         </li>
                         <li>
                             <a href="${request.route_url('synthesis')}">Multistep Synthesis</a>
@@ -80,7 +80,7 @@
 
        		<li tal:repeat="enrolled_course enrolled_courses"  >
                         <a tal:content="enrolled_course.name"   tal:attributes="href request.route_url('home') + 'class/' + enrolled_course.name"></a>
-			</li> 
+			</li>
 
 <li><a  tal:attributes="href request.route_url('course_signup')"  >Enroll into  Class</a></li>
 </ul>
@@ -89,10 +89,10 @@
 
                <li tal:repeat="owner_course owner_courses"  >
                         <a tal:content="owner_course.name"   tal:attributes="href request.route_url('home') + 'class/' + owner_course.name"></a>
-                        </li> 
+                        </li>
 
 <li><a  tal:attributes="href request.route_url('createcourse')"  >Create Class</a></li>
-</ul> 
+</ul>
 <ul class="nav-sidebar">
 
        <li>
@@ -103,11 +103,11 @@
                         </li>
                 </ul>
 		<ul class="nav-sidebar">
-		        
+
 <li><a tal:attributes="href request.route_url('home') + 'edit_account'"   >Edit Account</a></li>
 			<li>
                             <a href="${request.application_url}/logout">Logout <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a>
-                            
+
                         </li>
 		</ul>
                 </div>
@@ -125,7 +125,7 @@
 
 	                        <h1 class="page-header">${page_title}</h1>
 
-                               
+
 				<div metal:define-slot="content"></div>
 
 
@@ -142,8 +142,8 @@
             <script src="${request.static_url('ltefserver:bootstrap/js/bootstrap.min.js')}"></script>
     	    <!-- DataTables -->
 	    <script type="text/javascript" charset="utf8" src="${request.static_url('ltefserver:bootstrap/DataTables-1.10.7/media/js/jquery.dataTables.js')}"></script>
-            <!-- Custom Scripts --> 
-	    <script  tal:repeat="custom_script custom_scripts" src="${request.application_url}${custom_script}" ></script> 
+            <!-- Custom Scripts -->
+	    <script  tal:repeat="custom_script custom_scripts" src="${request.application_url}${custom_script}" ></script>
 	    <!-- Menu Toggle Script -->
             <script src="${request.static_url('ltefserver:bootstrap/js/toggle.js')}"></script>
         </body>

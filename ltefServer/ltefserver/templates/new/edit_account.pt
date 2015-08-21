@@ -1,6 +1,110 @@
-
 <div metal:use-macro="layout">
-    <div metal:fill-slot="content">
+  <div metal:fill-slot="content">
 
-    </div>
+
+    <div class="row">
+      <div class="col-md-9">
+          <div class="panel panel-default">
+              <div class="panel-heading">
+                  <span class="glyphicon glyphicon-lock"></span>
+                  Account details
+              </div>
+              <div class="panel-body">
+                  <form action="${request.route_url('edit_account')}" class="form-horizontal" method="POST" role="form">
+                      <div class="form-group">
+                          <div class="col-sm-offset-3 col-sm-9" tal:condition="update_account_message">
+                              <div class="alert alert-danger" role="alert">${update_account_message}</div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label class="col-sm-3 control-label" for="inputEmail3">
+                          First Name:</label>
+                          <div class="col-sm-9">
+                              <input class="form-control" tal:attributes="value current_user.firstname" name="firstname" placeholder="First Name" required="" type="text" >
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label class="col-sm-3 control-label" for="inputEmail3">
+                          Last Name:</label>
+                          <div class="col-sm-9">
+                              <input class="form-control" name="lastname" placeholder="Last Name" required="" type="text" tal:attributes="value current_user.lastname">
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label class="col-sm-3 control-label" for="inputEmail3">
+                          Student ID:</label>
+                          <div class="col-sm-9">
+                              <input class="form-control" name="studentNumber" placeholder="Student Id" required="" type="number" tal:attributes="value current_user.studentNumber">
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label class="col-sm-3 control-label" for="inputEmail3">
+                          Email:</label>
+                          <div class="col-sm-9">
+                              <input class="form-control" name="email" placeholder="Enter your email" required="" type="email" tal:attributes="value current_user.email">
+                          </div>
+                      </div>
+                      <div class="form-group last">
+                          <div class="col-sm-offset-3 col-sm-9">
+                              <button class="btn btn-success btn-sm" name="update.account.submitted" type="submit">
+                              Update</button>
+                          </div>
+                      </div>
+                  </form>
+              </div>
+
+          </div>
+      </div>
+  </div>
+  <div class="row">
+      <div class="col-md-9">
+          <div class="panel panel-default">
+              <div class="panel-heading">
+                  <span class="glyphicon glyphicon-lock"></span>
+                  Update password
+              </div>
+              <div class="panel-body">
+                  <form action="${request.route_url('edit_account')}" class="form-horizontal" method="POST" role="form">
+                      <div class="form-group">
+                          <div class="col-sm-offset-3 col-sm-9">
+                              <div class="alert alert-danger" role="alert" tal:condition="reset_password_message">${reset_password_message}</div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label class="col-sm-3 control-label">
+                          Old Password:</label>
+                          <div class="col-sm-9">
+                              <input class="form-control" name="old_password" placeholder="Enter your old Password" required="" type="password">
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label class="col-sm-3 control-label">
+                          Password:</label>
+                          <div class="col-sm-9">
+                              <input class="form-control" name="new_password" placeholder="Enter your new Password" required="" type="password">
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label class="col-sm-3 control-label">
+                          Confirm Password:</label>
+                          <div class="col-sm-9">
+                              <input class="form-control" name="confirm_password" placeholder="Enter to Confirm password" required="" type="password">
+                          </div>
+                      </div>
+                      <div class="form-group last">
+                          <div class="col-sm-offset-3 col-sm-9">
+                              <button class="btn btn-success btn-sm" name="reset_password.submit" type="submit">
+                              Update Password</button>
+                          </div>
+                      </div>
+                  </form>
+              </div>
+
+          </div>
+      </div>
+  </div>
+
+
+
+  </div>
 </div>
