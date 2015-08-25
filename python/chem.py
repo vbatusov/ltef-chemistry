@@ -1135,8 +1135,8 @@ class bastardReaction:
 
                     bondaam = bond_appeared.fromAtom.aam
                     number_of_connections = 0
-                    for bond in molecule.bondList:
-                        if number_of_connections
+                    #for bond in molecule.bondList:
+                        #if number_of_connections:
 
 
         #    for result in results:
