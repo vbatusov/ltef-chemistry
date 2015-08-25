@@ -77,21 +77,20 @@ def logged_layout():
 
 @view_config(route_name='class_action',  match_param='action=edit_course', renderer='ltefserver:templates/new/edit_course.pt', permission='educate')
 def course_edit_view(request):
+
     basename = ""
-    custom_scripts = []
-    group = group_security(request.authenticated_userid)
-
+    course_name = ""
+    course_description = ""
+    course = ""
     message = ""
+    custom_scripts = []
+    owner_courses = []
+    enrolled_courses = []
 
+    group = group_security(request.authenticated_userid)
     current_user = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     basename = request.matchdict["basename"]
 
-    course_name = ""
-    course_description = ""
-
-    course = ""
-    owner_courses = []
-    enrolled_courses = []
     if group["is_teacher"]:
         owner_courses = Course.owner_courses(request.authenticated_userid)
         course = DBSession.query(Course).filter(Course.name == basename).filter(Course.owner==current_user.id).first()
@@ -99,20 +98,26 @@ def course_edit_view(request):
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
     if 'submit.edit.course' in request.params:
-
         course_name = request.params['course_name']
         course_description =  request.params['course_description']
+        course_edit = DBSession.query(Course).filter(Course.name == course_name).filter(Course.owner == current_user.id).first()
         # The teacher cannot update the course name to the same one that already exist
-        if (DBSession.query(Course).filter(Course.name == course_name).filter(Course.owner == current_user.id).first() is None) & (len(course_name) > 0):
+        if (course_edit is None) & (len(course_name) > 0):
             DBSession.query(Course).filter(Course.id == course.id).update({"name":course_name, "description":course_description })
 
             return HTTPFound(location=request.route_url('home') )
+
+        elif course_edit.name == request.params['course_name']:
+
+            course_description =  request.params['course_description']
+            DBSession.query(Course).filter(Course.id == course.id).update({ "description":course_description })
+
+            return HTTPFound(location=request.route_url('home') )
+
         elif len(course_name) == 0:
             message = "Class Title connot be empty"
         else:
             message = "Class Title " + course_name + " already exists"
-
-
 
     return {"layout": logged_layout(),
             "custom_scripts" : custom_scripts,
@@ -124,8 +129,6 @@ def course_edit_view(request):
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "page_title" : "Edit " + basename,
             "message" : message  }
-
-
 
 @view_config(route_name='class', renderer='ltefserver:templates/new/course.pt', permission='study')
 def course_view(request):
