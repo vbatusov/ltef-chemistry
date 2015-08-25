@@ -49,7 +49,7 @@ import re
 # Create a catalog object upon loading this module
 # Let's not use 'global' keyword in functions since we should not be
 # modifying this anyway.
-cat = Catalog()
+#cat = Catalog()
 
 # Experiment
 # A dictionary from a unique identifying string (timestamp?) to an object
@@ -144,56 +144,6 @@ def managelists_view(request):
             "lists" : lists,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "message" : message,
-	        "page_title" : "Manage Reaction Lists",
-            "owner_courses" : owner_courses,
-            "enrolled_courses" : enrolled_courses,
-            }
-
-@view_config(route_name='editlist', renderer='ltefserver:templates/new/editlist.pt', permission='educate')
-def editlist_view(request):
-
-    message = ""
-    title = ""
-    desc = ""
-    new = True
-    # Data for select boxes: lists of pairs (full reaction name, reaction id)
-    leftbox = []
-    rightbox = []
-    custom_scripts=""
-    group = group_security(request.authenticated_userid)
-
-    if 'editlistformtitle' in request.params:
-        list_title = request.params['editlistformtitle']
-        mylist = DBSession.query(List).filter(List.title == list_title).first()
-        title = mylist.title
-        desc = mylist.desc
-        (leftbox, rightbox) = cat.get_selectbox_lists_by_list_id(mylist.id)
-        new = False
-    else:
-        list_title = List.ALL_TITLE
-        list_id = DBSession.query(List).filter(List.title == list_title).first().id
-        (rightbox, leftbox) = cat.get_selectbox_lists_by_list_id(list_id)
-
-    if title == List.ALL_TITLE:
-        message = "This list is locked and cannot be changed"
-
-    owner_courses = []
-    enrolled_courses = []
-    if group["is_teacher"]:
-        owner_courses = Course.owner_courses(request.authenticated_userid)
-    elif group["is_student"]:
-        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
-
-    return {"layout" : logged_layout(),
-            "logged_in" : request.authenticated_userid,
-            "message" : message,
-            "title" : title,
-            "desc" : desc,
-            "leftbox" : leftbox,
-            "rightbox" : rightbox,
-            "new" : new,
-	        "custom_scripts" : custom_scripts,
- 	        "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	        "page_title" : "Manage Reaction Lists",
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,

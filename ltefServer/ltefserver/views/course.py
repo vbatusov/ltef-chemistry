@@ -49,7 +49,7 @@ import re
 # Create a catalog object upon loading this module
 # Let's not use 'global' keyword in functions since we should not be
 # modifying this anyway.
-cat = Catalog()
+#cat = Catalog()
 
 # Experiment
 # A dictionary from a unique identifying string (timestamp?) to an object
