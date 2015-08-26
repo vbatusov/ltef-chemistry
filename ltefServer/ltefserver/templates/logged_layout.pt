@@ -1,150 +1,146 @@
 <!DOCTYPE html>
-<html lang="en"  xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:metal="http://xml.zope.org/namespaces/metal"
-      xmlns:tal="http://xml.zope.org/namespaces/tal"
-      metal:define-macro="logged_layout">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:metal="http://xml.zope.org/namespaces/metal" xmlns:tal="http://xml.zope.org/namespaces/tal" metal:define-macro="logged_layout">
+
 <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <title>LTEF Chemistry</title>
-        <!-- Bootstrap Core CSS -->
-        <link href="${request.static_url('ltefserver:bootstrap/css/bootstrap.min.css')} " rel="stylesheet">
- 	<!-- DataTables CSS -->
-	<link href="${request.static_url('ltefserver:bootstrap/DataTables-1.10.7/media/css/jquery.dataTables.css')}" type="text/css" rel="stylesheet">
-        <!-- Custom CSS -->
-        <link href="${request.static_url('ltefserver:bootstrap/css/sidebar.css')} " rel="stylesheet">
-        <link href="${request.static_url('ltefserver:bootstrap/css/custom.css')}" rel="stylesheet">
-    </head>
-    <body>
-        <nav class="navbar navbar-default navbar-fixed-top lightOpacity">
-            <div class="container-fluid">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button"  class="navside-bar-toggle toggle" >
-                    <span class="icon-side-bar"></span>
-                    <span class="icon-side-bar"></span>
-                    <span class="icon-side-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="${request.route_url('home')}"><span class="glyphicon glyphicon-book" aria-hidden="true"></span> LTEF Chemistry</a>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>LTEF Chemistry</title>
+  <!-- Bootstrap Core CSS -->
+  <link href="${request.static_url('ltefserver:bootstrap/css/bootstrap.min.css')} " rel="stylesheet">
+  <!-- DataTables CSS -->
+  <link href="${request.static_url('ltefserver:bootstrap/DataTables-1.10.7/media/css/jquery.dataTables.css')}" type="text/css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link href="${request.static_url('ltefserver:bootstrap/css/sidebar.css')} " rel="stylesheet">
+  <link href="${request.static_url('ltefserver:bootstrap/css/custom.css')}" rel="stylesheet">
+</head>
+
+<body>
+  <nav class="navbar navbar-default navbar-fixed-top lightOpacity">
+    <div class="container-fluid">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navside-bar-toggle toggle">
+          <span class="icon-side-bar"></span>
+          <span class="icon-side-bar"></span>
+          <span class="icon-side-bar"></span>
+        </button>
+        <a class="navbar-brand" href="${request.route_url('home')}">
+          <span class="glyphicon glyphicon-book" aria-hidden="true"></span> LTEF Chemistry</a>
 
 
-</div>
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                </div><!-- /.container-fluid -->
-            </nav>
-            <div id="wrapper">
-                <!-- Sidebar -->
-                <div id="sidebar-wrapper"  class="lightOpacity"  >
-		 <ul class="nav-sidebar">
+      </div>
+      <!-- Collect the nav links, forms, and other content for toggling -->
+    </div>
+    <!-- /.container-fluid -->
+  </nav>
+  <div id="wrapper">
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper" class="lightOpacity">
+      <ul class="nav-sidebar">
 
-   <li>Welcome <strong>${logged_in}</strong></li>
-                        <li>
-                            <a href="${request.route_url('home')}">
+        <li>Welcome
+          <strong>${logged_in}</strong>
+        </li>
+        <li>
+          <a href="${request.route_url('home')}">
                             Overview
                             </a>
-                        </li>
-                          <div  tal:condition="is_teacher or is_admin">
-			<li>
-                            <a href="${request.route_url('learning')}">Learn By Examples</a>
-                        </li>
-                        <li>
-                            <a href="${request.route_url('select_quiz')}">Complete Reactions</a>
-                        </li>
-                        <li>
-                            <a href="${request.route_url('synthesis')}">Multistep Synthesis</a>
-                        </li>
-                        <li>
-                            <a href="${request.route_url('addreaction')}">Add new Reaction</a>
-                        </li>
-                        <li  tal:condition="is_admin" >
-                            <a href="${request.route_url('managelists')}">Manage Reaction List</a>
-                        </li>
-                        </div>
-                            <div  tal:condition=" is_admin">
-			<li>
-                            <a href="${request.route_url('manageusers')}">Manage Users</a>
+        </li>
+        <div tal:condition="is_teacher or is_admin">
+          <li>
+            <a href="${request.route_url('learning')}">Learn By Examples</a>
+          </li>
+          <li>
+            <a href="${request.route_url('select_quiz')}">Complete Reactions</a>
+          </li>
+          <li>
+            <a href="${request.route_url('synthesis')}">Multistep Synthesis</a>
+          </li>
+          <li>
+            <a href="${request.route_url('addreaction')}">Add new Reaction</a>
+          </li>
+          <li tal:condition="is_admin">
+            <a href="${request.route_url('managelists')}">Manage Reaction List</a>
+          </li>
+        </div>
+        <div tal:condition=" is_admin">
+          <li>
+            <a href="${request.route_url('manageusers')}">Manage Users</a>
 
-                        </li>
-</div>
-
-
-</ul>
-<ul tal:condition="is_student" class="nav-sidebar">
-<li>Your Classes<li>
+          </li>
+        </div>
 
 
+      </ul>
+      <ul tal:condition="is_student" class="nav-sidebar">
+        <li>Your Classes
+          <li>
 
 
-       		<li tal:repeat="enrolled_course enrolled_courses"  >
-                        <a tal:content="enrolled_course.name"   tal:attributes="href request.route_url('home') + 'class/' + enrolled_course.name"></a>
-			</li>
-
-<li><a  tal:attributes="href request.route_url('course_signup')"  >Enroll into  Class</a></li>
-</ul>
-<ul tal:condition="is_teacher" class="nav-sidebar">
-<li>Your Classes<li>
-
-               <li tal:repeat="owner_course owner_courses"  >
-                        <a tal:content="owner_course.name"   tal:attributes="href request.route_url('home') + 'class/' + owner_course.name"></a>
-                        </li>
-
-<li><a  tal:attributes="href request.route_url('createcourse')"  >Create Class</a></li>
-</ul>
-<ul class="nav-sidebar">
-
-       <li>
-                            <a href="${request.route_url('contact')}">Contact</a>
-                        </li>
-                   <li>
-                            <a href="${request.route_url('about')}">About</a>
-                        </li>
-                </ul>
-		<ul class="nav-sidebar">
-
-<li><a tal:attributes="href request.route_url('home') + 'edit_account'"   >Edit Account</a></li>
-			<li>
-                            <a href="${request.application_url}/logout">Logout <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a>
-
-                        </li>
-		</ul>
-                </div>
-                <!-- /#sidebar-wrapper -->
-                <!-- Page Content -->
-                <div id="page-content-wrapper">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-lg-12">
-        			<ol class="breadcrumb" >
-				  <li><a href="#">Home</a></li>
-				  <li><a href="#">Library</a></li>
-  				  <li class="active">Data</li>
-				</ol>
-
-	                        <h1 class="page-header">${page_title}</h1>
 
 
-				<div metal:define-slot="content"></div>
+            <li tal:repeat="enrolled_course enrolled_courses">
+              <a tal:content="enrolled_course.name" tal:attributes="href request.route_url('home') + 'class/' + enrolled_course.name"></a>
+            </li>
 
+            <li><a tal:attributes="href request.route_url('course_signup')">Enroll into  Class</a></li>
+      </ul>
+      <ul tal:condition="is_teacher" class="nav-sidebar">
+        <li>Your Classes
+          <li>
 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- /#page-content-wrapper -->
-            </div>
-            <!-- /#wrapper -->
-            <!-- jQuery -->
-            <script src="${request.static_url('ltefserver:bootstrap/js/jquery-2.1.4.min.js')}"></script>
-            <!-- Bootstrap Core JavaScript -->
-            <script src="${request.static_url('ltefserver:bootstrap/js/bootstrap.min.js')}"></script>
-    	    <!-- DataTables -->
-	    <script type="text/javascript" charset="utf8" src="${request.static_url('ltefserver:bootstrap/DataTables-1.10.7/media/js/jquery.dataTables.js')}"></script>
-            <!-- Custom Scripts -->
-	    <script  tal:repeat="custom_script custom_scripts" src="${request.application_url}${custom_script}" ></script>
-	    <!-- Menu Toggle Script -->
-            <script src="${request.static_url('ltefserver:bootstrap/js/toggle.js')}"></script>
-        </body>
-    </html>
+            <li tal:repeat="owner_course owner_courses">
+              <a tal:content="owner_course.name" tal:attributes="href request.route_url('home') + 'class/' + owner_course.name"></a>
+            </li>
+
+            <li><a tal:attributes="href request.route_url('createcourse')">Create Class</a></li>
+      </ul>
+      <ul class="nav-sidebar">
+
+        <li>
+          <a href="${request.route_url('contact')}">Contact</a>
+        </li>
+        <li>
+          <a href="${request.route_url('about')}">About</a>
+        </li>
+      </ul>
+      <ul class="nav-sidebar">
+
+        <li><a tal:attributes="href request.route_url('home') + 'edit_account'">Edit Account</a></li>
+        <li>
+          <a href="${request.application_url}/logout">Logout <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a>
+
+        </li>
+      </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-12">
+            <h1 class="page-header">${page_title}</h1>
+            <div metal:define-slot="content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+  </div>
+  <!-- /#wrapper -->
+  <!-- jQuery -->
+  <script src="${request.static_url('ltefserver:bootstrap/js/jquery-2.1.4.min.js')}"></script>
+  <!-- Bootstrap Core JavaScript -->
+  <script src="${request.static_url('ltefserver:bootstrap/js/bootstrap.min.js')}"></script>
+  <!-- DataTables -->
+  <script type="text/javascript" charset="utf8" src="${request.static_url('ltefserver:bootstrap/DataTables-1.10.7/media/js/jquery.dataTables.js')}"></script>
+  <!-- Custom Scripts -->
+  <script tal:repeat="custom_script custom_scripts" src="${request.application_url}${custom_script}"></script>
+  <!-- Menu Toggle Script -->
+  <script src="${request.static_url('ltefserver:bootstrap/js/toggle.js')}"></script>
+</body>
+
+</html>

@@ -1,55 +1,47 @@
 <div metal:use-macro="layout">
     <div metal:fill-slot="content">
-        <!-- <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script> -->
-        <div class="container-fluid">
-            <div class="panel panel-default">
-                <div class="panel-heading">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <p>This is a new-style image (original RXN layout):</p>
+                        ${structure: svg_data}
+                    </div>
                 </div>
-                <div class="panel-body">
-                        <div class="form-group">
-                        <div class="col-md-12">
-			     <p>This is a new-style image (original RXN layout):</p>
-		        ${structure: svg_data}
-			</div>
-			</div>
-                        <div class="form-group">
-                            <div class="col-sm-12 col-md-12 ">
-                                <img class="img-responsive" tal:attributes="src link_to_gen_picture">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class=" col-sm-12">
-                                <span tal:repeat="rname sorted(rgroups.keys())" style="margin-right:25px;">
-                                <strong><span tal:content="rname + ':'">R-group symbol</span></strong>
-                                <img tal:attributes="src request.route_url('home') + 'img/' + basename + '/rgroup/' + rname + ',0.png'">
-                                <span tal:repeat="index range(1, len(rgroups[rname]))">
-                                or
-                                <img tal:attributes="src request.route_url('home') + 'img/' + basename + '/rgroup/' + rname + ',' + str(index) + '.png'">
-                                </span>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class=" col-sm-12">
-                                <p tal:content="reaction_description">Reaction description goes here</p>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class=" col-sm-12">
-                                <img class="img-responsive"  tal:attributes="src request.route_url('home') + 'img/' + basename + '/instance/image.png'" id="instanceImage">
-                            </div>
-                        </div>
-                        <div class="form-group last">
-                            <div class=" col-sm-12  ">
-                                <button id="getButton"  class="btn btn-success btn-sm">
-                                Next</button>
-                            </div>
-                        </div>
+                <div class="form-group">
+                    <div class="col-sm-12 col-md-12 ">
+                        <img class="img-responsive" tal:attributes="src link_to_gen_picture">
+                    </div>
                 </div>
-                <div class="panel-footer">
+                <div class="form-group">
+                    <div class=" col-sm-12">
+                        <span tal:repeat="rname sorted(rgroups.keys())" style="margin-right:25px;">
+                        <strong><span tal:content="rname + ':'">R-group symbol</span></strong>
+                        <img tal:attributes="src request.route_url('home') + 'img/' + basename + '/rgroup/' + rname + ',0.png'">
+                        <span tal:repeat="index range(1, len(rgroups[rname]))">
+                        or
+                        <img tal:attributes="src request.route_url('home') + 'img/' + basename + '/rgroup/' + rname + ',' + str(index) + '.png'">
+                        </span>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class=" col-sm-12">
+                        <p tal:content="reaction_description">Reaction description goes here</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class=" col-sm-12">
+                        <img class="img-responsive"  tal:attributes="src request.route_url('home') + 'img/' + basename + '/instance/image.png'" id="instanceImage">
+                    </div>
+                </div>
+                <div class="form-group last">
+                    <div class=" col-sm-12  ">
+                        <button id="getButton"  class="btn btn-success btn-sm">
+                        Next</button>
+                    </div>
                 </div>
             </div>
-            </div> <!-- /container -->
         </div>
     </div>
-    ~
+</div>

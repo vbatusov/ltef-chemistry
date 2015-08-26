@@ -2,6 +2,7 @@
   <div metal:fill-slot="content">
     <h4 tal:condition="is_teacher">Course Access Code:
       <span class="text-primary" tal:content="course.access_code"></span>
+
     </h4>
     <h3>Course Description:</h3>
     <p tal:condition="is_teacher" tal:content="course.description">
@@ -12,7 +13,7 @@
 
           </div>
           <div class="panel-body">
-            <a class="btn btn-primary btn-md" role="button" tal:attributes="href request.route_url('home') + 'class/' + basename  + '/create_chapter'  ">Add New Chapter</a>
+            <a class="btn btn-primary btn-md" role="button" tal:attributes="href request.route_url('home') + 'class/' + basename  + '/create_chapter'  "><span class="glyphicon glyphicon-plus" aria-hidden="true"></span>  Add New Chapter</a>
             <div id="expandable_folders">
               <div class="panel panel-default" tal:define="global number python: 0">
                 <tal:block repeat="(course, chapter) chapters">
@@ -31,13 +32,13 @@
                   <div class="panel-collapse collapse " tal:attributes="id string:collapse${python:number}">
                     <div class="panel-body">
                       <p>${chapter.description}</p>
-                      <a class="btn btn-primary btn-md" role="button" style="margin-bottom:10px" tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/add_selectable_reaction'  ">Add Reaction</a>
+                      <a class="btn btn-primary btn-md" role="button" style="margin-bottom:10px" tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/add_selectable_reaction'  "><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Reaction</a>
                       <div aria-multiselectable="true" class="panel-group" role="tablist">
                         <div class="panel panel-default">
                           <div class="panel-heading" id="headingOne" role="tab">
                             <h4 class="panel-title">
                               <a aria-controls="collapseOne" aria-expanded="true" data-parent="#accordion" data-toggle="collapse" role="button" tal:attributes="href string:#collapseOne${python:number}">
-                                Learn by Example
+                              <span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span> Learn by Example
                               </a>
                             </h4>
                           </div>
@@ -47,6 +48,10 @@
                                 <div class="panel-heading" id="headingOne" role="tab">
                                   <h4 class="panel-title">
                                     <a tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/learn_by_example/' + reaction.basename" tal:content="custom_reaction.title"></a>
+                                    <div class="pull-right">
+                                      <a class="label label-primary" style="margin-right:10px;">Edit</a>
+                                      <a class="label label-danger">Remove</a>
+                                    </div>
                                   </h4>
                                 </div>
                               </div>
@@ -57,7 +62,7 @@
                           <div class="panel-heading" id="headingTwo" role="tab">
                             <h4 class="panel-title">
                               <a aria-controls="collapseTwo" aria-expanded="false" class="collapsed" data-parent="#accordion" data-toggle="collapse" role="button" tal:attributes="href string:#collapseTwo${python:number}">
-                                Quiz
+                                    <span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span> Quiz
                               </a>
                             </h4>
                           </div>
@@ -185,7 +190,7 @@
                                 <div class="panel-heading" id="headingOne" role="tab">
                                   <h4 class="panel-title">
                                     <a aria-controls="collapseOne" aria-expanded="true" data-parent="#accordion" data-toggle="collapse" role="button" tal:attributes="href string:#collapseOne${python:number}">
-                                      Learn by Example
+                                        <span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span> Learn by Example
                                     </a>
                                   </h4>
                                 </div>
@@ -195,7 +200,7 @@
                                       <div class="panel-heading" id="headingOne" role="tab">
                                         <h4 class="panel-title">
                                           <a tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/learn_by_example/' + reaction.basename" tal:content="custom_reaction.title">
-                                            Learn by Example
+                                           Learn by Example
                                           </a>
                                         </h4>
                                       </div>
@@ -207,7 +212,7 @@
                                 <div class="panel-heading" id="headingTwo" role="tab">
                                   <h4 class="panel-title">
                                     <a aria-controls="collapseTwo" aria-expanded="false" class="collapsed" data-parent="#accordion" data-toggle="collapse" role="button" tal:attributes="href string:#collapseTwo${python:number}">
-                                      Quiz
+                                      <span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span> Quiz
                                     </a>
                                   </h4>
                                 </div>

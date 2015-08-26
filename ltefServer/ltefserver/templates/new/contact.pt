@@ -1,43 +1,35 @@
-
 <div metal:use-macro="layout">
-    <div metal:fill-slot="content">
+  <div metal:fill-slot="content">
 
+    <div class="row">
+      <div class="col-md-9 ">
 
-                                    <div class="row">
-                                        <div class="col-md-9 ">
-                                        
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Contact Us
+          </div>
+          <div class="panel-body">
+            <form action="${request.current_route_url()}" class="form-horizontal" method="post" role="form" tal:condition="state != 'sent'">
+              You can use this form to send us a message.
 
- <div class="panel panel-default">
-                                            <div class="panel-heading">
-                                                Contact Us
-                                            </div>
-                                            <div class="panel-body">
-                                                <form class="form-horizontal" method="post"  action="${request.current_route_url()}" role="form"  tal:condition="state != 'sent'">
-                                             You can use this form to send us a message.
-                                                   
-                                                    <div class="form-group">
-                                                
-                                                        <div class="col-sm-12">
-                                                            <textarea class="form-control" name="txtComment" rows="5" id="comment"></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group last">
-                                                        <div class=" col-sm-12">
-                                                        
-                                                             <button id="btnSubmit" type="submit" class="btn btn-success btn-sm">Send</button>
+              <div class="form-group">
 
-                                                        </div>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                            <div class="panel-footer">
-                                            </div>
-                                        </div>
+                <div class="col-sm-12">
+                  <textarea class="form-control" id="comment" name="txtComment" rows="5"></textarea>
+                </div>
+              </div>
+              <div class="form-group last">
+                <div class=" col-sm-12">
 
+                  <button class="btn btn-success btn-sm" id="btnSubmit" type="submit">Send</button>
 
-					</div>
-                                    </div>
-
-
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
+
+  </div>
 </div>

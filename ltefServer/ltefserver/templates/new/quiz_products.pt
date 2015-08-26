@@ -3,12 +3,12 @@
 
     <style>
 
-      div.row-fluid [class*="span"] .center-in-span { 
-         float: none; 
-         margin: 0 auto; 
-         text-align: center; 
-         display: block; 
-         width: auto; 
+      div.row-fluid [class*="span"] .center-in-span {
+         float: none;
+         margin: 0 auto;
+         text-align: center;
+         display: block;
+         width: auto;
          height: auto;
       }
 
@@ -22,9 +22,9 @@
         border-color:#ffffff;
         min-height: 40px;
         line-height: 40px;
-        width: 220px; 
-        height:119px; 
-        background-size: 220px 119px; 
+        width: 220px;
+        height:119px;
+        background-size: 220px 119px;
         background-repeat:no-repeat;
       }
 
@@ -33,10 +33,9 @@
       }
     </style>
 
-    
+
 <div class="panel panel-default">
-    <div class="panel-heading">
-    </div>
+
     <div class="panel-body">
         <div class="form-group">
             <div class="col-sm-12">
@@ -74,8 +73,6 @@
                             <form>
                             </div>
                         </div>
-                    </div>
-                    <div class="panel-footer">
                     </div>
                 </div>
 

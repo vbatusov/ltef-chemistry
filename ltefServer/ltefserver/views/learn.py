@@ -172,11 +172,39 @@ def learn_by_example_reaction_view(request):
     reaction_name = request.matchdict["reaction"]
     custom_scripts = []
     message = ""
+    reaction_description = ""
     currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     group = group_security(request.authenticated_userid)
+    owner_courses = []
+    enrolled_courses = []
+
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+        current_chapter = DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).filter(Chapter.title == chapter_name).first()
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+        current_chapter = DBSession.query(Chapter).filter(Enrolled.userid == currentuser.id).filter(Chapter.course == Course.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).filter(Chapter.title == chapter_name ).first()
 
     custom_scripts.append('/bootstrap/js/learning_reactions.js')
     reaction = cat.get_reaction_by_basename(reaction_name)
+
+    reac = DBSession.query(Reac).filter(Reac.basename == reaction_name).first()
+    customizable_reaction = DBSession.query(Customizable_reaction).filter(Customizable_reaction.reaction == reac.id).filter(Customizable_reaction.chapter == current_chapter.id).first()
+
+    if len(customizable_reaction.description) > 0:
+        reaction_description = customizable_reaction.description
+    else:
+        reaction_description = reaction.desc
+
+    if len(customizable_reaction.title) > 0:
+        reaction_title = customizable_reaction.title
+    else:
+        reaction_title = reaction.full_name
+
+    #if len(customizable_reaction.description) > 0:
+    #    reaction_description = reaction.desc
+    #else:
+    #    reaction_description = customizable_reaction.description
 
     # A hack for Sharonna
     # Display an external image in place of the generic reaction image (if there is one)
@@ -200,24 +228,17 @@ def learn_by_example_reaction_view(request):
     svgline = svglineparts[0] + 'width="90%"' + svglineparts[1]
     svg_data = svgline + "\n" + svg_data[svg_data.find('\n') + 1 :]
 
-    owner_courses = []
-    enrolled_courses = []
-    if group["is_teacher"]:
-        owner_courses = Course.owner_courses(request.authenticated_userid)
-    elif group["is_student"]:
-        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
-
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
             "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "page_title" : reaction.full_name,
+            "page_title" : reaction_title,
 	        "rgroups" : reaction.rgroups,
 	        "link_to_gen_picture" : link_to_gen_picture,
             "svg_data" : svg_data,
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
-    	    "reaction_description" : reaction.desc,
+    	    "reaction_description" : reaction_description,
 	        "reaction" : reaction_name
     }
