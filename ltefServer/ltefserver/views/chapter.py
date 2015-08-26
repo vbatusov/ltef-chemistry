@@ -146,80 +146,71 @@ def remove_chapter_view(request):
 def add_selectable_reaction_view(request):
 
     message = ""
-    custom_scripts = []
-    group = group_security(request.authenticated_userid)
-    list_title = List.ALL_TITLE
-    list_id = DBSession.query(List).filter(List.title == list_title).first().id
-    (rightbox, leftbox) = cat.get_selectbox_lists_by_list_id(list_id)
-
-    basename = request.matchdict["basename"]
-    chapter_name = request.matchdict["chapter"]
-
-    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
-    chapter =  DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Course.name == basename).filter(Chapter.course == Course.id).filter(Chapter.title == chapter_name ).first()
-
     customizable_title = ""
     customizable_description = ""
     reaction = ""
-
-    if 'submit.reaction.addanother' in request.params:
-
-        reaction_id = request.params['reaction']
-        customizable_title = request.params['reaction_title']
-        customizable_description = request.params['reaction_description']
-	reaction = DBSession.query(Reac).filter(reaction_id == Reac.id).first()
-
-	# if both description and title have inputs then add them
-	if len(customizable_title) > 0 and len(customizable_description) > 0:
-
-	    customizable_title = request.params['reaction_title']
-	    customizable_description = request.params['reaction_description']
-
-	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id,  title=customizable_title, description=customizable_description))
-
-	    message = "Successfully added reaction title and desc"
-
-	elif len(customizable_title) > 0:
-
-	    customizable_title = request.params['reaction_title']
-
-	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id, description=reaction.description,  title=customizable_title))
-
-	    message = "Successfully added reaction only title"
-
-	elif len(customizable_description) > 0:
-
-	    customizable_description = request.params['reaction_description']
-	    DBSession.add(Customizable_reaction( reaction=reaction_id, title=reaction.full_name, chapter=chapter.id, description=customizable_description))
-
-	    message = "Successfully added reaction with only desc"
-	else:
-
-            DBSession.add(Customizable_reaction( reaction=reaction_id , title=reaction.full_name, description=reaction.description, chapter=chapter.id))
-
-	    message = "All default"
-
-    elif 'submit.reaction.finish' in request.params:
-
-        message = "Finished"
-	return HTTPFound(location=request.route_url('home') + 'class/' + basename )
+    custom_scripts = []
+    group = group_security(request.authenticated_userid)
+    basename = request.matchdict["basename"]
+    chapter_name = request.matchdict["chapter"]
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    chapter =  DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Course.name == basename).filter(Chapter.course == Course.id).filter(Chapter.title == chapter_name ).first()
 
     owner_courses = []
     enrolled_courses = []
+
+    customizable_reaction = DBSession.query(Reac).filter(Customizable_reaction.chapter == chapter.id).filter().all()
+
+    if 'submit.reaction.addanother' in request.params:
+        if 'reaction' in request.params:
+            reaction_id = request.params['reaction']
+            customizable_title = request.params['reaction_title']
+            customizable_description = request.params['reaction_description']
+            reaction = DBSession.query(Reac).filter(reaction_id == Reac.id).first()
+
+        	# if both description and title have inputs then add them
+            if len(customizable_title) > 0 and len(customizable_description) > 0:
+        	    customizable_title = request.params['reaction_title']
+        	    customizable_description = request.params['reaction_description']
+        	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id,  title=customizable_title, description=customizable_description))
+        	    message = "Successfully added reaction title and description"
+
+            elif len(customizable_title) > 0:
+        	    customizable_title = request.params['reaction_title']
+        	    DBSession.add(Customizable_reaction( reaction=reaction_id, chapter=chapter.id, description=reaction.description,  title=customizable_title))
+        	    message = "Successfully added reaction only title"
+
+            elif len(customizable_description) > 0:
+        	    customizable_description = request.params['reaction_description']
+        	    DBSession.add(Customizable_reaction( reaction=reaction_id, title=reaction.full_name, chapter=chapter.id, description=customizable_description))
+        	    message = "Successfully added reaction with only description"
+
+            else:
+                DBSession.add(Customizable_reaction( reaction=reaction_id , title=reaction.full_name, description=reaction.description, chapter=chapter.id))
+                message = "All default"
+        else:
+            message = "Missing Reaction"
+
+    elif 'submit.reaction.finish' in request.params:
+        message = "Finished"
+        return HTTPFound(location=request.route_url('home') + 'class/' + basename )
+
     if group["is_teacher"]:
         owner_courses = Course.owner_courses(request.authenticated_userid)
     elif group["is_student"]:
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
+    select_reactions = DBSession.query(Reac.full_name, Reac.id).except_(DBSession.query(Reac.full_name, Reac.id).filter(Customizable_reaction.chapter == chapter.id).filter(Reac.id == Customizable_reaction.reaction)).order_by(Reac.full_name).all()
+
     return {"layout": logged_layout(),
-	    "logged_in" : request.authenticated_userid,
-	    "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-	    "page_title" : "Add Selectable Reaction",
-            "leftbox" : leftbox,
-	    "custom_scripts" : custom_scripts,
-	    "message" : message,
-	    "basename" : basename,
+            "logged_in" : request.authenticated_userid,
+	        "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+	        "page_title" : "Add Selectable Reaction",
+            "leftbox" : select_reactions,
+	        "custom_scripts" : custom_scripts,
+	        "message" : message,
+	        "basename" : basename,
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
-	    "chapter" : chapter_name,
-	    }
+            "chapter" : chapter_name,
+            }

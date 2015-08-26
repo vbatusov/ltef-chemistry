@@ -1,45 +1,43 @@
 <div metal:use-macro="layout">
-   <div metal:fill-slot="content">
-<div class="panel panel-default">
-  <div class="panel-heading">
-    <h3 class="panel-title">Select Reaction List /${basename}/${chapter}</h3>
-  </div>
-  <div class="panel-body">
- <form class="form-horizontal" method="GET"  role="form">
-  
+  <div metal:fill-slot="content">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Select Reaction List /${basename}/${chapter}</h3>
+      </div>
+      <div class="panel-body">
+        <form class="form-horizontal" method="GET" role="form">
 
-      <div class="form-group">
-                <div class="col-md-9" tal:condition="message">
-                        <div class="alert alert-info" role="alert">${message}</div>
-                </div>
-             </div>
+          <div class="form-group">
+            <div class="col-md-9" tal:condition="message">
+              <div class="alert alert-info" role="alert">${message}</div>
+            </div>
+          </div>
 
-<div class="col-md-9 form-group">
-      <label for="sel1">Available Reactions (select one):</label>
-      <select class="form-control" name="reaction"  id="sel1">
-                  <option tal:repeat="(t, id) leftbox" tal:content="t" tal:attributes="value id"></option>
-      </select>
-		</div>
-             <div class=" col-md-9 form-group">
-                 <label class="control-label">Reaction title (Optional):</label>
-                     <input type="text" name="reaction_title" class="form-control" placeholder="Title">
-               </div>
-               <div class="form-group col-md-9">
-                <label class="control-label">Description (Optional):</label>
-                   <textarea class="form-control" name="reaction_description" rows="5" id="comment"></textarea>
-               </div>
-               <div class="form-group col-md-9 last">
-		   <div class="col-md-offset-6 col-md-3">	
-                     <button type="submit" name="submit.reaction.addanother" class="btn btn-success btn-sm">
-                     Add reaction</button>
-                  </div>
-		  <div class="col-md-3">   
-		    <button type="submit" name="submit.reaction.finish" class="btn btn-success btn-sm">
-                     Done</button>
-		  </div>
-               </div>
-            </form>
+          <div class="col-md-9 form-group">
+            <label for="sel1">Available Reactions (select one):</label>
+            <select class="form-control" id="sel1" name="reaction">
+              <option tal:attributes="value id" tal:content="t" tal:repeat="(t, id) leftbox"></option>
+            </select>
+          </div>
+          <div class=" col-md-9 form-group">
+            <label class="control-label">Reaction title (Optional):</label>
+            <input class="form-control" name="reaction_title" placeholder="Title" type="text"></div>
+            <div class="form-group col-md-9">
+              <label class="control-label">Description (Optional):</label>
+              <textarea class="form-control" id="comment" name="reaction_description" rows="5"></textarea>
+            </div>
+            <div class="form-group col-md-9 last">
+              <div class="col-md-offset-6 col-md-3">
+                <button class="btn btn-success btn-sm" name="submit.reaction.addanother" type="submit">
+                  Add reaction</button>
+              </div>
+              <div class="col-md-3">
+                <button class="btn btn-success btn-sm" name="submit.reaction.finish" type="submit">
+                  Done</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
-</div>
-</div>
