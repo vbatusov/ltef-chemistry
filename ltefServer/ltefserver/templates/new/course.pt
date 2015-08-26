@@ -2,6 +2,7 @@
   <div metal:fill-slot="content">
     <h4 tal:condition="is_teacher">Course Access Code:
       <span class="text-primary" tal:content="course.access_code"></span>
+    
     </h4>
     <h3>Course Description:</h3>
     <p tal:condition="is_teacher" tal:content="course.description">
