@@ -48,26 +48,9 @@
                                                     </div>
                                                 </form>
                                             </div>
-                                            <div class="panel-footer">
-                                            </div>
+                                          
                                         </div>
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading">
-                                                Previous Quizes
-                                            </div>
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Quiz Title</th>
-                                                        <th>Description</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+
                                     </div>
                                 </div>
 

@@ -183,7 +183,7 @@ def learn_by_example_reaction_view(request):
         current_chapter = DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).filter(Chapter.title == chapter_name).first()
     elif group["is_student"]:
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
-        current_chapter = DBSession.query(Chapter).filter(Enrolled.userid == currentuser.id).filter(Chapter.course == Course.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).filter(Chapter.title == chapter_name ).all()
+        current_chapter = DBSession.query(Chapter).filter(Enrolled.userid == currentuser.id).filter(Chapter.course == Course.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).filter(Chapter.title == chapter_name ).first()
 
     custom_scripts.append('/bootstrap/js/learning_reactions.js')
     reaction = cat.get_reaction_by_basename(reaction_name)

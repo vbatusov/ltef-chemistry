@@ -1,5 +1,5 @@
 <div metal:use-macro="layout">
-    <div metal:fill-slot="content">   
+    <div metal:fill-slot="content">
 
 <div tal:condition="is_teacher">
   <div class="panel panel-default">
@@ -67,18 +67,18 @@
 
 	 <div tal:repeat="(student_course, student_enrolled) student_courses" class="col-xs-12 col-sm-4 placeholder">
             <h4><a tal:content="student_course.name"   tal:attributes="href request.route_url('home') + 'class/' + student_course.name"></a></h4>
-            <span tal:content="student_course.description[:140]" class="text-muted"></span>
+            <span tal:content="student_course.description[:140] + '...'" class="text-muted"></span>
          </div>
 
 
 </div>
 
-</div>      
+</div>
 
 </div>
 </div>
   <div class="panel panel-default">
-      
+
       <div class="panel-heading">
          <h3 class="panel-title">Settings</h3>
       </div>
