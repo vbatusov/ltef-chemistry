@@ -1,138 +1,27 @@
 <div metal:use-macro="layout">
-    <div metal:fill-slot="content">
+  <div metal:fill-slot="content">
+    <span style="white-space: nowrap">
 
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-
-      .container-molecules {
-        margin: 0 auto;
-        max-width: 700px;
-      }
-
-      .show-grid {
-        margin-top: 10px;
-        margin-bottom: 20px;
-      }
-      .show-grid [class*="span"] {
-        background-color: #eee;
-        text-align: center;
-        -webkit-border-radius: 3px;
-           -moz-border-radius: 3px;
-                border-radius: 3px;
-        min-height: 40px;
-        line-height: 40px;
-      }
-      .show-grid [class*="span"]:hover {
-        background-color: #ddd;
-      }
-      .show-grid .show-grid {
-        margin-top: 0;
-        margin-bottom: 0;
-      }
-      .show-grid .show-grid [class*="span"] {
-        margin-top: 5px;
-      }
-      .show-grid [class*="span"] [class*="span"] {
-        background-color: #ccc;
-      }
-      .show-grid [class*="span"] [class*="span"] [class*="span"] {
-        background-color: #999;
-      }
-
-      div.row-fluid [class*="span"] .center-in-span { 
-         float: none; 
-         margin: 0 auto; 
-         text-align: center; 
-         display: block; 
-         width: auto; 
-         height: auto;
-      }
-
-      div.molecule {
-        display: inline-block;
-        margin:20px;
-        border:solid 2px;
-        -webkit-border-radius: 7px;
-           -moz-border-radius: 7px;
-                border-radius: 7px;
-        border-color:#ffffff;
-        min-height: 40px;
-        line-height: 40px;
-        width: 220px; 
-        height:119px; 
-        background-size: 220px 119px; 
-        background-repeat:no-repeat;
-      }
-
-      div.molecule:hover {
-        background-color: #eee;
-      }
-    </style>
-
-    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-    <script>
-      // Executed by jQuery when the DOM is ready
-      $( document ).ready(function() {
-        //console.log( "ready!" );
-
-        $(".molecule").data("selected", 0)
-
-        $(".molecule").click(function(){
-          if ($(this).data("selected") == 0) {
-            $(this).css({"border-color":"#ff8888"});
-            $(this).data("selected", 1)
-          }
-          else {
-            $(this).css({"border-color":"#ffffff"});
-            $(this).data("selected", 0)
-          }
-
-          var x = [];
-          $('.molecule').each(function(i, obj) {
-            //alert ("Molecule " + i)
-            if ($(this).data("selected") == 1) {
-              //alert ("Is selected")
-              x.push(obj.id)
-            }
-          });
-          //alert(x)
-          $("#answerField").val(x);
-
-        });
-      });
-
-    </script>
-
-    <div class="container">
-
-      <h1 tal:content="full_name">Name of reaction</h1>
-
-      <span style="white-space: nowrap">        
-        <!--h1 tal:condition="state == 'ask'" style="display:inline">?</h1-->        
-        <img tal:attributes="src request.route_url('home') + 'img/q_' + problem_id + '/reaction.png'">
-      </span>
+      <img class="img-responsive" tal:attributes="src request.route_url('home') + 'img/q_' + problem_id + '/reaction.png'"></span>
 
       <div tal:condition="state == 'ask'">
-        <p tal:condition="state == 'ask'" >What is the name of this reaction?</p>
+        <p tal:condition="state == 'ask'">What is the name of this reaction?</p>
       </div>
 
-      <div tal:condition="state == 'tell' and result == True" class="alert alert-success" role="alert">${message}</div>
-      <div tal:condition="state == 'tell' and result == False" class="alert alert-danger" role="alert">${message}</div>
+      <div class="alert alert-success" role="alert" tal:condition="state == 'tell' and result == True">${message}</div>
+      <div class="alert alert-danger" role="alert" tal:condition="state == 'tell' and result == False">${message}</div>
 
       <div>
-        <form tal:condition="state == 'ask'" action="${request.current_route_url()}">
-          <div tal:condition="state == 'ask'" class="radio row-fluid" tal:repeat="base sorted(base_to_full.keys())">
-            <label tal:condition="state == 'ask'" class="span4"><input tal:condition="state == 'ask'" type="radio" name="choice" tal:attributes="value base"/>${base_to_full[base]}</label>
+        <form action="${request.current_route_url()}" tal:condition="state == 'ask'">
+          <div class="radio row-fluid" tal:condition="state == 'ask'" tal:repeat="base sorted(base_to_full.keys())">
+            <label class="span4" tal:condition="state == 'ask'"><input name="choice" tal:attributes="value base" tal:condition="state == 'ask'" type="radio"/>${base_to_full[base]}</label>
           </div>
-          <button tal:condition="state == 'ask'" id="checkButton" type="submit" class="btn btn-primary btn-outline btn-m">Check</button>
+          <button class="btn btn-primary btn-outline btn-m" id="checkButton" tal:condition="state == 'ask'" type="submit">Check</button>
         <form>
-        <form tal:condition="state == 'tell'" name="tryAnother" action="${request.current_route_url()}">
-          <button tal:condition="state == 'tell'" id="checkButton" type="submit" class="btn btn-primary btn-outline btn-m">Try another one</button>
-        <form>
+            <form action="${request.current_route_url()}" name="tryAnother" tal:condition="state == 'tell'">
+              <button class="btn btn-primary btn-outline btn-m" id="checkButton" tal:condition="state == 'tell'" type="submit">Try another one</button>
+            <form>
       </div>
 
-    </div> <!-- /container -->
-  </div>
+   </div>
 </div>
