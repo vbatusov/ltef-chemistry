@@ -268,16 +268,6 @@ def quiz_reactant_view(request):
 
         quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
 
-        # record problem in history
-        print "Adding problem " + problem_id + " to " + request.authenticated_userid + "'s history as incomplete"
-        if request.authenticated_userid not in history:
-            history[request.authenticated_userid] = []
-        history[request.authenticated_userid].append({'problem_id' : problem_id,
-                                                      'type' : 'reactants',
-                                                      'status' : 'incomplete',
-                                                      'basename' : basename,
-                                                      'instance_full' : instance_full,
-                                                      'instance_part' : instance, })
 
         session['basename'] = basename
         print "Started a quiz (reactants) session for " + basename + ", id = " + problem_id
@@ -547,6 +537,46 @@ def quiz_product_view(request):
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "logged_in" : request.authenticated_userid
         }
+
+@view_config(route_name='quiz_question', renderer='ltefserver:templates/new/quiz_question.pt', permission='educate')
+def quiz_question_view(request):
+
+    course_name = request.matchdict["course"]
+    student_username = request.matchdict["student"]
+    quiz_type = request.matchdict["quiz"]
+    chapter_name = request.matchdict["chapter"]
+
+    message = ""
+    custom_scripts =[]
+
+    current_user = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    group = group_security(request.authenticated_userid)
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
+    student = DBSession.query(User).filter(User.username == student_username).first()
+    quiz = DBSession.query(Quiz_history).filter(Quiz_history.student == student.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.id == quiz).first()
+
+
+
+
+
+    return {"layout": logged_layout(),
+            "logged_in" : request.authenticated_userid,
+            "message" : message,
+            "owner_courses" : owner_courses,
+            "enrolled_courses" : enrolled_courses,
+            "custom_scripts" : custom_scripts,
+            "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
+            "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "Quiz History"           }
+
+
+
 
 
 @view_config(route_name='student_quiz_history', renderer='ltefserver:templates/new/student_quiz_history.pt', permission='educate')
