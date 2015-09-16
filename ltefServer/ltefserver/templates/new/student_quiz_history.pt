@@ -10,21 +10,25 @@
                 <table id="dataTable" cellspacing="0"  class="table display">
                     <thead>
                         <tr>
+			    <th>Quesiton</th>
                             <th>Chapter</th>
                             <th>Reaction</th>
                             <th>Quiz Type</th>
                             <th>Score</th>
 			    <th>Time Submitted</th>
-                        </tr>
+                            <th>View</th> 
+			</tr>
                     </thead>
                     <tbody>
-                        <tr  tal:repeat="(quiz_history, chapter) quiz_histories"  >
-                            <td tal:content=chapter.title ></td>
+                        <tr  tal:repeat="(quiz_history, chapter, course, user) quiz_histories"  >
+                            <td tal:content="quiz_history.question_number"></td>
+			    <td tal:content=chapter.title ></td>
                             <td tal:content=quiz_history.reaction_name></td>
                             <td tal:content=quiz_history.quiz_type></td>
 			    <td tal:content=quiz_history.score></td>
                             <td tal:content=quiz_history.time_submitted></td>
-                        </tr>
+                            <td><a class="label label-primary" tal:attributes="href request.route_url('home') + 'class/' + course.name +'/' + chapter.title  + '/' + user.username + '/' + 'quiz_history/' + str(quiz_history.question_number)   ">View Question</a></td>
+			</tr>
                     </tbody>
                 </table>
             </div>

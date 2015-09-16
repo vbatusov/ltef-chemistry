@@ -59,6 +59,8 @@ quiz_problems = {}
 
 current_user = {}
 
+instance_reaction = None
+instance_choices = []
 
 # Experiment
 # student_id -> list of all past quiz problems, labeled as correct/incorrect/incomplete
@@ -212,6 +214,8 @@ def quiz_reactant_view(request):
     chapter = DBSession.query(Chapter).filter( Chapter.title == chapter_name, Chapter.course == course.id  ).first()
 
     global quiz_problems
+    global instance_reaction
+    global instance_choices
     session = request.session
     problem_id = ""
     basename = ""
@@ -221,6 +225,8 @@ def quiz_reactant_view(request):
     state = "ask"
     custom_scripts = []
     custom_scripts.append("/bootstrap/js/quiz_reactants.js")
+
+
     # Generate a problem, store the objects, present to user
     if 'quiz_type' not in session or session['quiz_type'] != 'reactants' or session['problem_id'] not in quiz_problems.keys():
         session.invalidate()
@@ -240,11 +246,13 @@ def quiz_reactant_view(request):
         # prepare instance, cut off reactants
         instance = reaction.getInstance()
         instance_full = copy.deepcopy(instance)
-
+        instance_reaction = copy.deepcopy(instance)
         fullImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
 
         reactants = instance.reactants
-	print reactants.__str__()
+        products = instance.products
+
+        print reactants.__str__()
         molecule = chem.Molecule()
         molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
 
@@ -252,18 +260,20 @@ def quiz_reactant_view(request):
 
         # Reaction image without reactants
         mainImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
-
+	instance_mol = []
         reactantImages = []
         for mol in reactants:
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, True])    # indicate that these are correct answers
-
+	    instance_mol.append(mol)
 
         # Generate wrong answers here, add to reactantImages
         for mol in chem.mutateMolecules(reactants):
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, False])    # indicate that these are wrong answers
+	    instance_mol.append(mol)
 
+	instance_choices = instance_mol
         random.shuffle(reactantImages)
 
         quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
@@ -302,13 +312,17 @@ def quiz_reactant_view(request):
             #print "Correct answer is " + str(set(correctAnswers))
 
             problem_h = None
-            for p in history[request.authenticated_userid]:
-                    if p['problem_id'] == problem_id:
-                        problem_h = p
-                        break
+            #for p in history[request.authenticated_userid]:
+            #        if p['problem_id'] == problem_id:
+            #            problem_h = p
+            #            break
 
-            if problem_h == None:
-                print "Error: could not find problem in history"
+            #if problem_h == None:
+            #    print "Error: could not find problem in history"
+
+	    # Get the count of how many quiz histories there are. 
+            quiz_history_count = DBSession.query(Quiz_history).filter( Quiz_history.user == currentuser.id).filter(Quiz_history.course == course.id).count()
+            quiz_history_count = quiz_history_count + 1
 
             if set(ans) != set(correctAnswers):
                 message = "Wrong!"
@@ -317,14 +331,14 @@ def quiz_reactant_view(request):
                 #print "Good set: " + str(set(correctAnswers))
 
                 # record result in history
-                problem_h['status'] = 'fail'
-		DBSession.add(Quiz_history( course = course.id, chapter = chapter.id, user = currentuser.id, score=0, reaction_name = mode, quiz_type=quiz_type))
+                #problem_h['status'] = 'fail'
+		DBSession.add(Quiz_history( question_number = quiz_history_count, course = course.id, chapter = chapter.id, user = currentuser.id, score=0, reaction_name = mode, quiz_type=quiz_type, reaction_obj = instance_reaction, choice_obj = instance_choices ))
 
             else:
                 message = "Correct! You selected what's necessary and nothing else."
                 result = True
-                problem_h['status'] = 'pass'
-		DBSession.add(Quiz_history( course = course.id,  chapter = chapter.id, user = currentuser.id, score=1, reaction_name = mode, quiz_type=quiz_type))
+                #problem_h['status'] = 'pass'
+		DBSession.add(Quiz_history( question_number = quiz_history_count, course = course.id,  chapter = chapter.id, user = currentuser.id, score=1, reaction_name = mode, quiz_type=quiz_type, reaction_obj = instance_reaction, choice_obj = instance_choices))
 
 
             # Once user has made a choice, replace cut reaction with a full one
@@ -383,6 +397,8 @@ def quiz_product_view(request):
     custom_scripts = []
     custom_scripts.append("/bootstrap/js/quiz_reactants.js")
     global quiz_problems
+    global instance_reaction
+    global instance_choices
     session = request.session
     #print "Mode: " + mode
     problem_id = ""
@@ -425,18 +441,20 @@ def quiz_product_view(request):
 
         # Reaction image without products
         mainImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
-
+        instance_mol = []
         reactantImages = []
         for mol in products:
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, True])    # indicate that these are correct answers
-
+            instance_mol.append(mol)
 
         # Generate wrong answers here, add to reactantImages
         for mol in chem.mutateMolecules(products):
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, False])    # indicate that these are wrong answers
+            instance_mol.append(mol)
 
+	instance_choices = instance_mol
         random.shuffle(reactantImages)
 
         quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
@@ -489,19 +507,22 @@ def quiz_product_view(request):
                     if p['problem_id'] == problem_id:
                         problem_h = p
                         break
-
+	    # Get the count of how many quiz histories there are. 
+	    quiz_history_count = DBSession.query(Quiz_history).filter( Quiz_history.user == currentuser.id).filter(Quiz_history.course == course.id).count()
+	    quiz_history_count = quiz_history_count + 1
+	    
             if set(ans) != set(correctAnswers):
                 message = "Wrong!"
                 result = False
                 problem_h['status'] = 'fail'
-                #print "Your set: " + str(set(ans))
-                #print "Good set: " + str(set(correctAnswers))
-		DBSession.add(Quiz_history( course = course.id, chapter = chapter.id, user = currentuser.id, score=0, reaction_name = mode, quiz_type=quiz_type))
+		
+		DBSession.add(Quiz_history( question_number = quiz_history_count,  course = course.id, chapter = chapter.id, user = currentuser.id, score=0, reaction_name = mode, quiz_type=quiz_type, reaction_obj = instance_reaction, choice_obj = instance_choices))
             else:
                 message = "Correct! You selected what's necessary and nothing else."
                 result = True
                 problem_h['status'] = 'pass'
-	        DBSession.add(Quiz_history( course=course.id, chapter = chapter.id, user = currentuser.id, score=1, reaction_name = mode, quiz_type=quiz_type))
+	        
+		DBSession.add(Quiz_history( question_number = quiz_history_count, course=course.id, chapter = chapter.id, user = currentuser.id, score=1, reaction_name = mode, quiz_type=quiz_type, reaction_obj = instance_reaction, choice_obj = instance_choices))
             # Once user has made a choice, replace cut reaction with a full one
 
             quiz_problems[problem_id][0] = quiz_problems[problem_id][2]
@@ -538,14 +559,15 @@ def quiz_product_view(request):
             "logged_in" : request.authenticated_userid
         }
 
-@view_config(route_name='quiz_question', renderer='ltefserver:templates/new/quiz_question.pt', permission='educate')
+@view_config(route_name='quiz_question', renderer='ltefserver:templates/new/quiz_question.pt', permission='study')
 def quiz_question_view(request):
 
     course_name = request.matchdict["course"]
     student_username = request.matchdict["student"]
     quiz_type = request.matchdict["quiz"]
     chapter_name = request.matchdict["chapter"]
-
+    is_incorrect = False
+    is_correct = False
     message = ""
     custom_scripts =[]
 
@@ -556,24 +578,77 @@ def quiz_question_view(request):
     enrolled_courses = []
     if group["is_teacher"]:
         owner_courses = Course.owner_courses(request.authenticated_userid)
+        course = DBSession.query(Course).filter(Course.name == course_name).filter(Course.owner == current_user.id).first()
     elif group["is_student"]:
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
     student = DBSession.query(User).filter(User.username == student_username).first()
-    quiz = DBSession.query(Quiz_history).filter(Quiz_history.student == student.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.id == quiz).first()
+    course = DBSession.query(Course).filter(Course.name == course_name).first()
+    chapter = DBSession.query(Chapter).filter(Chapter.title == chapter_name).filter(Chapter.course == course.id).first()
+   
+    quiz = DBSession.query(Quiz_history).filter(Quiz_history.user== student.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.question_number == quiz_type).first()
+
+    choices = quiz.choice_obj
+
+    if quiz.score == 0:
+        message = "You have selected the incorrect answer"
+        is_incorrect = True
+    elif quiz.score == 1:
+        message = "You have selected the correct Answer"
+        is_correct = True
 
 
+    # Draw the reaction in svg
+    instance = quiz.reaction_obj
+    reaction_svg = draw.renderReactionToBuffer(instance, render_format="svg", layout=True).tostring()
 
+    # Chop off the xml tag
+    reaction_svg = reaction_svg[reaction_svg.find('\n') + 1:]
+    # Modify height and width of the svg tag
+    svgline = reaction_svg[:reaction_svg.find('\n')]
+    svglineparts = re.split('width=".*?" height=".*?"', svgline)
+    svgline = svglineparts[0] + 'width="100%"' + svglineparts[1]
+    reaction_svg = svgline + "\n" + reaction_svg[reaction_svg.find('\n') + 1 :]
+
+    # Draw the question
+    molecule = chem.Molecule()
+    molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
+
+
+    instance.reactants = [molecule]
+
+    product_svg = draw.renderReactionToBuffer(instance, render_format="svg", layout=True).tostring()
+
+    # Chop off the xml tag
+    product_svg = product_svg[product_svg.find('\n') + 1:]
+    # Modify height and width of the svg tag
+    svgline = product_svg[:product_svg.find('\n')]
+    svglineparts = re.split('width=".*?" height=".*?"', svgline)
+    svgline = svglineparts[0] + 'width="100%"' + svglineparts[1]
+    product_svg = svgline + "\n" + product_svg[product_svg.find('\n') + 1 :]
+    # Draw the molecules
+    mol_choices_svg = []
+    for mol in choices:
+            mol_choice_svg = draw.renderMoleculeToBuffer(mol, render_format="svg", layout=True).tostring()
+	    mol_choices_svg.append(mol_choice_svg)    # indicate that these are wrong answers
+
+    # If a molecule was selected then highlight
 
 
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
-            "owner_courses" : owner_courses,
+            "reaction_svg" : reaction_svg,
+	        "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
-            "custom_scripts" : custom_scripts,
+	        "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "Quiz History"           }
+            "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "Quiz History",
+            "is_correct" : is_correct,
+            "is_incorrect" : is_incorrect,
+            "product_svg" : product_svg,
+	    "mol_choices_svg" : mol_choices_svg,
+           }
 
 
 
@@ -598,7 +673,7 @@ def student_quiz_history_view(request):
         course = DBSession.query(Course).filter(Enrolled.courseid == Course.id).filter(Enrolled.userid == currentuser.id).filter(Course.name == course_name).first()
 
     student = DBSession.query(User).filter(User.username == student_username).first()
-    quiz_histories = DBSession.query(Quiz_history, Chapter).filter(Quiz_history.user == student.id).filter(Quiz_history.course == course.id).filter(Chapter.id == Quiz_history.chapter).all()
+    quiz_histories = DBSession.query(Quiz_history, Chapter, Course, User).filter(Chapter.course == Course.id).filter(User.id == student.id).filter(Quiz_history.user == student.id).filter(Quiz_history.course == course.id).filter(Chapter.id == Quiz_history.chapter).all()
 
     owner_courses = []
     enrolled_courses = []

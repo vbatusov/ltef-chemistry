@@ -1,6 +1,42 @@
-
 <div metal:use-macro="layout">
-    <div metal:fill-slot="content">
+  <div metal:fill-slot="content">
 
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <div class="form-group">
+          <div class="col-sm-12">
+            <div tal:condition="is_correct" class="alert alert-success" role="alert">${message}</div>
+            <div tal:condition="is_incorrect" class="alert alert-danger" role="alert">${message}</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-12 col-md-12 ">
+              Question:
+              ${structure: reaction_svg}
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-12 col-md-12 ">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-12 col-md-12">
+            Answer
+            ${structure: product_svg}
+          </div>
+        </div>
+        <div class="form-group last">
+          <div class="col-sm-12 col-md-4" tal:repeat="mol_choice mol_choices_svg"  >
+
+ 	${structure: mol_choice}
+
+	</div>
+        </div>
+
+      </div>
     </div>
+
+
+
+  </div>
 </div>
