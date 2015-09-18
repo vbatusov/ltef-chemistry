@@ -101,11 +101,6 @@ class Molecule:
             return True
         return False
 
-    def __eq__(self, other):
-
-        return (all(x in self.atomList for x in other.atomList)) and (all(x in self.bondList for x in other.bondList)) and (self.anchor == other.anchor)
-
-
     @property
     def numberOfAtoms(self):
         return len(self.atomList)
@@ -134,9 +129,6 @@ class Molecule:
         self.bondList.extend(newmolecule.bondList)
 
 
-        # FINISHED, UNTESTED
-
-
     def getInstance(self, rgroups={}):
         """ This returns a new molecule which is the same as self except that every
         R-atom is replaced with a corresponding molecule from the provided dictionary.
@@ -159,9 +151,25 @@ class Molecule:
 
         return newmol
 
-        # FINISHED, UNTESTED
 
+    def __eq__(self, other):
+        """
+            Let's agree that two Molecule objects are equal if and only if
+            they represent the same chemical structure, regardless of the object's innards.
+            The way 'draw' is implemented, the AAM are be ignored, but stereo is preserved.
+        """
+        if isinstance(other, self.__class__):
+            import draw
+            (i, _) = draw.get_indigo()
+            imol1 = draw.build_indigo_molecule(self, i)
+            imol2 = draw.build_indigo_molecule(other, i)
+            #print imol1.canonicalSmiles(), "versus", imol2.canonicalSmiles()
+            return imol1.canonicalSmiles() == imol2.canonicalSmiles()
+        else:
+            return False
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class Reaction:

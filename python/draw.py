@@ -2,8 +2,6 @@
 Module for drawing molecules and reactions.
 """
 
-import chem
-import sys
 from indigo import *
 from indigo_renderer import *
 
