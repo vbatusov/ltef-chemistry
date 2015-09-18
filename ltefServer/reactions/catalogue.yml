@@ -53,11 +53,11 @@ reactions:
 - {basename: conversion_of_an_alcohol_into_a_bromide, name: Conversaion of an alcohol into a bromide}
 #- {basename: cyclopropane_synthesis_from_an_alkene, name: Cyclopropane synthesis from an alkene}
 #- {basename: deprotection_of_carboxylic_acids_using_hydroxide, name: Deprotonation of a carboxylic acid using hydroxide}
-- {basename: e1_reaction_using_sulferic_acid, name: E1 reaction using sulfuric acid}
+- {basename: e1_reaction_using_sulfuric_acid, name: E1 reaction using sulfuric acid}
 #- {basename: ester_synthesis_from_an_acid_chloride_and_an_amine, name: Ester synthesis from an acid chloride and an amine}
 - {basename: halohydrin_formation_from_an_alkene, name: Halohydrin formation from an alkene}
 - {basename: hydrolysis_of_an_acid_chloride, name: Hydrolysis of an acid chloride}
-- {basename: hydrolysis_of_an_amine, name: Hydrolysis of an amine}
+- {basename: hydrolysis_of_an_amide, name: Hydrolysis of an amide}
 - {basename: hydrolysis_of_an_ester_with_acid, name: Hydrolysis of an ester with acid}
 #- {basename: oxidation_of_an_aldehyde_using_pcc, name: Oxidation of an alcohol using PCC}
 - {basename: sn1_using_silver_nitrate, name: Sn1 using silver nitrate}

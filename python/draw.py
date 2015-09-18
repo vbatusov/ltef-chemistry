@@ -158,7 +158,7 @@ def renderReactionToBuffer(reaction, render_format="png", layout=False):
 
 def renderMoleculeToBuffer(molecule, render_format="png", layout=False, highlight=False):
     (indigo, renderer) = get_indigo()
-    indigo.setOption("render-image-size", 220, 119)
+    #indigo.setOption("render-image-size", 220, 119)
 
     if render_format == "svg":
         indigo.setOption("render-output-format", "svg")
@@ -189,3 +189,115 @@ def renderRGroupToBuffer(reaction, rname, nmol, render_format="png", layout=Fals
     imol = build_indigo_molecule(mol, indigo, layout)
 
     return renderer.renderToBuffer(imol)
+
+
+class SVGRenderer:
+    """
+      This class exists for the sole purpose of handling Indigo's shameful ways
+      of generating svg files. The class methods are exactly as before, except
+      now the renderer object will store the glyph names it's previously seen
+      and will rename subsequent svg glyphs to avoid conflicts. Thus, as long as
+      the same renderer object is used for generating svg images that appear
+      on the same html page, there should be no conflicts.
+    """
+
+    def __init__(self):
+        """
+            self.names dictionary maps glyph names to the number of times they have been used,
+            e.g., { "glyph0-1" : 7 }
+        """
+        self.names = {}
+
+    def renderReactionToBuffer(self, reaction, layout=False):
+        (indigo, renderer) = get_indigo()
+        indigo.setOption("render-image-size", 800, -1)
+        indigo.setOption("render-output-format", "svg")
+
+        ireaction = build_indigo_reaction(reaction, indigo, layout, layout, layout)
+        raw_xml = renderer.renderToBuffer(ireaction)
+
+        return self.fix_xml(raw_xml)
+
+
+    def renderMoleculeToBuffer(self, molecule, layout=False):
+        (indigo, renderer) = get_indigo()
+        indigo.setOption("render-output-format", "svg")
+
+        imol = build_indigo_molecule(molecule, indigo, layout)
+        raw_xml = renderer.renderToBuffer(imol).tostring()
+
+        return self.fix_xml(raw_xml)
+
+
+    def renderRGroupToBuffer(self, reaction, rname, nmol, layout=False):
+        (indigo, renderer) = get_indigo()
+
+        if rname not in reaction.rgroups.keys() or nmol >= len(reaction.rgroups[rname]):
+            return None
+
+        indigo.setOption("render-output-format", "svg")
+
+        mol = reaction.rgroups[rname][nmol]
+
+        imol = build_indigo_molecule(mol, indigo, layout)
+        raw_xml = renderer.renderToBuffer(imol)
+
+        return self.fix_xml(raw_xml)
+
+
+    def fix_xml(self, raw_xml):
+        import xml.etree.ElementTree as ET
+
+        # Set up the namespaces
+        ns = {'default': 'http://www.w3.org/2000/svg',
+              'xlink': 'http://www.w3.org/1999/xlink'}
+
+        for key, val in ns.iteritems():
+            mykey = key
+            if key == "default" :
+                mykey = ""
+            ET.register_namespace(mykey, val)
+
+        # Parse the raw xml
+        root = ET.fromstring(raw_xml)
+
+        # Renaming scheme; maps old glyph name to a new one
+        rename_to = {}
+
+        # Iterate over name definitions
+        for symbol in root.findall("default:defs/default:g/default:symbol", ns):
+            if symbol.attrib["id"] in self.names:
+                self.names[symbol.attrib["id"]] +=1
+            else:
+                self.names[symbol.attrib["id"]] = 0
+
+            rename_to[symbol.attrib["id"]] = "%s-%s" % (symbol.attrib["id"], str(self.names[symbol.attrib["id"]]))
+            #print "Will rename", symbol.attrib["id"], "to", rename_to[symbol.attrib["id"]]
+
+            symbol.attrib["id"] = rename_to[symbol.attrib["id"]]
+
+        # print "Renaming scheme:"
+        # print str(rename_to)
+
+        # Iterate over name instances
+        for use in root.findall("default:g/default:g/default:use", ns):
+            key = "{%s}href" % ns["xlink"]
+            clean_id = use.attrib[key][1:]  # Get rid of the leading '#'
+            if clean_id in rename_to:
+                use.attrib[key] = "#" + rename_to[clean_id]
+
+        return ET.tostring(root, encoding="UTF-8", method="xml")
+
+
+# DEBUGGINGS
+# import rxn
+# reac = rxn.parse_rxn("../ltefServer/reactions/rxn/alkyne_hydrogenation_with_lindlars_catalyst.rxn")
+# molecule = reac.reactants[0]
+# r = SVGRenderer()
+# print r.renderMoleculeToBuffer(molecule)
+#
+# print "\n"*5
+# print "* " * 40
+# print r.renderReactionToBuffer(reac)
+#
+# print r.renderRGroupToBuffer(reac, "R1", 0)
