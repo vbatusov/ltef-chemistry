@@ -9,34 +9,50 @@
             <div tal:condition="is_incorrect" class="alert alert-danger" role="alert">${message}</div>
           </div>
         </div>
-        <div class="form-group">
-          <div class="col-sm-12 col-md-12 ">
-              Question:
-              ${structure: reaction_svg}
-          </div>
-        </div>
+
         <div class="form-group">
           <div class="col-sm-12 col-md-12 ">
           </div>
         </div>
+Question:
         <div class="form-group">
           <div class="col-sm-12 col-md-12">
-            Answer
-            ${structure: product_svg}
+            ${structure: question_svg}
           </div>
         </div>
-        <div class="form-group last">
-          <div class="col-sm-12 col-md-4" tal:repeat="mol_choice mol_choices_svg"  >
+    Choices you have selected:
 
- 	${structure: mol_choice}
+        <div class="form-group col-md-offset-2">
 
-	</div>
+<div tal:repeat="(mol_choice, chosen) mol_choices_svg"> 
+<tal:if  condition="chosen">
+
+<div class="col-sm-12 col-md-3 " style="height:150px; border:solid; border-color:green;  border-radius:15px; margin: 10px;  text-align: center"   >
+   ${structure: mol_choice}
+</div>
+
+</tal:if> 
+<tal:elseif condition="not: chosen">
+
+<div class="col-sm-12 col-md-3 " style="height:150px; border:solid;  border-radius:15px; margin: 10px;  text-align: center"   >
+  ${structure: mol_choice}
+</div>
+
+</tal:elseif>  
+</div>
+</div>
+
+
+
+
+        <div class="form-group">
+          <div class="col-sm-12 col-md-12 ">
+              Correct Answer:
+              ${structure: reaction_svg}
+          </div>
         </div>
 
       </div>
     </div>
-
-
-
   </div>
 </div>

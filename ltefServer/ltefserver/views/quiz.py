@@ -265,13 +265,13 @@ def quiz_reactant_view(request):
         for mol in reactants:
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, True])    # indicate that these are correct answers
-	    instance_mol.append(mol)
+	    instance_mol.append([mol, True])
 
         # Generate wrong answers here, add to reactantImages
         for mol in chem.mutateMolecules(reactants):
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, False])    # indicate that these are wrong answers
-	    instance_mol.append(mol)
+	    instance_mol.append([mol, False])
 
 	instance_choices = instance_mol
         random.shuffle(reactantImages)
@@ -446,15 +446,15 @@ def quiz_product_view(request):
         for mol in products:
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, True])    # indicate that these are correct answers
-            instance_mol.append(mol)
+            instance_mol.append([mol, True])
 
         # Generate wrong answers here, add to reactantImages
         for mol in chem.mutateMolecules(products):
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, False])    # indicate that these are wrong answers
-            instance_mol.append(mol)
+            instance_mol.append([mol, False])
 
-	instance_choices = instance_mol
+	instance_choices = instance_mol 
         random.shuffle(reactantImages)
 
         quiz_problems[problem_id] = [mainImage, reactantImages, fullImage]
@@ -602,53 +602,62 @@ def quiz_question_view(request):
 
     # Draw the reaction in svg
     instance = quiz.reaction_obj
-    reaction_svg = draw.renderReactionToBuffer(instance, render_format="svg", layout=True).tostring()
+    render_draw = draw.SVGRenderer()
+    reaction_svg = render_draw.renderReactionToBuffer(instance, layout=False)
 
     # Chop off the xml tag
     reaction_svg = reaction_svg[reaction_svg.find('\n') + 1:]
     # Modify height and width of the svg tag
     svgline = reaction_svg[:reaction_svg.find('\n')]
-    svglineparts = re.split('width=".*?" height=".*?"', svgline)
+    svglineparts = re.split('width=".*?"', svgline)
     svgline = svglineparts[0] + 'width="100%"' + svglineparts[1]
     reaction_svg = svgline + "\n" + reaction_svg[reaction_svg.find('\n') + 1 :]
 
-    # Draw the question
+
     molecule = chem.Molecule()
     molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
+    if quiz.quiz_type == 'reactants':
+        instance.reactants = [molecule]
+    elif quiz.quiz_type == 'products':
+        instance.products = [molecule]
 
-
-    instance.reactants = [molecule]
-
-    product_svg = draw.renderReactionToBuffer(instance, render_format="svg", layout=True).tostring()
+    question_svg = render_draw.renderReactionToBuffer(instance, layout=False)
 
     # Chop off the xml tag
-    product_svg = product_svg[product_svg.find('\n') + 1:]
+    question_svg = question_svg[question_svg.find('\n') + 1:]
     # Modify height and width of the svg tag
-    svgline = product_svg[:product_svg.find('\n')]
-    svglineparts = re.split('width=".*?" height=".*?"', svgline)
+    svgline = question_svg[:question_svg.find('\n')]
+    svglineparts = re.split('width=".*?"', svgline)
     svgline = svglineparts[0] + 'width="100%"' + svglineparts[1]
-    product_svg = svgline + "\n" + product_svg[product_svg.find('\n') + 1 :]
+    question_svg = svgline + "\n" + question_svg[question_svg.find('\n') + 1 :]
+
     # Draw the molecules
     mol_choices_svg = []
     for mol in choices:
-            mol_choice_svg = draw.renderMoleculeToBuffer(mol, render_format="svg", layout=True).tostring()
-	    mol_choices_svg.append(mol_choice_svg)    # indicate that these are wrong answers
-
-    # If a molecule was selected then highlight
-
+	mol_choice_svg = render_draw.renderMoleculeToBuffer(mol[0], layout=False )    
+	    # Chop off the xml tag
+        mol_choice_svg = mol_choice_svg[mol_choice_svg.find('\n') + 1:]
+        # Modify height and width of the svg tag
+        svgline = mol_choice_svg[:mol_choice_svg.find('\n')]
+        svglineparts = re.split('height=".*?"', svgline)
+        svgline = svglineparts[0] + 'height="100%" "' + svglineparts[1]
+        svglineparts = re.split('width=".*?"', svgline)
+        svgline = svglineparts[0] + 'width="100%" "' + svglineparts[1]
+        mol_choice_svg = svgline + "\n" + mol_choice_svg[mol_choice_svg.find('\n') + 1 :]
+	mol_choices_svg.append([mol_choice_svg, mol[1] ])    # indicate that these are wrong answers
 
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
             "message" : message,
             "reaction_svg" : reaction_svg,
-	        "owner_courses" : owner_courses,
+	    "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
-	        "custom_scripts" : custom_scripts,
+	    "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
             "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "quiz question #" + str(quiz.question_number),
             "is_correct" : is_correct,
             "is_incorrect" : is_incorrect,
-            "product_svg" : product_svg,
+            "question_svg" : question_svg,
 	    "mol_choices_svg" : mol_choices_svg,
            }
 
