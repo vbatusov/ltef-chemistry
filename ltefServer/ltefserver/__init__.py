@@ -97,6 +97,9 @@ def main(global_config, **settings):
     # Chapter action
     config.add_route('chapter_action', '/class/{basename}/{chapter}/{action}')
 
+    # Reaction action 
+    config.add_route('reaction_action', '/class/{course}/{chapter}/{reaction}/reaction/{action}')
+ 
     # Edit Account
     config.add_route('edit_account', '/edit_account')
 

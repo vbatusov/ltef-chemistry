@@ -579,14 +579,16 @@ def quiz_question_view(request):
     if group["is_teacher"]:
         owner_courses = Course.owner_courses(request.authenticated_userid)
         course = DBSession.query(Course).filter(Course.name == course_name).filter(Course.owner == current_user.id).first()
+        student = DBSession.query(User).filter(User.username == student_username).first()
+        chapter = DBSession.query(Chapter).filter(Chapter.title == chapter_name).filter(Chapter.course == course.id).first()
+
+        quiz = DBSession.query(Quiz_history).filter(Quiz_history.user== student.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.question_number == quiz_type).first()
     elif group["is_student"]:
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
-
-    student = DBSession.query(User).filter(User.username == student_username).first()
-    course = DBSession.query(Course).filter(Course.name == course_name).first()
-    chapter = DBSession.query(Chapter).filter(Chapter.title == chapter_name).filter(Chapter.course == course.id).first()
-   
-    quiz = DBSession.query(Quiz_history).filter(Quiz_history.user== student.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.question_number == quiz_type).first()
+	course = DBSession.query(Course).filter(Course.name == course_name).filter(Course.id == Enrolled.courseid).filter(Enrolled.userid == current_user.id).first()
+        student = DBSession.query(User).filter(User.username == student_username).first()
+        chapter = DBSession.query(Chapter).filter(Chapter.title == chapter_name).filter(Chapter.course == course.id).first()
+        quiz = DBSession.query(Quiz_history).filter(Quiz_history.user== current_user.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.question_number == quiz_type).first()
 
     choices = quiz.choice_obj
 
@@ -643,7 +645,7 @@ def quiz_question_view(request):
             "enrolled_courses" : enrolled_courses,
 	        "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "Quiz History",
+            "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "quiz question #" + str(quiz.question_number),
             "is_correct" : is_correct,
             "is_incorrect" : is_incorrect,
             "product_svg" : product_svg,
@@ -688,9 +690,9 @@ def student_quiz_history_view(request):
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
             "custom_scripts" : custom_scripts,
-	        "quiz_histories" : quiz_histories,
+	    "quiz_histories" : quiz_histories,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "page_title" : student.firstname.title() + " " + student.lastname.title() + " " + "Quiz History"           }
+            "page_title" : student.firstname + " " + student.lastname + " Quiz History"      }
 
 
 @view_config(route_name='select_quiz', renderer='ltefserver:templates/new/select_quiz.pt', permission='study')
