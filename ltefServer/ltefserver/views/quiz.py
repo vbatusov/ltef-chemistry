@@ -343,6 +343,13 @@ def quiz_reactant_view(request):
             session.invalidate()
             question_svg = ""
 
+	    for instance_choice in instance_choices:
+		print instance_choice[1]
+		instance_choice[1] = False
+
+	    for answer_index in answer:
+		instance_choices[int(answer_index)][1] = True 
+
             # Get the count of how many quiz histories there are.
             quiz_history_count = DBSession.query(Quiz_history).filter( Quiz_history.user == currentuser.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).count()
             quiz_history_count = quiz_history_count + 1
