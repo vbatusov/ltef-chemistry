@@ -267,8 +267,12 @@ def quiz_reactant_view(request):
             reactantImages.append([image, True])    # indicate that these are correct answers
 	    instance_mol.append([mol, True])
 
+
+
         # Generate wrong answers here, add to reactantImages
-        for mol in chem.mutateMolecules(reactants):
+        bastardReaction = chem.bastardReaction(reactants, products)
+
+        for mol in bastardReaction.mutateMolecules(reactants):
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, False])    # indicate that these are wrong answers
 	    instance_mol.append([mol, False])
@@ -432,6 +436,7 @@ def quiz_product_view(request):
 
         fullImage = draw.renderReactionToBuffer(instance, layout=True).tostring()
 
+	reactants = instance.reactants
         products = instance.products
 
         molecule = chem.Molecule()
@@ -448,8 +453,11 @@ def quiz_product_view(request):
             reactantImages.append([image, True])    # indicate that these are correct answers
             instance_mol.append([mol, True])
 
+        bastardReaction = chem.bastardReaction(reactants, products)
+
+
         # Generate wrong answers here, add to reactantImages
-        for mol in chem.mutateMolecules(products):
+        for mol in bastardReaction.mutateMolecules(products):
             image = draw.renderMoleculeToBuffer(mol, layout=True).tostring()
             reactantImages.append([image, False])    # indicate that these are wrong answers
             instance_mol.append([mol, False])
