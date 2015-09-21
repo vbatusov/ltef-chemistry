@@ -89,6 +89,7 @@ def main(global_config, **settings):
 
     # Student Quiz history
     config.add_route('student_quiz_history', '/class/{course}/{student}/quiz_history')
+    config.add_route('quiz_question', '/class/{course}/{chapter}/{student}/quiz_history/{quiz}')
 
     # Student actions i.e. remove_student
     config.add_route('remove_student', '/class/{course}/{student}/remove_student')
@@ -96,6 +97,9 @@ def main(global_config, **settings):
     # Chapter action
     config.add_route('chapter_action', '/class/{basename}/{chapter}/{action}')
 
+    # Reaction action 
+    config.add_route('reaction_action', '/class/{course}/{chapter}/{reaction}/reaction/{action}')
+ 
     # Edit Account
     config.add_route('edit_account', '/edit_account')
 

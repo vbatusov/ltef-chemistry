@@ -72,7 +72,7 @@ def logged_layout():
     renderer = get_renderer("ltefserver:templates/logged_layout.pt")
     layout = renderer.implementation().macros['logged_layout']
     return layout
-
+		
 
 @view_config(route_name='addreaction', renderer='ltefserver:templates/new/addreaction.pt', permission='study')
 def addreaction_view(request):
@@ -82,7 +82,7 @@ def addreaction_view(request):
     owner_courses = []
     enrolled_courses = []
     if group["is_teacher"]:
-        owner_courses = Course.owner_courses(request.authenticated_userid)
+	        owner_courses = Course.owner_courses(request.authenticated_userid)
     elif group["is_student"]:
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
 
@@ -94,7 +94,25 @@ def addreaction_view(request):
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
 	        "page_title" : "Add New Reaction"			 }
 
+@view_config(route_name='reaction_action', match_param='action=remove_reaction', permission='educate')
+def remove_reaction_view(request):
 
+
+    course = request.matchdict["course"]
+    chapter_name = request.matchdict["chapter"]
+    custom_scripts = []
+    message = ""
+    chapter_title = ""
+    course_description = ""
+    currentuser = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
+    group = group_security(request.authenticated_userid)
+
+    current_chapter = DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Chapter.title == chapter_name).first()
+
+    DBSession.query(Chapter).filter(Chapter.id == current_chapter.id).delete()
+    DBSession.query(Customizable_reaction).filter(Customizable_reaction.chapter == current_chapter.id).delete()
+
+    return HTTPFound(location=request.route_url('home') + 'class/' + course) 
 
 
 

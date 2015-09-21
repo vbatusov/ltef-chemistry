@@ -135,10 +135,13 @@ class Quiz_history(Base):
     course = Column(ForeignKey("courses.id"))
     chapter = Column(ForeignKey("chapter.id"))
     user = Column(ForeignKey("users.id"))
+    question_number = Column(Integer) 
     score = Column(Integer)
     quiz_type = Column(Text)
     reaction_name = Column(Text)
     time_submitted = Column(DateTime, default=datetime.datetime.utcnow)    
+    reaction_obj = Column(PickleType)
+    choice_obj = Column(PickleType)
 
 class Security_question(Base):
     __tablename__ = 'security_question'
