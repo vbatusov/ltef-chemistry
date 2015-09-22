@@ -112,7 +112,11 @@ def parse_record(record, rgroup=False):
         # Add atom to molecule
         molecule.addAtom(atom)
 
-        if rgroup and "ATTCHPT" in attrDict and attrDict["ATTCHPT"] == "1":
+        # DANGER! Turns out, ATTCHPT can take any of {-1, 1, 2}, each with different semantics.
+        # Since we don't have credible examples of usage, let's, for now, take the first atom with ATTCHPT as the anchor.
+        # TODO: ATTCHPT=-1 when we have an R-group with TWO connections, i.e. R5 in "C-R5-R6". Must change logic here and in chem.py to accommodate this.
+        # TODO: revisit when sn2_reaction is cleaned up.
+        if rgroup and "ATTCHPT" in attrDict and molecule.anchor is None: # and attrDict["ATTCHPT"] == "1":
             molecule.anchor = atom
 
 
