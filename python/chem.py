@@ -62,7 +62,9 @@ class Molecule:
     def __init__(self):
         self.atomList = []
         self.bondList = []
-        self.anchor = None
+        self.anchor = None  # Obsolete
+        self.anchors = None # Replaces self.anchor, because R-groups can have multiple anchors
+        self.owner = None   # For debugging only, set this to the reaction object the molecule belongs to
 
     def addAtom(self, *atom):
         for a in atom:
@@ -112,7 +114,7 @@ class Molecule:
         """
 
         if newmolecule.anchor is None:
-            raise Exception("New molecule does not have an anchor!")
+            raise Exception("New molecule does not have an anchor!\n(Reaction is " + self.owner.name + ")")
 
         newmolecule.anchor.aam = oldatom.aam
 
@@ -235,24 +237,29 @@ class Reaction:
 
     def addReactant(self, molecule):
         self.reactants.append(molecule)
+        molecule.owner = self
 
     def addAgent(self, molecule):
         self.agents.append(molecule)
+        molecule.owner = self
 
     def addProduct(self, molecule):
         self.products.append(molecule)
+        molecule.owner = self
 
     def addRGroup(self, rgroupNumber, molecule):
         rgroupName = "R" + str(rgroupNumber)
         if rgroupName not in self.rgroups:
             self.rgroups[rgroupName] = []
         self.rgroups[rgroupName].append(molecule)
+        molecule.owner = self
 
     def finalize(self):
         """ Merely a sanity check
         Only execute after everything has been added to reaction.
         """
-
+        print "=" * 20, "Sanity check for reaction", self.name, "=" * 20
+        # Test AAM within and across agent groups
         aamReactants = []
         aamAgents = []
         aamProducts = []
@@ -261,44 +268,73 @@ class Reaction:
             for atom in mol.atomList:
                 #print "Sanity: " + str(atom)
                 if atom.aam == 0:
-                    raise Exception("Sanity check: reaction contains a reactant atom with AAM = 0")
+                    raise Exception("Sanity check: reaction " + self.name + " contains a reactant atom with AAM = 0")
                 if atom.aam in aamReactants:
-                    raise Exception("Sanity check: reaction contains two reactant atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
+                    raise Exception("Sanity check: reaction " + self.name + " contains two reactant atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
                 else:
                     aamReactants.append(atom.aam)
 
         for mol in self.agents:
             for atom in mol.atomList:
                 if atom.aam == 0:
-                    raise Exception("Sanity check: reaction contains a catalyst atom with AAM = 0")
+                    raise Exception("Sanity check: reaction " + self.name + " contains a catalyst atom with AAM = 0")
                 if atom.aam in aamAgents:
-                    raise Exception("Sanity check: reaction contains two catalyst atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
+                    raise Exception("Sanity check: reaction " + self.name + " contains two catalyst atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
                 else:
                     aamAgents.append(atom.aam)
 
         for mol in self.products:
             for atom in mol.atomList:
                 if atom.aam == 0:
-                    raise Exception("Sanity check: reaction contains a product atom with AAM = 0")
+                    raise Exception("Sanity check: reaction " + self.name + " contains a product atom with AAM = 0")
                 if atom.aam in aamProducts:
-                    raise Exception("Sanity check: reaction contains two product atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
+                    raise Exception("Sanity check: reaction " + self.name + " contains two product atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
                 else:
                     aamProducts.append(atom.aam)
 
+        # Test atom counts between reactants and products
         if len(set(aamReactants).intersection(set(aamProducts))) != len(aamReactants):
-            print "Reaction: " + str(self.name)
-            print "Reactant aam: " + str(sorted(aamReactants))
-            print "Product aam: " + str(sorted(aamProducts))
+            message = ("Reaction: " + str(self.name) +
+                      "\nReactant aam: " + str(sorted(aamReactants)) +
+                      "\n Product aam: " + str(sorted(aamProducts)) +
+                      "\nReactants: " + "\n\n".join([str(r) for r in self.reactants]) +
+                      "\nProducts: " + "\n\n".join([str(r) for r in self.products]))
+            raise Exception("Sanity check: mismatch between reactant and product atom sets!\n" + message)
 
-            print "\nReactants: " + "\n\n".join([str(r) for r in self.reactants])
-            print "\nProducts: " + "\n\n".join([str(r) for r in self.products])
-            raise Exception("Sanity check: mismatch between reactant and product atom sets")
-
+        # Test whether AAM are balanced
         if len(set(aamReactants).intersection(set(aamAgents))) != 0:
-            raise Exception("Sanity check: reactants and catalyst share some atoms")
+            raise Exception("Sanity check: reactants and catalyst share some atoms in " + self.name)
 
+        # Count atoms by objects and by aam
         if self.numberOfAtomsOverall != len(aamReactants + aamAgents):
-            raise Exception("Sanity check: self.numberOfAtomsOverall != len(aamReactants + aamAgents)")
+            raise Exception("Sanity check: self.numberOfAtomsOverall != len(aamReactants + aamAgents) in " + self.name)
+
+        print "All numbers check out."
+
+        # We want to be sure that this reaction can be instantiated
+        # Test for unknown pseudoatoms
+        def test_a_list_of_symbols(symbols):
+            for symbol in symbols:
+                if symbol not in ATOM_NAMES and sanitize_symbol(symbol) not in PSEUDO.keys() and symbol not in self.rgroups:
+                    if symbol[0] != "[":
+                        raise Exception("Unrecognized atom name - '" + symbol + "', or '" + sanitize_symbol(symbol) + "' - in reaction " + self.name)
+                    else:
+                        test_a_list_of_symbols(pseudoatomToList(symbol))
+
+        import itertools
+        all_rgroup_mols = list(itertools.chain.from_iterable(self.rgroups.values()))
+        for mol in self.reactants + self.agents + self.products + all_rgroup_mols:
+            test_a_list_of_symbols([a.symbol for a in mol.atomList])
+
+        # Test R-groups
+        for rname, rmollist in self.rgroups.iteritems():
+            for rmol in rmollist:
+                if rmol.anchors is None:
+                    raise Exception("R-group " + rname + "'s choice " + str(rmol) + " has no attachment points at all!")
+                if len(rmol.anchors) > 1:
+                    print "One of the R-group " + rname + "'s choices has " + str(len(rmol.anchors)) + " attachment points, please investigate."
+
+        print "-" * 50
 
     def selectRGroups(self):
         """ For each unique R-group in reaction, select a single generic
@@ -468,7 +504,7 @@ class Reaction:
 
         #print "Instance: \n" + str(reactionInst)
 
-        reactionInst.finalize()
+        reactionInst.finalize()  # REMOVE THIS WHEN IN PRODUCTION; way too expensive
 
         return reactionInst
 
@@ -705,6 +741,15 @@ def buildAlkaliMetal(anchorAAM, args):
     # Not implemented
     return None
 
+def buildPseudoatom(anchorAAM, args):
+    molecule = Molecule()
+    root = Atom(args["symbol"], 0, 0, 0, 0, 0)
+    root.aam = anchorAAM
+    molecule.addAtom(root)
+    molecule.anchor = root
+
+    return molecule
+
 
 PSEUDO = {
         "alkyl" : (
@@ -722,6 +767,10 @@ PSEUDO = {
         "roh" : (buildROH, {}),
         "br-" : (buildBromineAnion, {}),
         "x" : (buildHalogen, { "symbol" : ["F", "Cl", "Br", "I"] }),
+        "pdc" : (buildPseudoatom, { "symbol" : "Pd/C"}),
+        "alkynyl" : (buildPseudoatom, { "symbol" : "TODO: Alkynyl"}),
+        "carboaryl" : (buildPseudoatom, { "symbol" : "TODO: Carboaryl"}),
+        "alkenyl" : (buildPseudoatom, { "symbol" : "TODO: Alkenyl"}),
     }
 
 ATOM_NAMES = {
