@@ -1,34 +1,33 @@
 <div metal:use-macro="layout">
   <div metal:fill-slot="content">
-  <style>
-            div.row-fluid [class*="span"] .center-in-span {
-                float: none;
-                margin: 0 auto;
-                text-align: center;
-                display: block;
-                width: auto;
-                height: auto;
-            }
-            div.molecule {
-                display: inline-block;
-                margin:20px;
-                border:solid 2px;
-                -webkit-border-radius: 7px;
-                -moz-border-radius: 7px;
-                border-radius: 7px;
-                border-color:#ffffff;
-                min-height: 40px;
-                line-height: 40px;
-                width: 220px;
-                height:119px;
-                background-size: 220px 119px;
-                background-repeat:no-repeat;
-
-            }
-            div.molecule:hover {
-                background-color: #eee;
-            }
-        </style>
+    <style>
+      div.row-fluid [class*="span"] .center-in-span {
+        float: none;
+        margin: 0 auto;
+        text-align: center;
+        display: block;
+        width: auto;
+        height: auto;
+      }
+      div.molecule {
+        display: inline-block;
+        margin: 20px;
+        border: solid 2px;
+        -webkit-border-radius: 7px;
+        -moz-border-radius: 7px;
+        border-radius: 7px;
+        border-color: #fff;
+        min-height: 40px;
+        line-height: 40px;
+        width: 220px;
+        height: 119px;
+        background-size: 220px 119px;
+        background-repeat: no-repeat;
+      }
+      div.molecule:hover {
+        background-color: #eee;
+      }
+    </style>
     <div class="panel panel-default">
       <div class="panel-body">
         <div class="form-group">
@@ -38,13 +37,13 @@
           </div>
         </div>
 
-        <div tal:condition="state == 'ask'"  class="form-group">
+        <div class="form-group" tal:condition="state == 'ask'">
           <div class="col-sm-12 col-md-12">
             ${structure: question_svg}
           </div>
         </div>
 
-        <div tal:condition="state == 'tell'"  class="form-group">
+        <div class="form-group" tal:condition="state == 'tell'">
           <div class="col-sm-12 col-md-12">
             ${structure: reaction_svg}
           </div>
@@ -52,50 +51,35 @@
 
         <div class="form-group">
           <div class="col-sm-12 col-md-12">
-            <p tal:condition="state == 'ask'" >What should the reactants be? Select those (and only those) molecules that would complete and balance the reaction. You can select and deselect molecules by clicking on them.</p>
+            <p tal:condition="state == 'ask'">What should the reactants be? Select those (and only those) molecules that would complete and balance the reaction. You can select and deselect molecules by clicking on them.</p>
           </div>
         </div>
 
         <div class="form-group">
-            <div class="col-sm-12 col-md-12 ">
-                <div tal:condition="state == 'ask'">
-                    <div tal:condition="state == 'ask'" id="molContainer" class="row-fluid">
-                        <div tal:condition="state == 'ask'" class="span12"  tal:define="global number python: 0">
-                            <div tal:condition="state == 'ask'" id="molSpan" class="row-fluid center-in-span show-grid">
-                                <div tal:condition="state == 'ask'" tal:attributes="id string:${python:number}" tal:repeat="(molecule, correct) reactant_svgs"  class="molecule"><tal:block define="global number python: number + 1"/>${structure: molecule}</div>
-                            </div>
-                        </div>
-                    </div>
+          <div class="col-sm-12 col-md-12 ">
+            <div tal:condition="state == 'ask'">
+              <div class="row-fluid" id="molContainer" tal:condition="state == 'ask'">
+                <div class="span12" tal:condition="state == 'ask'" tal:define="global number python: 0">
+                  <div class="row-fluid center-in-span show-grid" id="molSpan" tal:condition="state == 'ask'">
+                    <div class="molecule" tal:attributes="id string:${python:number}" tal:condition="state == 'ask'" tal:repeat="(molecule, correct) reactant_svgs"><tal:block define="global number python: number + 1"/>${structure: molecule}</div>
+                  </div>
                 </div>
+              </div>
             </div>
+          </div>
         </div>
 
         <div class="form-group last">
-            <form tal:condition="state == 'ask'" name="checkSolution" action="${request.current_route_url()}">
-            <input tal:condition="state == 'ask'" id="answerField" type="hidden" name="answer" />
-            <button tal:condition="state == 'ask'" id="checkButton" type="submit" class="btn  btn-success btn-outline btn-m">Submit</button>
+          <form action="${request.current_route_url()}" name="checkSolution" tal:condition="state == 'ask'">
+            <input id="answerField" name="answer" tal:condition="state == 'ask'" type="hidden"/>
+            <button class="btn  btn-success btn-outline btn-m" id="checkButton" tal:condition="state == 'ask'" type="submit">Submit</button>
             <form>
-              <form tal:condition="state == 'tell'" name="tryAnother" action="${request.current_route_url()}">
-                  <button tal:condition="state == 'tell'" id="checkButton" type="submit" class="btn btn-success btn-outline btn-m">Try another one</button>
-                  <form>
+              <form action="${request.current_route_url()}" name="tryAnother" tal:condition="state == 'tell'">
+                <button class="btn btn-success btn-outline btn-m" id="checkButton" tal:condition="state == 'tell'" type="submit">Try another one</button>
+                <form></div>
+              </div>
+
+            </div>
+
+          </div>
         </div>
-<!--
-
-
-                <div class="form-group last">
-                    <div class=" col-sm-12  ">
-                        <form tal:condition="state == 'ask'" name="checkSolution" action="${request.current_route_url()}">
-                            <input tal:condition="state == 'ask'" id="answerField" type="hidden" name="answer" />
-                            <button tal:condition="state == 'ask'" id="checkButton" type="submit" class="btn  btn-success btn-outline btn-m">Check</button>
-                            <form>
-                                <form tal:condition="state == 'tell'" name="tryAnother" action="${request.current_route_url()}">
-                                    <button tal:condition="state == 'tell'" id="checkButton" type="submit" class="btn btn-success btn-outline btn-m">Try another one</button>
-                                    <form>
-                                    </div>
-                                </div> -->
-        </div>
-
-      </div>
-
-    </div>
-  </div>
