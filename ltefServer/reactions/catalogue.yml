@@ -61,4 +61,4 @@ reactions:
 - {basename: hydrolysis_of_an_ester_with_acid, name: Hydrolysis of an ester with acid}
 #- {basename: oxidation_of_an_aldehyde_using_pcc, name: Oxidation of an alcohol using PCC}
 - {basename: sn1_using_silver_nitrate, name: Sn1 using silver nitrate}
-#- {basename: sn2_reaction, name: Sn2 reaction}
+- {basename: sn2_reaction, name: Sn2 reaction}
