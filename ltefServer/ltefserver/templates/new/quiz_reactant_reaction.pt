@@ -61,7 +61,7 @@
               <div class="row-fluid" id="molContainer" tal:condition="state == 'ask'">
                 <div class="span12" tal:condition="state == 'ask'" tal:define="global number python: 0">
                   <div class="row-fluid center-in-span show-grid" id="molSpan" tal:condition="state == 'ask'">
-                    <div class="molecule" tal:attributes="id string:${python:number}" tal:condition="state == 'ask'" tal:repeat="(molecule, correct) reactant_svgs"><tal:block define="global number python: number + 1"/>${structure: molecule}</div>
+                    <div class="molecule" tal:attributes="id string:${python:number}" tal:condition="state == 'ask'" tal:repeat="(molecule, correct) choices_svg"><tal:block define="global number python: number + 1"/>${structure: molecule}</div>
                   </div>
                 </div>
               </div>

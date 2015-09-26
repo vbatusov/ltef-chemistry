@@ -50,7 +50,7 @@ class Course(Base):
 
     @classmethod
     def owner_courses(cls, owner):
-	
+
         return DBSession.query(Course).filter(Course.owner == User.current_user(owner).id).all()
 
 class Enrolled(Base):
@@ -73,10 +73,10 @@ class User(Base):
     GUEST = "guest"
 
     id = Column(Integer, primary_key=True)
-    firstname = Column(Text)  
+    firstname = Column(Text)
     lastname = Column(Text)
     studentNumber = Column(Integer)
-    email = Column(Text, unique=True)	    
+    email = Column(Text, unique=True)
     username = Column(Text, unique=True)
     group = Column(ForeignKey("groups.id"))
     phash = Column(Text)
@@ -100,7 +100,7 @@ class Reac(Base):
 
 class Customizable_reaction(Base):
     __tablename__ = 'customizable_reaction'
-   
+
     id = Column(Integer, primary_key=True)
     reaction = Column(ForeignKey("reaction.id"))
     chapter = Column(ForeignKey("chapter.id"))
@@ -122,12 +122,12 @@ class List(Base):
 
 class Chapter(Base):
     __tablename__ = 'chapter'
-   
+
     id = Column(Integer, primary_key=True)
     course = Column(ForeignKey("courses.id"))
     title = Column(Text)
     description = Column(Text)
-   
+
 class Quiz_history(Base):
     __tablename__ = 'quiz_history'
 
@@ -135,11 +135,11 @@ class Quiz_history(Base):
     course = Column(ForeignKey("courses.id"))
     chapter = Column(ForeignKey("chapter.id"))
     user = Column(ForeignKey("users.id"))
-    question_number = Column(Integer) 
+    question_number = Column(Integer)
     score = Column(Integer)
     quiz_type = Column(Text)
     reaction_name = Column(Text)
-    time_submitted = Column(DateTime, default=datetime.datetime.utcnow)    
+    time_submitted = Column(DateTime, default=datetime.datetime.utcnow)
     reaction_obj = Column(PickleType)
     choice_obj = Column(PickleType)
 
@@ -150,6 +150,17 @@ class Security_question(Base):
     question = Column(Text)
     answer = Column(Text)
     user = Column(ForeignKey("users.id"))
+
+class Generated_question(Base):
+    __tablename__ = 'generated_question'
+
+    id = Column(Integer, primary_key=True)
+    user = Column(ForeignKey("users.id"))
+    reaction = Column(ForeignKey("reaction.id"))
+    chapter = Column(ForeignKey("chapter.id"))
+    quiz_type = Column(Text)
+    full_reaction = Column(PickleType)
+    choices = Column(PickleType)
 
 # Authorization
 class RootFactory(object):
