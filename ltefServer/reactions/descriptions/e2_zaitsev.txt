@@ -1,1 +1,5 @@
-(No description available)
+For the E2 reaction, the base deprotonates a carbon and produces a double bond and forcing a leaving group (LG) to be ejected from the molecule. It is important to remember that the proton and leaving group must be antiperiplanar or the reaction will not progress. The antiperiplanar requirement of the E2 reaction will cause the resulting alkene to have a specific conformation.
+
+The reaction occurs the fastest for tertiary leaving groups, slower for primary leaving groups, and will probably not occur for primary leaving groups. This is due to the stability of the corresponding carbocation, which will not be stabilized by (hyper)conjugation in the case of primary leaving groups.
+
+The E2 reaction competes with the Sn2, Sn1, and E1 reactions. Generally the addition of heat to a reaction will favour elimination reactions; this can be used strategically to favour one of the four above reactions.

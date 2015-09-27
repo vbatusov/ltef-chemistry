@@ -1,1 +1,5 @@
-This reaction might now work becuase of how I drew it on MarvinSketch.
+The Sn1 (Substitution unimolecular) reaction is initiated by the ejection of the leaving group (LG) to generate a planar carbocation which is highly electrophilic. This allows for weak nucleophiles (ie. Alcohols) to attack the carbocation and from the newly substituted product. The leaving group must leave first, or the reaction will not progress through the Sn1 mechanism.
+
+The rate of reaction is dependent on the formation of the carbocation. The reaction will be fastest for tertiary and benzylic halides, slower for secondary halides, and not work for primary halides.
+
+The Sn1 reaction competes with the Sn2, E1, and E2 reactions. 
