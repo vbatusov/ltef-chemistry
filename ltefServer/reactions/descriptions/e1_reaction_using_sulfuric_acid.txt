@@ -1,0 +1,5 @@
+For the E1 reaction, the leaving group (LG) leaves the molecule to form a carbocation, this is followed by a base deprotonating a carbon next to the carbocation, forming the corresponding alkene the process. 
+
+The rate of reaction is dependent on the formation and stability of the carbocation. The reaction will be fastest for tertiary and benzylic carbocations, slower for secondary carbocations, and not work for primary carbocations. This is because carbocations are not commonly formed on primary positons as they are not stabilized by (hyper)conjugation, instead the reaction may follow the E2 mechanism.  
+
+The E1 reaction competes with the Sn1, Sn2, and E2 reactions. Generally elimination reactions are favoured by heat. The reaction generally produces the most stable (most substituted) alkene, which will be the major product; however it is possible to produce less substituted product as well, the minor product. 
