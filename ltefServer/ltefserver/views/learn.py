@@ -72,6 +72,24 @@ def logged_layout():
     return layout
 
 
+@view_config(route_name='reaction_image', renderer='ltefserver:templates/new/reaction_image.pt', permission='study')
+def learning_reaction_image_view(request):
+
+    # retrieve basename
+    basename = request.matchdict["basename"]
+
+    reaction = cat.get_reaction_by_basename(basename)
+
+    # Initialize draw SVGRenderer object
+    svg_reanderer = draw.SVGRenderer()
+
+    svg_data = ""
+    svg_data = svg_reanderer.renderReactionToBuffer(reaction.getInstance(), layout=False)
+
+    svg_data = update_svg_size(svg_data, '100%', '-1')
+
+    return {"svg_data" : svg_data
+            }
 
 
 
@@ -101,22 +119,32 @@ def learning_view(request):
 
 @view_config(route_name='learning_reaction', renderer='ltefserver:templates/new/learning_reaction.pt', permission='study')
 def learning_reaction_view(request):
-    custom_scripts = []
-    # Sessions experiment; ignore
-    # session = request.session
-    # if 'abc' in session:
-    #     session['fred'] = 'yes'
-    # session['abc'] = '123'
-    # if 'fred' in session:
-    #     print 'Fred was in the session'
-    # else:
-    #     print 'Fred was not in the session'
-    # End of session experiment
+
+    # retrieve basename
+    basename = request.matchdict["basename"]
+    # Get the reaction that will be genereated
+    reaction = cat.get_reaction_by_basename(basename)
+
+    random_file_id = str(uuid.uuid4())[0:10].upper()  # or whatever
+    # needs to be random file name
+    filename = "svg_data_" + random_file_id
+
+    # Add any custom scripts
     custom_scripts = []
     custom_scripts.append('/bootstrap/js/learning_reactions.js')
-    basename = request.matchdict["basename"]
-    reaction = cat.get_reaction_by_basename(basename)
+
+    # Get the  current user's security privileges
     group = group_security(request.authenticated_userid)
+
+    owner_courses = []
+    enrolled_courses = []
+    if group["is_teacher"]:
+        owner_courses = Course.owner_courses(request.authenticated_userid)
+    elif group["is_student"]:
+        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+
+    # Initialize draw SVGRenderer object
+    svg_reanderer = draw.SVGRenderer()
 
     # A hack for Sharonna
     # Display an external image in place of the generic reaction image (if there is one)
@@ -130,36 +158,24 @@ def learning_reaction_view(request):
         link_to_gen_picture = request.route_url('home') + 'img/' + basename + '/generic/image.png'
     # End of the hack
 
-    svg_data = draw.renderReactionToBuffer(reaction, render_format="svg", layout=False).tostring()
-
-    # Chop off the xml tag
-    svg_data = svg_data[svg_data.find('\n') + 1:]
-    # Modify height and width of the svg tag
-    svgline = svg_data[:svg_data.find('\n')]
-    svglineparts = re.split('width=".*?" height=".*?"', svgline)
-    svgline = svglineparts[0] + 'width="90%"' + svglineparts[1]
-    svg_data = svgline + "\n" + svg_data[svg_data.find('\n') + 1 :]
-
-    owner_courses = []
-    enrolled_courses = []
-    if group["is_teacher"]:
-        owner_courses = Course.owner_courses(request.authenticated_userid)
-    elif group["is_student"]:
-        enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
+    svg_data = ""
+    svg_data = svg_reanderer.renderReactionToBuffer(reaction, layout=False)
+    svg_data = svg_reanderer.renderReactionToBuffer(reaction, layout=False)
+    svg_data = update_svg_size(svg_data, '100%', '-1')
 
     return {"layout" : logged_layout(),
             "basename" : basename,
-	    "custom_scripts" : custom_scripts,
+	        "custom_scripts" : custom_scripts,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "full_name" : reaction.full_name,
             "reaction_description" : reaction.desc,
             "page_title" : reaction.full_name,
-	    "rgroups" : reaction.rgroups,
+	        "rgroups" : reaction.rgroups,
             "logged_in" : request.authenticated_userid,
             "link_to_gen_picture" : link_to_gen_picture,
             "svg_data" : svg_data,
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
+            "filename" : filename,
 }
 
 
@@ -178,6 +194,10 @@ def learn_by_example_reaction_view(request):
     owner_courses = []
     enrolled_courses = []
 
+    random_file_id = str(uuid.uuid4())[0:10].upper()  # or whatever
+    # needs to be random file name
+    filename = "svg_data_" + random_file_id
+
     if group["is_teacher"]:
         owner_courses = Course.owner_courses(request.authenticated_userid)
         current_chapter = DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Chapter.course == Course.id ).filter(Course.name == basename).filter(Chapter.title == chapter_name).first()
@@ -188,9 +208,13 @@ def learn_by_example_reaction_view(request):
     custom_scripts.append('/bootstrap/js/learning_reactions.js')
     reaction = cat.get_reaction_by_basename(reaction_name)
 
+    # Initialize draw SVGRenderer object
+    svg_reanderer = draw.SVGRenderer()
+
     reac = DBSession.query(Reac).filter(Reac.basename == reaction_name).first()
     customizable_reaction = DBSession.query(Customizable_reaction).filter(Customizable_reaction.reaction == reac.id).filter(Customizable_reaction.chapter == current_chapter.id).first()
 
+    #If there is a customizable reaction name or description display it
     if len(customizable_reaction.description) > 0:
         reaction_description = customizable_reaction.description
     else:
@@ -218,15 +242,10 @@ def learn_by_example_reaction_view(request):
         link_to_gen_picture = request.route_url('home') + 'img/' + reaction_name + '/generic/image.png'
     # End of the hack
 
-    svg_data = draw.renderReactionToBuffer(reaction, render_format="svg",  layout=False).tostring()
-
-    # Chop off the xml tag
-    svg_data = svg_data[svg_data.find('\n') + 1:]
-    # Modify height and width of the svg tag
-    svgline = svg_data[:svg_data.find('\n')]
-    svglineparts = re.split('width=".*?" height=".*?"', svgline)
-    svgline = svglineparts[0] + 'width="90%"' + svglineparts[1]
-    svg_data = svgline + "\n" + svg_data[svg_data.find('\n') + 1 :]
+    svg_data = ""
+    svg_data = svg_reanderer.renderReactionToBuffer(reaction, layout=False)
+    svg_data = svg_reanderer.renderReactionToBuffer(reaction, layout=False) # hack because the other image wouldn't be displayed correctly
+    svg_data = update_svg_size(svg_data, '100%', '-1')
 
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
@@ -240,5 +259,29 @@ def learn_by_example_reaction_view(request):
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
     	    "reaction_description" : reaction_description,
-	        "reaction" : reaction_name
+	        "reaction" : reaction_name,
+            "filename" : filename,
+            "basename" : reaction_name,
     }
+
+
+def update_svg_size(svg, width, height):
+
+    updated_svg = ""
+
+    # Chop off the xml tag
+    svg = svg[svg.find('\n') + 1:]
+    # Modify height and width of the svg tag
+    svgline = svg[:svg.find('\n')]
+
+    if height != '-1':
+        svglineparts = re.split('height=".*?"', svgline)
+        svgline = svglineparts[0] + 'height="' + height + '"' + svglineparts[1]
+
+    if width != '-1':
+        svglineparts = re.split('width=".*?"', svgline)
+        svgline = svglineparts[0] + 'width="' +  width +   '"' + svglineparts[1]
+
+    updated_svg = svgline + "\n" + svg[svg.find('\n') + 1 :]
+
+    return updated_svg
