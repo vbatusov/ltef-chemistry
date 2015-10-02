@@ -975,11 +975,12 @@ class bastardReaction:
 
     _atoms = {}
     _bonds = {}
-    _reactant_bonds_disappeared = {}
-    _reactant_bonds_appeared = {}
-    _product_bonds_disappeared = {}
-    _product_bonds_appeared = {}
-    _charges_changed = {}
+    _reactant_bonds_disappeared = []
+    _reactant_bonds_appeared = []
+    _product_bonds_disappeared = []
+    _product_bonds_appeared = []
+    _reactant_charges_changed = []
+    _product_charges_changed = []
     _reactant = {}
     _product = {}
 
@@ -1049,40 +1050,36 @@ class bastardReaction:
             if 'CHG' in atom.attribs.keys():
                 self._product_charges_changed.append(atom)
 
-        print "################ product charges "
-        for atom in self._product_charges_changed:
-            print str(atom)
+        # print "################ product charges "
+        # for atom in self._product_charges_changed:
+        #     print str(atom)
+        #
+        # print "################ reactant charges "
+        # for atom in self._reactant_charges_changed:
+        #     print str(atom)
 
-        print "################ reactant charges "
-        for atom in self._reactant_charges_changed:
-            print str(atom)
 
+        # # All bonds that appeared
+        # print "####### After Product Bonds"
+        # for product_bond in self._product_bonds_appeared:
+        #     print str(product_bond)
+        # print "###### After Reactant bonds"
+        # for reactant_bond in self._reactant_bonds_appeared:
+        #     print str(reactant_bond)
 
-        # All bonds that appeared
-        print "####### After Product Bonds"
-        for product_bond in self._product_bonds_appeared:
-            print str(product_bond)
-        print "###### After Reactant bonds"
-        for reactant_bond in self._reactant_bonds_appeared:
-            print str(reactant_bond)
-
-        print "Number of reactants molecules: " + str(len(reactant)) + "########################################################################"
-        print "Number of products molecules:" + str(len(product)) + "########################################################################"
-
-        print "######################################################### reactant molecules ######################################################### "
-        for molecule in reactant:
-            print molecule.__str__()
-
-        print "######################################################### product molecules ######################################################### "
-        for molecule in product:
-            print molecule.__str__()
+        # print "Number of reactants molecules: " + str(len(reactant)) + "########################################################################"
+        # print "Number of products molecules:" + str(len(product)) + "########################################################################"
+        #
+        # print "######################################################### reactant molecules ######################################################### "
+        # for molecule in reactant:
+        #     print molecule.__str__()
+        #
+        # print "######################################################### product molecules ######################################################### "
+        # for molecule in product:
+        #     print molecule.__str__()
 
 
     def newmutateMolecules(self, molecule):
-
-
-
-
 
         # Conditions:
         # 1. if there is a charge in one of the Atoms remove it or flip it
@@ -1116,7 +1113,7 @@ class bastardReaction:
 
             # for every molecule
             for molecule in molecules:
-                print hex(id(molecule)) + "    dahjfbdahg jhdsf gj d#######fjhsg jhsdfjg jsfd g"
+                #print hex(id(molecule))
                 # we get the product charges
                 for atom_charge in self._product_charges_changed:
                     # and for every charged atom check if it's in the particular molecule
@@ -1187,7 +1184,7 @@ class bastardReaction:
             #remove aamAtom
             #remove the bonds
             # add new bonds together
-                print "##################### removing atom and bonds and adding new bond feature  "
+                #print " removing atom and bonds and adding new bond feature  "
                 for bond_appeared in self._product_bonds_appeared:
 
                     bondaam = bond_appeared.fromAtom.aam
@@ -1258,7 +1255,7 @@ class bastardReaction:
         # By default, return as many as given
         if number == 0:
             number = len(molecules)
-        print str(number) + "####kjndsfid gf fdsgh fdjhs gjhfds jg fdjgh jfsd"
+        #print str(number)
     #    for i in range(0, number):
             # 4
             # make two duplicates of the molecule
@@ -1269,11 +1266,11 @@ class bastardReaction:
             #result.append(molecule)
 
 
-        for molecule in results:
-            print "start"
-            print molecule.__str__()
-            print hex(id(molecule))
-        print "End"
+        # for molecule in results:
+        #     print "start"
+        #     print molecule.__str__()
+        #     print hex(id(molecule))
+        # print "End"
 
 
         return results # cut off the excess; inefficient
