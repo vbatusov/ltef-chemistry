@@ -49,8 +49,8 @@
                                   <h4 class="panel-title">
                                     <a tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/learn_by_example/' + reaction.basename" tal:content="custom_reaction.title"></a>
                                     <div class="pull-right">
-                                      <a class="label label-primary" style="margin-right:10px;">Edit</a>
-                                      <a class="label label-danger">Remove</a>
+                                      <a class="label label-primary" tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/' + reaction.basename + '/reaction/edit_reaction'"  style="margin-right:10px;">Edit</a>
+                                      <a class="label label-danger" tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/' + reaction.basename + '/reaction/remove_reaction'">Remove</a>
                                     </div>
                                   </h4>
                                 </div>
@@ -74,6 +74,10 @@
                                     <a tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/select_reaction_quiz/' + reaction.basename" tal:content="custom_reaction.title">
                                       Learn by Example
                                     </a>
+                                    <div class="pull-right">
+                                      <a class="label label-primary" tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/' + reaction.basename + '/reaction/edit_reaction'"  style="margin-right:10px;">Edit</a>
+                                      <a class="label label-danger" tal:attributes="href request.route_url('home') + 'class/' + basename +'/' + chapter.title  + '/' + reaction.basename + '/reaction/remove_reaction'">Remove</a>
+                                    </div>
                                   </h4>
                                 </div>
                               </div>
