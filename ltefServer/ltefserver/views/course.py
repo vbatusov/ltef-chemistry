@@ -148,7 +148,8 @@ def course_view(request):
         students = []
         chapters = DBSession.query(Course, Chapter).filter(Enrolled.userid == currentuser.id).filter(Chapter.course == Course.id).filter(Course.name == basename).filter(Enrolled.courseid == Course.id).all()
         course = DBSession.query(Course).filter(Course.name == basename).filter(Enrolled.courseid == Course.id ).filter(Enrolled.userid == currentuser.id  ).first()
-        quiz_histories = DBSession.query(Quiz_history, Chapter, Course, User).filter(Quiz_history.user == currentuser.id).filter(User.id == currentuser.id).filter(Quiz_history.course == course.id).filter(Chapter.id == Quiz_history.chapter).all()
+        #current_chapter = DBSession.query(Chapter).filter(Course.owner == currentuser.id).filter(Course.name == course_name).filter(Chapter.course == Course.id ).filter(Chapter.title == chapter_name).first()
+        quiz_histories = DBSession.query(Quiz_history, Chapter, Course, User).filter(Course.id == course.id).filter(Quiz_history.user == currentuser.id).filter(User.id == currentuser.id).filter(Quiz_history.course == course.id).filter(Chapter.id == Quiz_history.chapter).all()
 
 
     customizable_reactions = {}
