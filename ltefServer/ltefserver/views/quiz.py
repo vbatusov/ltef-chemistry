@@ -1078,7 +1078,8 @@ def quiz_products_view(request):
     		instance_choice[1] = False
 
     	    for answer_index in answer:
-    		instance_choices[int(answer_index)][1] = True
+                if answer_index != '':
+                    instance_choices[int(answer_index)][1] = True
 
                 if set(answer) != set(correct_choices):
                     message = "Wrong!"
@@ -1258,8 +1259,9 @@ def quiz_reactants_view(request):
 		print instance_choice[1]
 		instance_choice[1] = False
 
-	    for answer_index in answer:
-		instance_choices[int(answer_index)][1] = True
+        for answer_index in answer:
+            if answer_index != '':
+                instance_choices[int(answer_index)][1] = True
 
             if set(answer) != set(correct_choices):
                 message = "Wrong!"
