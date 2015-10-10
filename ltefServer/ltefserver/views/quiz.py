@@ -1256,7 +1256,6 @@ def quiz_reactants_view(request):
             question_svg = ""
 
 	    for instance_choice in instance_choices:
-		print instance_choice[1]
 		instance_choice[1] = False
 
         for answer_index in answer:
@@ -1266,7 +1265,6 @@ def quiz_reactants_view(request):
             if set(answer) != set(correct_choices):
                 message = "Wrong!"
                 result = False
-
             else:
                 message = "Correct! You selected what's necessary and nothing else."
                 result = True
