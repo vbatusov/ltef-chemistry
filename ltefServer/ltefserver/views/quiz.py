@@ -969,7 +969,7 @@ def quiz_products_view(request):
         global product_svgs
 
         # Generate a problem, store the objects, present to user
-        if 'quiz_type' not in session or session['quiz_type'] != 'products' or question_svg == "" :
+        if ('quiz_type' not in session or session['quiz_type'] != 'products' or question_svg == "")  and  "answer" not in request.GET :
 
             session.invalidate()
             session['quiz_type'] = 'products'
@@ -1063,7 +1063,7 @@ def quiz_products_view(request):
             #print "Resuming a quiz (products) session for " + basename
             reaction = cat.get_reaction_by_basename(basename)
             full_name = reaction.full_name
-
+            answer = []
             if "answer" in request.GET:
 
                 answer = request.GET["answer"].split(",")
@@ -1151,7 +1151,7 @@ def quiz_reactants_view(request):
     global reactant_svgs
 
     # Generate a problem, store the objects, present to user
-    if 'quiz_type' not in session or session['quiz_type'] != 'reactants' or question_svg == "" :
+    if ('quiz_type' not in session or session['quiz_type'] != 'reactants' or question_svg == "") and  "answer" not in request.GET:
 
         session.invalidate()
         session['quiz_type'] = 'reactants'
@@ -1246,8 +1246,8 @@ def quiz_reactants_view(request):
         reaction = cat.get_reaction_by_basename(basename)
         full_name = reaction.full_name
 
+        answer = []
         if "answer" in request.GET:
-
             answer = request.GET["answer"].split(",")
 
             # Invalidate the session

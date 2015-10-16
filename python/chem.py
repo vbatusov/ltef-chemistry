@@ -1103,12 +1103,18 @@ class bastardReaction:
         # Store Atoms that have moved to other molecules
         self.store_atoms_moved()
 
+        # Atoms moved
+        self._atoms_moved_to_product
+        self._atoms_moved_to_reactant
+
+        self.store_atoms_moved()
+
         print "################################ Product Charges Changed         ################################"
         for atom in self._product_charges_changed:
             print str(atom)
 
         # All bonds that appeared
-        print "################################ Product appear Bonds Appeared   ################################"
+        print "################################ Product order changed ################################"
         for product_bond in self._product_bonds_order_change:
             print str(product_bond)
 
@@ -1119,6 +1125,24 @@ class bastardReaction:
 
         print "################################ Product disappear bonds         ################################"
         for product_bond in self._product_bonds_disappeared:
+            print str(product_bond)
+
+        print "################################ Reactant Charges Changed         ################################"
+        for atom in self._reactant_charges_changed:
+            print str(atom)
+
+        # All bonds that appeared
+        print "################################ Reactant order changed ################################"
+        for product_bond in self._reactant_bonds_order_change:
+            print str(product_bond)
+
+        # All bonds that appeared
+        print "################################ Reactant appear Bonds Appeared   ################################"
+        for product_bond in self._reactant_bonds_appeared:
+            print str(product_bond)
+
+        print "################################ Reactant disappear bonds         ################################"
+        for product_bond in self._reactant_bonds_disappeared:
             print str(product_bond)
 
     	print "################################ Reactant Molecules              #################################"
@@ -1132,12 +1156,48 @@ class bastardReaction:
 
     def store_atoms_moved(self):
 
-        atoms_moved = []
+        atoms_moved_to_product = []
+        atoms_moved_to_reactant = []
 
+        # Retrieve candidates of atoms that have moved
+        for reactant_bond_disappeared in self._reactant_bonds_disappeared:
+            # get the bonds from and to atoms and add them to atoms_moved_to_reactant
+            atoms_moved_to_reactant.append(reactant_bond_disappeared.fromAtom)
+            atoms_moved_to_reactant.append(reactant_bond_disappeared.toAtom)
 
+        for product_bond_disappeared in self._product_bonds_disappeared:
+        # get the bonds from and to atoms and add them to atoms_moved_to_reactant
+            atoms_moved_to_product.append(product_bond_disappeared.fromAtom)
+            atoms_moved_to_product.append(product_bond_disappeared.toAtom)
 
+        # We now have the atoms that could be candidates that have been moved, but we need to figure out from which Molecule that atom moved from
 
+        for index, reactant_molecule in enumerate(self._reactant):
+            for atom in atoms_moved_to_product:
+                if atom in reactant_molecule.atomList and index < len(self._product):
+                    if atom in self._product[index].atomList:
+                        atoms_moved_to_product.remove(atom)
 
+        self._atoms_moved_to_product = atoms_moved_to_product
+
+        # Print the results
+        print "################################################## atoms_moved_to_product  ##################################################"
+
+        for atom in self._atoms_moved_to_product:
+            print str(atom)
+
+        for index, product_molecule in enumerate(self._product):
+            for atom in atoms_moved_to_reactant:
+                if atom in product_molecule.atomList and index < len(self._reactant):
+
+                    if atom in self._reactant[index].atomList:
+                        atoms_moved_to_reactant.remove(atom)
+
+        self._atoms_moved_to_reactant = atoms_moved_to_reactant
+
+        print "################################################## atoms_moved_to_reactant  ##################################################"
+        for atom in self._atoms_moved_to_reactant:
+            print str(atom)
 
     def set_atom_charges_changed(self):
         # candidate for charge changes
@@ -1286,21 +1346,95 @@ class bastardReaction:
         return results
 
 
+    def expand_molecule(self, molecules, order_bonds_changed ):
 
-    def add_carbon_atom(self):
-        pass
+        # if charges change size is zero then pass this strategy
+
+        results = []
+
+        # get the max aam number Note: the length of the list does not give you the max aam number
+        reaction_aam_count = 0
+        for molecule in molecules:
+            #print str(molecule.numberOfAtoms())
+            for atom in molecule.atomList:
+                if atom.aam > reaction_aam_count:
+                    reaction_aam_count = atom.aam
+        reaction_aam_count = 1 + reaction_aam_count
+
+        molecules_copy = copy.deepcopy(molecules)
+        for molecule in molecules_copy:
+            for order_bond_changed in order_bonds_changed:
+                for bond in molecule.bondList:
+                    if order_bond_changed.__eq__(bond):
+
+                        atom = Atom('C', 0,0,0,0, 0,{},reaction_aam_count )
+                        new_bond = Bond( 0, 1, atom,  bond.toAtom ,{})
+                        previous_bond = Bond( 0, bond.order, bond.fromAtom,  atom ,{})
+
+                        reaction_aam_count = reaction_aam_count + 1
+
+                        temp_molecule = copy.deepcopy(molecule)
+                        temp_molecule.bondList.remove(bond)
+                        temp_molecule.addAtom(atom)
+                        temp_molecule.addBond(new_bond)
+                        temp_molecule.addBond(previous_bond)
+
+                        results.append(temp_molecule)
+
+                        # if the bond is other then 2
+                        if bond.order == 2:
+                            temp_molecule_second_option = copy.deepcopy(molecule)
+
+                            atom = Atom('C', 0,0,0,0, 0,{},reaction_aam_count )
+                            new_bond = Bond( 0, bond.order, atom,  bond.toAtom ,{})
+                            previous_bond = Bond( 0, 1, bond.fromAtom,  atom ,{})
+
+                            temp_molecule_second_option.bondList.remove(bond)
+                            temp_molecule_second_option.addAtom(atom)
+                            temp_molecule_second_option.addBond(new_bond)
+                            temp_molecule_second_option.addBond(previous_bond)
+
+                            results.append(temp_molecule_second_option)
 
 
-    def expand_molecule(self):
-        pass
+
+        return results
+
 
     # 2. if there is a bond conecting a molcule remove the atom and connect it with a bond.
     # Number 2 will requies two see the changes between the reactant and product to figure out which atom is the best candidate. Further Research must be done to see how to make this good
     def contract_molecule(self):
         pass
 
-    def mutate_bond_order(self):
-        pass
+    def mutate_bond_order(self, molecules, candidate_bonds):
+
+        results = []
+
+        # TODO Create a condition that doesn't allow H atoms to not contain more then one bond
+
+        for molecule in molecules:
+            for candidate_bond in candidate_bonds:
+                    # get the molecule bonds
+                    for bond in molecule.bondList:
+                        # find the bond that has appeared
+                        if  candidate_bond.__eq__(bond):
+                            if bond.order == 2:
+                                bond.order -= 1
+                                results.append(copy.deepcopy(molecule))
+                                bond.order +=1
+                            elif bond.order == 1:
+                                bond.order += 1
+                                results.append(copy.deepcopy(molecule))
+                                bond.order -= 1
+                            elif bond.order == 3:
+                                bond.order = 1
+                                results.append(copy.deepcopy(molecule))
+                                bond.order = 2
+                                results.append(copy.deepcopy(molecule))
+                                bond.order = 3
+
+        return results
+
 
     def remove_particular_atom(self):
         pass
@@ -1309,90 +1443,148 @@ class bastardReaction:
     def flip_particular_atoms(self):
         pass
 
+    def formal_charge(self, atom, molecule):
+
+        pass
+
+
+    def get_atom_bonds(self, atom, molecule):
+
+        bonds = []
+
+        for bond in molecule.bondList:
+            if bond.toAtom.__eq__(atom):
+                bonds.append(bond)
+            elif bond.fromAtom.__eq__(atom):
+                bonds.append(bond)
+
+        return bonds
+
+    def return_atoms_moved(self, molecules, bonds_disappeared, atoms_moved ):
+
+        results = []
+
+        # for each atom moved find it's bond
+        for atom_moved in atoms_moved:
+            for bond_disappeared in bonds_disappeared:
+                if bond_disappeared.fromAtom.__eq__(atom_moved):
+                    molecules_copy = copy.deepcopy(molecules)
+                    for molecule in molecules_copy:
+                        if bond_disappeared.toAtom in molecule.atomList:
+
+                            # we want to check if adding back this atom will cause any problems to the molecule
+                            from_atom_bonds = self.get_atom_bonds(bond_disappeared.toAtom, copy.deepcopy(molecule))
+
+                            #  if any of these bond have a order > 1 then reduce them
+                            bonds_order_greater_then_one = []
+                            for from_atom_bond in from_atom_bonds:
+                                if from_atom_bond.order > 1:
+                                    bonds_order_greater_then_one.append(from_atom_bond)
+                            print str(bond_disappeared.fromAtom)
+                            print "#################################### bonds_order_greater_then_one ##########################################"
+                            for bond in bonds_order_greater_then_one:
+                                print str(bond)
+
+                            if bond_disappeared.order == 1 and bond_disappeared.toAtom.symbol != 'H' and bond_disappeared.fromAtom.symbol != 'H':
+
+                                molecule_copy = copy.deepcopy(molecule)
+                                if len(bonds_order_greater_then_one) > 0 and bonds_order_greater_then_one[0] in molecule_copy.bondList:
+
+                                    molecule_copy.bondList.remove(bonds_order_greater_then_one[0])
+                                    bonds_order_greater_then_one[0].order = 1
+                                    molecule_copy.bindList.append(bonds_order_greater_then_one[0])
+                                    bond_copy = copy.deepcopy(bond_disappeared)
+                                    bond_copy.order = 2
+                                    molecule_copy.addBond(bond_copy)
+                                    molecule_copy.addAtom(atom_moved)
+                                    results.append(molecule_copy)
+
+
+                            # molecule_copy = copy.deepcopy(molecule)
+                            # bond_copy = copy.deepcopy(bond_disappeared)
+                            # molecule_copy.addBond(bond_copy)
+                            # molecule_copy.addAtom(atom_moved)
+                            # results.append(molecule_copy)
+
+
+                elif bond_disappeared.toAtom.__eq__(atom_moved):
+
+                    molecules_copy = copy.deepcopy(molecules)
+                    for molecule in molecules_copy:
+                        if bond_disappeared.fromAtom in molecule.atomList:
+
+                            # we want to check if adding back this atom will cause any problems to the molecule
+                            to_atom_bonds = self.get_atom_bonds(bond_disappeared.fromAtom, copy.deepcopy(molecule))
+
+                            bonds_order_greater_then_one = []
+                            for to_atom_bond in to_atom_bonds:
+                                if to_atom_bond.order > 1:
+                                    bonds_order_greater_then_one.append(to_atom_bond)
+
+                            # print str(bond_disappeared.toAtom)
+                            # print "#################################### bonds_order_greater_then_one ##########################################"
+                            # for bond in bonds_order_greater_then_one:
+                            #     print str(bond)
+
+                            if bond_disappeared.order == 1 and bond_disappeared.toAtom.symbol != 'H' and bond_disappeared.fromAtom.symbol != 'H':
+
+                                molecule_copy = copy.deepcopy(molecule)
+                                if len(bonds_order_greater_then_one) > 0 and bonds_order_greater_then_one[0] in molecule_copy.bondList:
+
+                                    molecule_copy.bondList.remove(bonds_order_greater_then_one[0])
+                                    bonds_order_greater_then_one[0].order = 1
+                                    molecule_copy.bondList.append(bonds_order_greater_then_one[0])
+                                    bond_copy = copy.deepcopy(bond_disappeared)
+                                    bond_copy.order = 2
+                                    molecule_copy.addBond(bond_copy)
+                                    molecule_copy.addAtom(atom_moved)
+                                    results.append(molecule_copy)
+
+                                    # molecule_copy.bondList.remove(bonds_order_greater_then_one[0])
+                                    # bonds_order_greater_then_one[0].order = 2
+                                    # molecule_copy.bondList.append(bonds_order_greater_then_one[0])
+
+
+                            molecule_copy = copy.deepcopy(molecule)
+                            bond_copy = copy.deepcopy(bond_disappeared)
+                            molecule_copy.addBond(bond_copy)
+                            molecule_copy.addAtom(atom_moved)
+                            results.append(molecule_copy)
+        return results
+
     def mutateMolecules(self, molecules, number=0):
 
         results = []
         # molecule is a product it will require other atom and bond candidates
         if molecules.__eq__(self._product):
-            # for every molecule
-            results.extend(self.mutate_charges( molecules, self._product_charges_changed ))
-            for molecule in molecules:
 
+            #results.extend(self.mutate_charges( molecules, self._product_charges_changed ))
+            results.extend(self.expand_molecule(molecules, self._product_bonds_order_change))
+            #results.extend(self.expand_molecule(molecules, self._product_bonds_appeared))
+            results.extend(self.return_atoms_moved(molecules, self._product_bonds_disappeared, self._atoms_moved_to_product))
+            results.extend(self.mutate_bond_order(molecules, self._product_bonds_order_change))
 
-
-                # Get the new bonds that have appeared in the product
-                for bond_appeared in self._product_bonds_appeared:
-                    # get the molecule bonds
-                    for bond in molecule.bondList:
-                        # find the bond that has appeared
-                        if  bond.__eq__(bond_appeared):
-                            if bond.order == 2:
-
-                                bond.order -= 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order +=1
-
-                            elif bond.order == 1:
-                                bond.order += 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order -= 1
-                            elif bond.order == 3:
-                                bond.order = 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order = 2
-                                results.append(copy.deepcopy(molecule))
-                                bond.order = 3
-
-                # Get the new bonds that have appeared in the product
-                for bond_appeared in self._product_bonds_order_change:
-                    # get the molecule bonds
-                    for bond in molecule.bondList:
-                        # find the bond that has appeared
-                        if  bond.__eq__(bond_appeared):
-                            if bond.order == 2:
-
-                                bond.order -= 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order +=1
-
-                            elif bond.order == 1:
-                                bond.order += 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order -= 1
-                            elif bond.order == 3:
-                                bond.order = 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order = 2
-                                results.append(copy.deepcopy(molecule))
-                                bond.order = 3
-                # Get the new bonds that have appeared in the product
-                # for bond_disappeared in self._product_bonds_disappeared:
-                    # get the molecule bonds
-                #molecule.addBond(self._product_bonds_disappeared[1])
-                # print molecule.numberOfAtoms()
+            # Current code below works really well for E1 reaction using sulfuric acid
+            # results.extend(self.expand_molecule(molecules, self._product_bonds_order_change))
+            # results.extend(self.expand_molecule(molecules, self._product_bonds_appeared))
+            # results.extend(self.return_atoms_moved(molecules, self._product_bonds_disappeared, self._atoms_moved_to_product))
+            # results.extend(self.mutate_bond_order(molecules, self._product_bonds_order_change))
 
 
         elif molecules.__eq__(self._reactant):
 
-            results.extend(self.mutate_charges( molecules, self._reactant_charges_changed ))
-            for molecule in molecules:
-                for bond_appeared in self._reactant_bonds_appeared:
-                    for bond in molecule.bondList:
-                        if bond.__eq__(bond_appeared):
-                            if bond.order == 2:
-                                bond.order -= 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order += 1
-                            elif bond.order == 1:
-                                bond.order += 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order -= 1
-                            elif bond.order == 3:
-                                bond.order = 1
-                                results.append(copy.deepcopy(molecule))
-                                bond.order = 2
-                                results.append(copy.deepcopy(molecule))
-                                bond.order = 3
+            #results.extend(self.mutate_charges( molecules, self._reactant_charges_changed ))
+            #results.extend(self.return_atoms_moved(molecules, self._reactant_bonds_disappeared, self._atoms_moved_to_reactant))
+
+            results.extend(self.expand_molecule(molecules, self._reactant_bonds_order_change))
+            results.extend(self.expand_molecule(molecules, self._reactant_bonds_appeared))
+            results.extend(self.mutate_bond_order(molecules, self._reactant_bonds_order_change))
+
+            # Current code below works really well for E1 reaction using sulfuric acid
+            # results.extend(self.expand_molecule(molecules, self._reactant_bonds_order_change))
+            # results.extend(self.expand_molecule(molecules, self._reactant_bonds_appeared))
+            # results.extend(self.mutate_bond_order(molecules, self._reactant_bonds_order_change))
+
 
         # remove any molecules that have been generated correctly
         for molecule in molecules:
