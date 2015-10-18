@@ -43,6 +43,7 @@ import draw
 from ..catalog import Catalog
 import copy
 import re
+import distractor
 
 
 
@@ -288,11 +289,11 @@ def quiz_reactant_view(request):
         for molecule in reactants:
             instance_choices.append([molecule, True])
 
-        # Initializes object bastardReaction to generate wrong answers
-        bastardReaction = chem.bastardReaction(reactants, products)
+        # Initializes object DistractorReaction to generate wrong answers
+        distractor_reaction = distractor.DistractorReaction(reactants, products)
 
         # Add all the incorrect choices to instance_choices
-        for molecule in bastardReaction.mutateMolecules(reactants):
+        for molecule in distractor_reaction.generate_reactant_distractors():
             instance_choices.append([molecule, False])
 
         # shuffle the molecule choices
@@ -531,10 +532,10 @@ def quiz_product_view(request):
             instance_choices.append([molecule, True])
 
         # Initializes object bastardReaction to generate wrong answers
-        bastardReaction = chem.bastardReaction(reactants, products)
+        distractor_reaction = distractor.DistractorReaction(reactants, products)
 
         # Add all the incorrect choices to instance_choices
-        for molecule in bastardReaction.mutateMolecules(products):
+        for molecule in distractor_reaction.generate_product_distractors():
             instance_choices.append([molecule, False])
 
         # shuffle the molecule choices
@@ -1024,10 +1025,10 @@ def quiz_products_view(request):
                 instance_choices.append([molecule, True])
 
             # Initializes object bastardReaction to generate wrong answers
-            bastardReaction = chem.bastardReaction(reactants, products)
+            distractor_reaction = distractor.DistractorReaction(reactants, products)
 
             # Add all the incorrect choices to instance_choices
-            for molecule in bastardReaction.mutateMolecules(products):
+            for molecule in distractor_reaction.generate_product_distractors():
                 instance_choices.append([molecule, False])
 
             # shuffle the molecule choices
@@ -1074,7 +1075,6 @@ def quiz_products_view(request):
                 question_svg = ""
 
     	    for instance_choice in instance_choices:
-    		print instance_choice[1]
     		instance_choice[1] = False
 
     	    for answer_index in answer:
@@ -1206,10 +1206,10 @@ def quiz_reactants_view(request):
             instance_choices.append([molecule, True])
 
         # Initializes object bastardReaction to generate wrong answers
-        bastardReaction = chem.bastardReaction(reactants, products)
+        distractor_reaction = distractor.DistractorReaction(reactants, products)
 
         # Add all the incorrect choices to instance_choices
-        for molecule in bastardReaction.mutateMolecules(reactants):
+        for molecule in distractor_reaction.generate_reactant_distractors():
             instance_choices.append([molecule, False])
 
         # shuffle the molecule choices
@@ -1242,7 +1242,6 @@ def quiz_reactants_view(request):
     else:
         basename = session['basename']
         quiz_type = session['quiz_type']
-        #print "Resuming a quiz (reactants) session for " + basename
         reaction = cat.get_reaction_by_basename(basename)
         full_name = reaction.full_name
 
