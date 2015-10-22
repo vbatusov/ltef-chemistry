@@ -43,6 +43,7 @@ import draw
 from ..catalog import Catalog
 import copy
 import re
+import distractor
 
 
 
@@ -288,11 +289,11 @@ def quiz_reactant_view(request):
         for molecule in reactants:
             instance_choices.append([molecule, True])
 
-        # Initializes object bastardReaction to generate wrong answers
-        bastardReaction = chem.bastardReaction(reactants, products)
+        # Initializes object DistractorReaction to generate wrong answers
+        distractor_reaction = distractor.DistractorReaction(reactants, products)
 
         # Add all the incorrect choices to instance_choices
-        for molecule in bastardReaction.mutateMolecules(reactants):
+        for molecule in distractor_reaction.generate_reactant_distractors():
             instance_choices.append([molecule, False])
 
         # shuffle the molecule choices
@@ -531,10 +532,10 @@ def quiz_product_view(request):
             instance_choices.append([molecule, True])
 
         # Initializes object bastardReaction to generate wrong answers
-        bastardReaction = chem.bastardReaction(reactants, products)
+        distractor_reaction = distractor.DistractorReaction(reactants, products)
 
         # Add all the incorrect choices to instance_choices
-        for molecule in bastardReaction.mutateMolecules(products):
+        for molecule in distractor_reaction.generate_product_distractors():
             instance_choices.append([molecule, False])
 
         # shuffle the molecule choices
@@ -969,7 +970,7 @@ def quiz_products_view(request):
         global product_svgs
 
         # Generate a problem, store the objects, present to user
-        if 'quiz_type' not in session or session['quiz_type'] != 'products' or question_svg == "" :
+        if ('quiz_type' not in session or session['quiz_type'] != 'products' or question_svg == "")  and  "answer" not in request.GET :
 
             session.invalidate()
             session['quiz_type'] = 'products'
@@ -1024,10 +1025,10 @@ def quiz_products_view(request):
                 instance_choices.append([molecule, True])
 
             # Initializes object bastardReaction to generate wrong answers
-            bastardReaction = chem.bastardReaction(reactants, products)
+            distractor_reaction = distractor.DistractorReaction(reactants, products)
 
             # Add all the incorrect choices to instance_choices
-            for molecule in bastardReaction.mutateMolecules(products):
+            for molecule in distractor_reaction.generate_product_distractors():
                 instance_choices.append([molecule, False])
 
             # shuffle the molecule choices
@@ -1063,7 +1064,7 @@ def quiz_products_view(request):
             #print "Resuming a quiz (products) session for " + basename
             reaction = cat.get_reaction_by_basename(basename)
             full_name = reaction.full_name
-
+            answer = []
             if "answer" in request.GET:
 
                 answer = request.GET["answer"].split(",")
@@ -1074,7 +1075,6 @@ def quiz_products_view(request):
                 question_svg = ""
 
     	    for instance_choice in instance_choices:
-    		print instance_choice[1]
     		instance_choice[1] = False
 
     	    for answer_index in answer:
@@ -1151,7 +1151,7 @@ def quiz_reactants_view(request):
     global reactant_svgs
 
     # Generate a problem, store the objects, present to user
-    if 'quiz_type' not in session or session['quiz_type'] != 'reactants' or question_svg == "" :
+    if ('quiz_type' not in session or session['quiz_type'] != 'reactants' or question_svg == "") and  "answer" not in request.GET:
 
         session.invalidate()
         session['quiz_type'] = 'reactants'
@@ -1206,10 +1206,10 @@ def quiz_reactants_view(request):
             instance_choices.append([molecule, True])
 
         # Initializes object bastardReaction to generate wrong answers
-        bastardReaction = chem.bastardReaction(reactants, products)
+        distractor_reaction = distractor.DistractorReaction(reactants, products)
 
         # Add all the incorrect choices to instance_choices
-        for molecule in bastardReaction.mutateMolecules(reactants):
+        for molecule in distractor_reaction.generate_reactant_distractors():
             instance_choices.append([molecule, False])
 
         # shuffle the molecule choices
@@ -1242,12 +1242,11 @@ def quiz_reactants_view(request):
     else:
         basename = session['basename']
         quiz_type = session['quiz_type']
-        #print "Resuming a quiz (reactants) session for " + basename
         reaction = cat.get_reaction_by_basename(basename)
         full_name = reaction.full_name
 
+        answer = []
         if "answer" in request.GET:
-
             answer = request.GET["answer"].split(",")
 
             # Invalidate the session
@@ -1256,7 +1255,6 @@ def quiz_reactants_view(request):
             question_svg = ""
 
 	    for instance_choice in instance_choices:
-		print instance_choice[1]
 		instance_choice[1] = False
 
         for answer_index in answer:
@@ -1266,7 +1264,6 @@ def quiz_reactants_view(request):
             if set(answer) != set(correct_choices):
                 message = "Wrong!"
                 result = False
-
             else:
                 message = "Correct! You selected what's necessary and nothing else."
                 result = True
