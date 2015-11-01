@@ -213,7 +213,7 @@ def quiz_reactant_view(request):
     mode = request.matchdict["basename"]
     reaction_type = request.matchdict["quiz_type"]
     currentuser = User.current_user(request.authenticated_userid)
-
+    mol_choices_svg = []
     # Two type of states Ask the question or Tell if answer by result being correct or incorrect
     state = ""
     result = False
@@ -361,6 +361,20 @@ def quiz_reactant_view(request):
             result = True
             DBSession.add(Quiz_history( question_number = quiz_history_count, course = course.id,  chapter = chapter.id, user = currentuser.id, score=1, reaction_name = custom_reaction.title, quiz_type=reaction_type, reaction_obj = instance_full_reaction, choice_obj = instance_choices))
 
+        # Draw the molecules
+        for mol in instance_choices:
+    	    mol_choice_svg = svg_reanderer.renderMoleculeToBuffer(mol[0], layout=False )
+    	    # Chop off the xml tag
+            mol_choice_svg = mol_choice_svg[mol_choice_svg.find('\n') + 1:]
+            # Modify height and width of the svg tag
+            svgline = mol_choice_svg[:mol_choice_svg.find('\n')]
+            svglineparts = re.split('height=".*?"', svgline)
+            svgline = svglineparts[0] + 'height="100%" "' + svglineparts[1]
+            svglineparts = re.split('width=".*?"', svgline)
+            svgline = svglineparts[0] + 'width="100%" "' + svglineparts[1]
+            mol_choice_svg = svgline + "\n" + mol_choice_svg[mol_choice_svg.find('\n') + 1 :]
+    	    mol_choices_svg.append([mol_choice_svg, mol[1] ])    # indicate that these are wrong answers
+
         # remove the generated question from the Generated_question table
         DBSession.query(Generated_question).filter(Generated_question.id == generated_question.id).delete()
 
@@ -416,6 +430,7 @@ def quiz_reactant_view(request):
             "choices_svg" : choices_svg,
             "question_svg" : question_svg,
             "reaction_svg" : reaction_svg,
+            "mol_choices_svg" : mol_choices_svg,
         }
 
 
@@ -482,7 +497,7 @@ def quiz_product_view(request):
     reaction_svg = ""
     question_svg = ""
     choices_svg = []
-
+    mol_choices_svg = []
     # if a current_user has no generated question then generate a reaction question
     if generated_question is None:
 
@@ -603,6 +618,21 @@ def quiz_product_view(request):
             result = True
             DBSession.add(Quiz_history( question_number = quiz_history_count, course = course.id,  chapter = chapter.id, user = currentuser.id, score=1, reaction_name = custom_reaction.title, quiz_type=reaction_type, reaction_obj = instance_full_reaction, choice_obj = instance_choices))
 
+        # Draw the molecules
+        for mol in instance_choices:
+            mol_choice_svg = svg_reanderer.renderMoleculeToBuffer(mol[0], layout=False )
+            # Chop off the xml tag
+            mol_choice_svg = mol_choice_svg[mol_choice_svg.find('\n') + 1:]
+            # Modify height and width of the svg tag
+            svgline = mol_choice_svg[:mol_choice_svg.find('\n')]
+            svglineparts = re.split('height=".*?"', svgline)
+            svgline = svglineparts[0] + 'height="100%" "' + svglineparts[1]
+            svglineparts = re.split('width=".*?"', svgline)
+            svgline = svglineparts[0] + 'width="100%" "' + svglineparts[1]
+            mol_choice_svg = svgline + "\n" + mol_choice_svg[mol_choice_svg.find('\n') + 1 :]
+            mol_choices_svg.append([mol_choice_svg, mol[1] ])    # indicate that these are wrong answers
+
+
         # remove the generated question from the Generated_question table
         DBSession.query(Generated_question).filter(Generated_question.id == generated_question.id).delete()
 
@@ -658,6 +688,7 @@ def quiz_product_view(request):
             "choices_svg" : choices_svg,
             "question_svg" : question_svg,
             "reaction_svg" : reaction_svg,
+            "mol_choices_svg" : mol_choices_svg,
         }
 
 
