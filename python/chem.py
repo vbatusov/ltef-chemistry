@@ -46,10 +46,15 @@ class Bond:
 
 
     def getOtherAtom(self, atom):
-        if self.fromAtom == atom:
+        if self.fromAtom is atom:
             return self.toAtom
         else:
             return self.fromAtom
+
+    def involves(self, atom):
+        if self.fromAtom is atom or self.toAtom is atom:
+            return True
+        return False
 
 class Molecule:
     """ A molecule can be either a complete molecule or a fragment.
@@ -74,6 +79,9 @@ class Molecule:
 
     def addBond(self, bond):
         self.bondList.append(bond)
+
+    def iterate_neighbours(self, atom):
+        return (b.getOtherAtom(atom) for b in self.bondList if b.involves(atom))
 
     def __str__(self):
         desc = "<Molecule>"
@@ -108,16 +116,73 @@ class Molecule:
     def numberOfAtoms(self):
         return len(self.atomList)
 
-    def replaceAtomWithMolecule(self, oldatom, newmolecule):
+    def replaceAtomWithMolecule(self, oldatom, newmol):
         """ Used by Molecule.getInstance, this method alters 'self' by replacing a given atom
         object with another one in atomList, and then correcting the bonds to point to the
         new atom. Finally, the remaining atoms and bonds in given molecule are added to 'self'.
         """
 
-        if newmolecule.anchor is None:
+        if newmol.anchor is None:
             raise Exception("New molecule does not have an anchor!\n(Reaction is " + self.owner.name + ")")
 
+        newmolecule = copy.deepcopy(newmol)
+
         newmolecule.anchor.aam = oldatom.aam
+
+        # # Fit newmolecule to oldatom and rest of molecule
+        #if len(newmolecule.atomList) == 1:
+        newmolecule.anchor.x = oldatom.x
+        newmolecule.anchor.y = oldatom.y
+        newmolecule.anchor.z = oldatom.z
+        # elif len(newmolecule.atomList) > 1:
+        #     import draw
+        #     (i, _) = draw.get_indigo()
+        #
+        #     # Newmol extended with a counterweight
+        #     cw = Atom("C", 0, 0, 0, 0, 0)
+        #     cwb = Bond(0, 1, cw, newmolecule.anchor)
+        #     newmolecule.addAtom(cw)
+        #     newmolecule.addBond(cwb)
+        #
+        #     aam_to_iatom = draw.build_indigo_molecule(newmolecule, i, layout=True, return_mapping=True)
+        #
+        #     # Remove counterweight entirely
+        #     newmolecule.atomList.remove(cw)
+        #     newmolecule.bondList.remove(cwb)
+        #
+        #     offset_x = random.randint(10,20)
+        #     offset_y = random.randint(-5,5)
+        #     for nma in newmolecule.atomList:
+        #         (nma.x, nma.y, nma.z) = aam_to_iatom[nma.aam].xyz()
+        #         nma.x += offset_x
+        #         nma.y += offset_y
+
+        # newmolecule.anchor.x = oldatom.x
+        # newmolecule.anchor.y = oldatom.y
+        # newmolecule.anchor.z = oldatom.z
+        #
+        # if len(newmolecule.atomList) > 1:
+        #     print "--laying out the new stuff--"
+        #     # Lay out the newmolecule, rotate it and move where appropriate
+        #     import draw
+        #     (i, _) = draw.get_indigo()
+        #     aam_to_iatom = draw.build_indigo_molecule(newmolecule, i, layout=True, return_mapping=True)
+        #     offset_x = random.randint(0,10)
+        #     offset_y = random.randint(-5,5)
+        #     for nma in newmolecule.atomList:
+        #         (nma.x, nma.y, nma.z) = aam_to_iatom[nma.aam].xyz()
+        #         nma.x += offset_x
+        #         nma.y += offset_y
+        #
+        #
+        # # DEBUG
+        # # Print coordinates
+        # print "--- replaceAtomWithMolecule call ---"
+        # print "Old piece:", str(oldatom)
+        # print "New piece:", str(newmolecule)
+        # print "----------- end of call ------------"
+
+
 
         # Correct the bonds to anchor of new molecule
         for bond in self.bondList:
@@ -352,43 +417,6 @@ class Reaction:
 
         return fragments
 
-    def getParamsTemplate():
-        params = {}
-
-        # Indicate, for each R-name, how many options there are to choose from
-        for rname in self.rgroups.keys():
-            if "R" not in params.keys():
-                params["R"] = {}
-            params["R"][rname] = range(0,len(self.rgroups[rname]))
-
-        # Collect param templates for each pseudoatom
-        for molecule in reactionInst.reactants + reactionInst.agents:
-            for atom in molecule.atomList:
-                #print "Looking at atom " + atom.symbol
-
-                # If atom's symbol is an RXN string list, select one symbol arbitrarily
-                atomSymbols = pseudoatomToList(atom.symbol)    # Is this a list atom?
-                #print "  result of unwrapping: " + str(atomSymbols)
-                if len(atomSymbols) > 1:
-                    symbol_tmp = random.choice(atomSymbols)
-                    #print "  selected " + symbol_tmp + " out of " + str(atomSymbols)
-                    if symbol_tmp in LIST_TRANSLATION.keys():
-                        atom.symbol = LIST_TRANSLATION[symbol_tmp]
-                    else:
-                        atom.symbol = symbol_tmp
-                    #print "Set atom.symbol to " + atom.symbol
-
-                # If atom's symbol is in pseudo, generate an actual fragment
-                if sanitize_symbol(atom.symbol) in PSEUDO.keys():
-                    #print "A pseudoatom is found! " + sanitize_symbol(atom.symbol)
-                    fragmentsPseudo[str(atom.aam)] = getInstanceByName(atom)
-                else:
-                    #print "Not a pseudoatom, make a singleton molecule"
-                    molecule = Molecule()
-                    molecule.addAtom(atom)
-                    molecule.anchor = atom
-                    fragmentsPseudo[str(atom.aam)] = molecule
-
 
     def getInstance(self, params={}):
         """ Returns an instantiated (non-generic) reaction.
@@ -435,6 +463,11 @@ class Reaction:
                 if atom.aam == 0:
                     atom.aam = nextAAM
                     nextAAM -= 1
+
+
+        # Up to this point, objects are separate.
+        # R-groups have been substituted, but pseudoatoms are wrapped.
+        ### return reactionInst
 
         # Now, unwrap the pseudoatoms.
         # In each reactant and agent, for each pseudoatom, generate a fragment

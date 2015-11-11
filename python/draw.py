@@ -4,6 +4,7 @@ Module for drawing molecules and reactions.
 
 from indigo import *
 from indigo_renderer import *
+import math
 
 def get_indigo():
     """ Creates an Indigo object. According to authors, this is a cheap operation. """
@@ -116,8 +117,68 @@ def build_indigo_molecule(molecule, indigo, layout=False):
 
     # So if you don't want auto layout, restore the original coordinates.
     if not layout:
-        for i, (x, y, z) in xyz.iteritems():
-            imol.getAtom(i).setXYZ(x, y, z)
+        #print " ===Reinstating RXN coordinates ==="
+        #print "Atoms which need coordinates:"
+        for a in molecule.atomList:
+            #print "Coords: %s and %s (for %s)" % (str(a.x), str(a.y), a.symbol)
+            if a.x == 0 and a.y == 0:
+                #print "Atom without coords: " + str(a)
+                #print '  respective iatom has coords ' + str(aam_to_iatom[a.aam].xyz())
+                #print '  neighbours with coords are:'
+                M = None
+                N = None
+                for n in molecule.iterate_neighbours(a):
+                    if M:
+                        break
+                    if n.x != 0 and n.y != 0:
+                        N = n
+                        #print '    ' + str(n)
+                        for m in molecule.iterate_neighbours(n):
+                            if M:
+                                break
+                            if not m is a and m.x != 0 and m.y !=0:
+                                M = m
+
+                                a_layout = aam_to_iatom[a.aam].xyz()
+                                m_layout = aam_to_iatom[m.aam].xyz()
+                                n_layout = aam_to_iatom[n.aam].xyz()
+
+                                a_rxn = "???"
+                                m_rxn = (m.x, m.y)
+                                n_rxn = (n.x, n.y)
+
+                                #print "LAYOUT: %s ---> %s ---> %s" % (str(m_layout), str(n_layout), str(a_layout))
+                                #print "   RXN: %s ---> %s ---> %s" % (str(m_rxn), str(n_rxn), str(a_rxn))
+
+                                # V1 is from m to n;
+                                # V2 is from m to a;
+                                # Compute v1, v2:
+                                v1_l = (n_layout[0] - m_layout[0], n_layout[1] - m_layout[1])
+                                v2_l = (a_layout[0] - m_layout[0], a_layout[1] - m_layout[1])
+                                #print "V1 in layout: %s" % str(v1_l)
+                                #print "V2 in layout: %s" % str(v2_l)
+
+                                v1_r = (n_rxn[0] - m_rxn[0], n_rxn[1] - m_rxn[1])
+                                #print "V1 in rxn: %s" % str(v1_r)
+
+                                nl = math.hypot(v1_r[0], v1_r[1]) * math.hypot(v2_l[0], v2_l[1]) / math.hypot(v1_l[0], v1_l[1])
+                                #print "New length: %s" % str(nl)
+
+                                na = math.atan2(v2_l[1], v2_l[0]) + math.atan2(v1_r[1], v1_r[0]) - math.atan2(v1_l[1], v1_l[0])
+                                #print "New angle: %s" % str(na)
+
+                                v2_r = (nl * math.cos(na), nl * math.sin(na))
+                                #print "Resulting V2 in rxn: %s" % str(v2_r)
+
+                                a.x = m.x + v2_r[0]
+                                a.y = m.y + v2_r[1]
+                                a.z = 0.0
+                                #print "  New coords are %s" % str((a.x, a.y))
+
+        # for i, (x, y, z) in xyz.iteritems():
+        #     imol.getAtom(i).setXYZ(x, y, z)
+        for a in molecule.atomList:
+            aam_to_iatom[a.aam].setXYZ(a.x, a.y, a.z)
 
     # Fold hydrogens. This may need to be made settable.
     imol.foldHydrogens()  # This destroys stereo data
