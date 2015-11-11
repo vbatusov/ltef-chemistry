@@ -45,7 +45,7 @@
 
 
         <div class="form-group" tal:condition="state == 'tell'">
-              <p>"This is what you chose:"</p>
+              <p>This is what you chose:</p>
           <div class="form-group col-md-offset-2">
 
             <div tal:condition="state == 'tell'" tal:repeat="(mol_choice, chosen) mol_choices_svg">
