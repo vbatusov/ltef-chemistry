@@ -37,19 +37,15 @@
           </div>
         </div>
 
-        <div class="form-group" tal:condition="state == 'ask'">
+        <div class="form-group" tal:condition="state == 'tell'">
           <div class="col-sm-12 col-md-12">
             ${structure: question_svg}
           </div>
         </div>
 
+
         <div class="form-group" tal:condition="state == 'tell'">
-          <div class="col-sm-12 col-md-12">
-            ${structure: reaction_svg}
-          </div>
-        </div>
-        <div class="form-group" tal:condition="state == 'tell'">
-              <p>Choices Selected:</p>
+              <p>"This is what you chose:"</p>
           <div class="form-group col-md-offset-2">
 
             <div tal:condition="state == 'tell'" tal:repeat="(mol_choice, chosen) mol_choices_svg">
@@ -57,6 +53,7 @@
               <tal:if condition="chosen">
 
                 <div class="col-sm-12 col-md-3 " style="height:150px; border:solid; border-color:green;  border-radius:15px; margin: 10px;  text-align: center">
+
                   ${structure: mol_choice}
                 </div>
 
@@ -71,6 +68,20 @@
             </div>
           </div>
         </div>
+        <div class="form-group" tal:condition="state == 'tell'">
+
+          <div class="col-sm-12 col-md-12">
+                  <p>This is the complete reaction with all reactants and products shown:</p>
+            ${structure: reaction_svg}
+          </div>
+        </div>
+
+        <div class="form-group" tal:condition="state == 'ask'">
+          <div class="col-sm-12 col-md-12">
+            ${structure: question_svg}
+          </div>
+        </div>
+
         <div class="form-group">
           <div class="col-sm-12 col-md-12">
             <p tal:condition="state == 'ask'">What should the reactants be? Select those (and only those) molecules that would complete and balance the reaction. You can select and deselect molecules by clicking on them.</p>
@@ -83,7 +94,7 @@
               <div class="row-fluid" id="molContainer" tal:condition="state == 'ask'">
                 <div class="span12" tal:condition="state == 'ask'" tal:define="global number python: 0">
                   <div class="row-fluid center-in-span show-grid" id="molSpan" tal:condition="state == 'ask'">
-                    <div class="molecule" tal:attributes="id string:${python:number}" tal:condition="state == 'ask'" tal:repeat="(molecule, correct) choices_svg"><tal:block define="global number python: number + 1"/>${structure: molecule}</div>
+                    <div class="molecule" tal:attributes="id string:${python:number}" tal:condition="state == 'ask'" tal:repeat="(molecule, incortt) choices_svg"><tal:block define="global number python: number + 1"/>${structure: molecule}</div>
                   </div>
                 </div>
               </div>

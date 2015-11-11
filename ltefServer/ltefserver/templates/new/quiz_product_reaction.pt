@@ -42,10 +42,9 @@
             ${structure: question_svg}
           </div>
         </div>
-
         <div class="form-group" tal:condition="state == 'tell'">
           <div class="col-sm-12 col-md-12">
-            ${structure: reaction_svg}
+            ${structure: question_svg}
           </div>
         </div>
 
@@ -72,6 +71,15 @@
             </div>
           </div>
         </div>
+
+        <div class="form-group" tal:condition="state == 'tell'">
+          <div class="col-sm-12 col-md-12">
+                    <p>This is the complete reaction with all reactants and products shown:</p>
+            ${structure: reaction_svg}
+          </div>
+        </div>
+
+
         <div class="form-group">
           <div class="col-sm-12 col-md-12">
             <p tal:condition="state == 'ask'">What would the products be? Select those (and only those) molecules that would complete and balance the reaction. You can select and de-select molecules by clicking on them.</p>
