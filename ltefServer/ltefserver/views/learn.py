@@ -3,7 +3,7 @@ from pyramid.renderers import get_renderer
 from pyramid.response import FileResponse, Response
 from pyramid.request import Request
 from pyramid.httpexceptions import (HTTPFound, HTTPNotFound)
-
+import os.path
 
 from sqlalchemy.exc import DBAPIError
 from ..models import (
@@ -242,10 +242,25 @@ def learn_by_example_reaction_view(request):
         link_to_gen_picture = request.route_url('home') + 'img/' + reaction_name + '/generic/image.png'
     # End of the hack
 
+    static_svg_path = 'ltefserver/static/reaction_images/'
+    static_svg_image = "false"
+    svg_other = 'not working'
     svg_data = ""
-    svg_data = svg_reanderer.renderReactionToBuffer(reaction, layout=False)
-    svg_data = svg_reanderer.renderReactionToBuffer(reaction, layout=False) # hack because the other image wouldn't be displayed correctly
-    svg_data = update_svg_size(svg_data, '100%', '-1')
+    if os.path.isfile(static_svg_path + reaction_name + '.svg'):
+        file_svg_reaction = open(static_svg_path + reaction_name + '.svg', 'r')
+        svg_image = file_svg_reaction.read()
+        if len(svg_image) != 0:
+            svg_other = svg_image
+        else:
+            svg_other = "Error reaction image empty"
+
+        static_svg_image = "true"
+    else:
+        svg_data = ""
+        svg_data = svg_reanderer.renderReactionToBuffer(reaction, layout=False)
+        svg_data = svg_reanderer.renderReactionToBuffer(reaction, layout=False) # hack because the other image wouldn't be displayed correctly
+        svg_data = update_svg_size(svg_data, '100%', '-1')
+        static_svg_image = "false"
 
     return {"layout": logged_layout(),
             "logged_in" : request.authenticated_userid,
@@ -256,12 +271,14 @@ def learn_by_example_reaction_view(request):
 	        "rgroups" : reaction.rgroups,
 	        "link_to_gen_picture" : link_to_gen_picture,
             "svg_data" : svg_data,
+            "svg_other" : svg_other,
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
     	    "reaction_description" : reaction_description,
 	        "reaction" : reaction_name,
             "filename" : filename,
             "basename" : reaction_name,
+            "static_svg_image" : static_svg_image,
     }
 
 
