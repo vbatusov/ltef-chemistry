@@ -1,6 +1,7 @@
 import copy
 import random
 import re
+import math
 
 class Atom:
     'This class is geared to store atom information supplied by v3000 molfiles'
@@ -56,6 +57,27 @@ class Bond:
             return True
         return False
 
+def get_subgraph_atoms(bonds, atom, ignore_bonds=None):
+    """ Given a list of bonds and an atom,
+        return all atoms which are connected to 'atom', including itself,
+        pretending that bonds in 'ignore_bonds' don't exist
+    """
+
+    if not ignore_bonds:
+        ignore_bonds = []
+
+    connected_atoms = [atom]
+
+    for b in bonds:
+        if b.involves(atom) and b not in ignore_bonds:
+            partial_result = get_subgraph_atoms(bonds, b.getOtherAtom(atom), ignore_bonds + [b])
+            for item in partial_result:
+                if item not in connected_atoms:
+                    connected_atoms.append(item)
+                        
+    return connected_atoms
+
+
 class Molecule:
     """ A molecule can be either a complete molecule or a fragment.
     The difference is in the self.anchor: it is the attachment point
@@ -71,6 +93,8 @@ class Molecule:
         self.anchor = None  # Obsolete
         self.anchors = None # Replaces self.anchor, because R-groups can have multiple anchors
         self.owner = None   # For debugging only, set this to the reaction object the molecule belongs to
+        self.median_bond_length = 0
+        self.bond_lengths = []
 
     def addAtom(self, *atom):
         for a in atom:
@@ -79,6 +103,19 @@ class Molecule:
 
     def addBond(self, bond):
         self.bondList.append(bond)
+
+        # Recompute the median length every time a bond is added
+        (x1, y1) = (bond.toAtom.x, bond.toAtom.y)
+        (x2, y2) = (bond.fromAtom.x, bond.fromAtom.y)
+
+        if (x1,y1) != (0,0) and (x2,y2) != (0,0):
+            self.bond_lengths.append(math.hypot(x1 - x2, y1 - y2))
+            quotient, remainder = divmod(len(self.bond_lengths), 2)
+            if remainder:
+                self.median_bond_length = sorted(self.bond_lengths)[quotient]
+            else:
+                self.median_bond_length = sum(sorted(self.bond_lengths)[quotient - 1:quotient + 1]) / 2.0
+
 
     def iterate_neighbours(self, atom):
         return (b.getOtherAtom(atom) for b in self.bondList if b.involves(atom))

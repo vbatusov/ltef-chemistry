@@ -322,7 +322,7 @@ class DistractorReaction:
 
         return generated_distractors
 
-    def expand_molecule(self, molecules, order_bonds_changed ):
+    def expand_molecule(self, molecules, order_bonds_changed):
         """
         Expands a molecule by adding a Carbon.
 
@@ -337,43 +337,66 @@ class DistractorReaction:
             for atom in molecule.atomList:
                 if atom.aam > reaction_aam_count:
                     reaction_aam_count = atom.aam
-        reaction_aam_count = 1 + reaction_aam_count
+        reaction_aam_count += 1
 
-        molecules_copy = copy.deepcopy(molecules)
-        for molecule in molecules_copy:
-            for order_bond_changed in order_bonds_changed:
-                for bond in molecule.bondList:
-                    if order_bond_changed.__eq__(bond):
+        for molecule in molecules:
+            for bond in order_bonds_changed:
+                if bond in molecule.bondList:
 
-                        atom = chem.Atom('C', 0,0,0,0, 0,{},reaction_aam_count )
-                        new_bond = chem.Bond( 0, 1, atom,  bond.toAtom ,{})
-                        previous_bond = chem.Bond( 0, bond.order, bond.fromAtom,  atom ,{})
+                    print "Looking at bond " + str(bond)
 
-                        reaction_aam_count = reaction_aam_count + 1
+                    temp_molecule = copy.deepcopy(molecule)
 
-                        temp_molecule = copy.deepcopy(molecule)
-                        temp_molecule.bondList.remove(bond)
-                        temp_molecule.addAtom(atom)
-                        temp_molecule.addBond(new_bond)
-                        temp_molecule.addBond(previous_bond)
+                    temp_bond = None
+                    for candidate_bond in temp_molecule.bondList:
+                        if candidate_bond == bond:
+                            temp_bond = candidate_bond
 
-                        results.append(temp_molecule)
+                    # Will be replacing the bond with something new,
+                    # so let's break the molecule on the bond:
+                    shifting_group = chem.get_subgraph_atoms(temp_molecule.bondList, temp_bond.toAtom, ignore_bonds=[temp_bond])
+                    #atoms_2 = [a for a in molecule.atomList if a not in shifting_group]
 
-                        # if the bond is other then 2
-                        if bond.order == 2:
-                            temp_molecule_second_option = copy.deepcopy(molecule)
+                    # Shift vector for shifting_group
+                    v = (temp_bond.toAtom.x - temp_bond.fromAtom.x, temp_bond.toAtom.y - temp_bond.fromAtom.y)
+                    # Old location of toAtom becomes location of new atom
+                    u = (temp_bond.toAtom.x, temp_bond.toAtom.y)
 
-                            atom = chem.Atom('C', 0,0,0,0, 0,{},reaction_aam_count )
-                            new_bond = chem.Bond( 0, bond.order, atom,  bond.toAtom ,{})
-                            previous_bond = chem.Bond( 0, 1, bond.fromAtom,  atom ,{})
+                    # Shift atoms that need shifting
+                    for a in shifting_group:
+                        a.x += v[0]
+                        a.y += v[1]
 
-                            temp_molecule_second_option.bondList.remove(bond)
-                            temp_molecule_second_option.addAtom(atom)
-                            temp_molecule_second_option.addBond(new_bond)
-                            temp_molecule_second_option.addBond(previous_bond)
+                    # Place the new atom
+                    atom = chem.Atom('C', u[0], u[1], 0, 0, reaction_aam_count, {}, reaction_aam_count)
+                    new_bond = chem.Bond(0, 1, atom, bond.toAtom)
+                    previous_bond = chem.Bond(0, bond.order, bond.fromAtom, atom)
 
-                            results.append(temp_molecule_second_option)
+                    reaction_aam_count += 1
 
+                    temp_molecule.bondList.remove(temp_bond)
+                    temp_molecule.addAtom(atom)
+                    temp_molecule.addBond(new_bond)
+                    temp_molecule.addBond(previous_bond)
+
+                    results.append(temp_molecule)
+
+                    # I don't understand the following part. - VB
+
+                    # if the bond is other then 2
+                    # if bond.order == 2:
+                    #     temp_molecule_second_option = copy.deepcopy(molecule)
+                    #
+                    #     atom = chem.Atom('C', 0, 0, 0, 0, reaction_aam_count, {}, reaction_aam_count)
+                    #     new_bond = chem.Bond(0, bond.order, atom, bond.toAtom, {})
+                    #     previous_bond = chem.Bond(0, 1, bond.fromAtom, atom, {})
+                    #
+                    #     temp_molecule_second_option.bondList.remove(bond)
+                    #     temp_molecule_second_option.addAtom(atom)
+                    #     temp_molecule_second_option.addBond(new_bond)
+                    #     temp_molecule_second_option.addBond(previous_bond)
+                    #
+                    #     results.append(temp_molecule_second_option)
         return results
 
     def return_atoms_moved(self, molecules, bonds_disappeared, atoms_moved ):
