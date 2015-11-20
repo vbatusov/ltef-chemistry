@@ -2,6 +2,7 @@ import copy
 import random
 import re
 import math
+import indigo
 
 class Atom:
     'This class is geared to store atom information supplied by v3000 molfiles'
@@ -57,6 +58,12 @@ class Bond:
             return True
         return False
 
+    def involves_by_aam(self, atom):
+        if self.fromAtom.aam == atom.aam or self.toAtom.aam == atom.aam:
+            return True
+        return False
+
+
 def get_subgraph_atoms(bonds, atom, ignore_bonds=None):
     """ Given a list of bonds and an atom,
         return all atoms which are connected to 'atom', including itself,
@@ -74,7 +81,7 @@ def get_subgraph_atoms(bonds, atom, ignore_bonds=None):
             for item in partial_result:
                 if item not in connected_atoms:
                     connected_atoms.append(item)
-                        
+
     return connected_atoms
 
 
@@ -95,11 +102,18 @@ class Molecule:
         self.owner = None   # For debugging only, set this to the reaction object the molecule belongs to
         self.median_bond_length = 0
         self.bond_lengths = []
+        self.cm = (0,0,0)   # Centre of mass of generic molecule.
 
     def addAtom(self, *atom):
         for a in atom:
             #print "Adding atom " + str(a)
             self.atomList.append(a)
+
+    def get_atom_by_aam(self, aam):
+        for a in self.atomList:
+            if a.aam == aam:
+                return a
+        return None
 
     def addBond(self, bond):
         self.bondList.append(bond)
@@ -116,9 +130,106 @@ class Molecule:
             else:
                 self.median_bond_length = sum(sorted(self.bond_lengths)[quotient - 1:quotient + 1]) / 2.0
 
+        #print "Median lenght: " + str(self.median_bond_length)
+
+    def get_median_length(self):
+        if self.median_bond_length > 0:
+            return self.median_bond_length
+        return 1.54
 
     def iterate_neighbours(self, atom):
         return (b.getOtherAtom(atom) for b in self.bondList if b.involves(atom))
+
+    def iterate_neighbours_by_aam(self, atom):
+        return (b.getOtherAtom(atom) for b in self.bondList if b.involves_by_aam(atom))
+
+    def assign_xyz(self, atom):
+        """ Assuming 'atom' is out of place, compute some meaningful coordinates
+            and assign them to the atom """
+
+        def norm(angle):
+            """ Force angle to the interval [0, 360) """
+            return angle % (2.0 * math.pi)
+
+        def ang_dif(a1, a2):
+            d = math.fabs(a1 - a2)
+            if d > math.pi:
+                return (math.pi * 2.0) - d
+            return d
+
+        #print "*****Invoking assign_xyz*********"
+        #print "atoms: %s" % str(self.atomList)
+        #print "bonds: %s" % str(self.bondList)
+
+        # assume a unique neighbour, i.e. atom is a leaf
+        neighbour = None
+        for nei in self.iterate_neighbours(atom):
+            neighbour = nei
+            break
+
+        #print "Our molecule is %s" % str(self)
+        #print "Our atom is %s" % str(atom)
+
+        if not neighbour:
+            raise Exception("Something went wrong with assigning XYZ to an atom.")
+        #else:
+            #print "Neighbour is %s" % str(neighbour)
+
+        # print "====== nei test ========"
+        # for b in self.bondList:
+        #     if b.toAtom is neighbour:
+        #         print str(b.fromAtom)
+        #     elif b.fromAtom is neighbour:
+        #         print str(b.toAtom)
+        #     elif b.toAtom.aam in [1, 4, 6, 3] or b.fromAtom.aam in [1, 4, 6, 3]:
+        #         print "Not neighbours: %s and %s" % (str(b.fromAtom), str(b.toAtom))
+        # print "====== end of test ====="
+
+        if True:
+            # Look at neighbour's neighbours and pick a spot between them
+            angles = []
+            for nei in self.iterate_neighbours_by_aam(neighbour):
+                #print "found a neighbour's neighbour %s" % str(nei)
+                if nei is not atom:
+                    #print "  which is good"
+                    dx = nei.x - neighbour.x
+                    dy = nei.y - neighbour.y
+                    angle = norm(math.atan2(dy, dx))
+                    angles.append(angle)
+                #else:
+                    #print "  which we ignore"
+            #print "Angles: " + str(angles)
+            angles.sort()
+            angles.append(angles[0] + (2.0 * math.pi)) # Loop around
+            #print "Angles: " + ",".join([str(math.degrees(z)) for z in angles])
+
+            angle_from_cm = norm(math.atan2((neighbour.y - self.cm[1]), (neighbour.x - self.cm[0])))
+            #print "Angle from centre of mass: %s" % str(math.degrees(angle_from_cm))
+
+            best_angle = 0
+            max_gap = 0
+            min_cm_diff = 2 * math.pi
+            for a1, a2 in zip(angles[:-1], angles[1:]):
+                diff = ang_dif(a1, a2)
+                cm_diff = ang_dif(angle_from_cm, (a1 + a2) / 2)
+                #print "Candidate direction: %s, diff is %s, cm_diff is %s" % (str(math.degrees((a2 + a1) / 2)), str(math.degrees(diff)), str(math.degrees(cm_diff)))
+                if math.fabs(diff - max_gap) < math.radians(2) and cm_diff < min_cm_diff:
+                    #print "  GOOD ONE 1"
+                    min_cm_diff = cm_diff
+                    best_angle = (a1 + a2) / 2
+                elif diff > max_gap and cm_diff < min_cm_diff:
+                    #print "  GOOD ONE 2"
+                    max_gap = diff
+                    min_cm_diff = cm_diff
+                    best_angle = (a1 + a2) / 2
+
+
+
+        #print "Preferred angle is %s deg" % str(math.degrees(best_angle))
+        #best_angle = math.pi
+        #print "Adding " + str(self.get_median_length() * math.cos(best_angle))
+        atom.x = neighbour.x + self.get_median_length() * math.cos(best_angle)
+        atom.y = neighbour.y + self.get_median_length() * math.sin(best_angle)
 
     def __str__(self):
         desc = "<Molecule>"
@@ -164,62 +275,15 @@ class Molecule:
 
         newmolecule = copy.deepcopy(newmol)
 
+        # In case we are dealing with an r-group, whose coords are always irrelevant.
+        for a in newmolecule.atomList:
+            (a.x, a.y, a.z) = (0, 0, 0)
+
         newmolecule.anchor.aam = oldatom.aam
 
-        # # Fit newmolecule to oldatom and rest of molecule
-        #if len(newmolecule.atomList) == 1:
         newmolecule.anchor.x = oldatom.x
         newmolecule.anchor.y = oldatom.y
         newmolecule.anchor.z = oldatom.z
-        # elif len(newmolecule.atomList) > 1:
-        #     import draw
-        #     (i, _) = draw.get_indigo()
-        #
-        #     # Newmol extended with a counterweight
-        #     cw = Atom("C", 0, 0, 0, 0, 0)
-        #     cwb = Bond(0, 1, cw, newmolecule.anchor)
-        #     newmolecule.addAtom(cw)
-        #     newmolecule.addBond(cwb)
-        #
-        #     aam_to_iatom = draw.build_indigo_molecule(newmolecule, i, layout=True, return_mapping=True)
-        #
-        #     # Remove counterweight entirely
-        #     newmolecule.atomList.remove(cw)
-        #     newmolecule.bondList.remove(cwb)
-        #
-        #     offset_x = random.randint(10,20)
-        #     offset_y = random.randint(-5,5)
-        #     for nma in newmolecule.atomList:
-        #         (nma.x, nma.y, nma.z) = aam_to_iatom[nma.aam].xyz()
-        #         nma.x += offset_x
-        #         nma.y += offset_y
-
-        # newmolecule.anchor.x = oldatom.x
-        # newmolecule.anchor.y = oldatom.y
-        # newmolecule.anchor.z = oldatom.z
-        #
-        # if len(newmolecule.atomList) > 1:
-        #     print "--laying out the new stuff--"
-        #     # Lay out the newmolecule, rotate it and move where appropriate
-        #     import draw
-        #     (i, _) = draw.get_indigo()
-        #     aam_to_iatom = draw.build_indigo_molecule(newmolecule, i, layout=True, return_mapping=True)
-        #     offset_x = random.randint(0,10)
-        #     offset_y = random.randint(-5,5)
-        #     for nma in newmolecule.atomList:
-        #         (nma.x, nma.y, nma.z) = aam_to_iatom[nma.aam].xyz()
-        #         nma.x += offset_x
-        #         nma.y += offset_y
-        #
-        #
-        # # DEBUG
-        # # Print coordinates
-        # print "--- replaceAtomWithMolecule call ---"
-        # print "Old piece:", str(oldatom)
-        # print "New piece:", str(newmolecule)
-        # print "----------- end of call ------------"
-
-
 
         # Correct the bonds to anchor of new molecule
         for bond in self.bondList:
@@ -238,6 +302,12 @@ class Molecule:
         """ This returns a new molecule which is the same as self except that every
         R-atom is replaced with a corresponding molecule from the provided dictionary.
         """
+
+        # Let's store the 'centre of mass' of the generic molecule in each instance.
+        coeff = float(len(self.atomList))
+        for a in self.atomList:
+            self.cm = (self.cm[0] + a.x / coeff, self.cm[1] + a.y / coeff, self.cm[2] + a.z / coeff,)
+
         # This will be returned
         newmol = copy.deepcopy(self)
 
@@ -269,7 +339,10 @@ class Molecule:
             imol1 = draw.build_indigo_molecule(self, i)
             imol2 = draw.build_indigo_molecule(other, i)
             #print imol1.canonicalSmiles(), "versus", imol2.canonicalSmiles()
-            return imol1.canonicalSmiles() == imol2.canonicalSmiles()
+            try:
+                return imol1.canonicalSmiles() == imol2.canonicalSmiles()
+            except indigo.IndigoException:
+                return False
         else:
             return False
 
@@ -389,6 +462,7 @@ class Reaction:
         for mol in self.products:
             for atom in mol.atomList:
                 if atom.aam == 0:
+                    #print str(self)
                     raise Exception("Sanity check: reaction " + self.name + " contains a product atom with AAM = 0")
                 if atom.aam in aamProducts:
                     raise Exception("Sanity check: reaction " + self.name + " contains two product atoms with the same AAM, #" + str(atom.aam) + ";\n current atom: " + str(atom))
@@ -412,7 +486,7 @@ class Reaction:
         if self.numberOfAtomsOverall != len(aamReactants + aamAgents):
             raise Exception("Sanity check: self.numberOfAtomsOverall != len(aamReactants + aamAgents) in " + self.name)
 
-        print "All numbers check out."
+        #print "All numbers check out."
 
         # We want to be sure that this reaction can be instantiated
         # Test for unknown pseudoatoms
@@ -437,7 +511,7 @@ class Reaction:
                 if len(rmol.anchors) > 1:
                     print "One of the R-group " + rname + "'s choices has " + str(len(rmol.anchors)) + " attachment points, please investigate."
 
-        print "-" * 50
+        #print "-" * 50
 
     def selectRGroups(self):
         """ For each unique R-group in reaction, select a single generic
@@ -481,6 +555,25 @@ class Reaction:
         # Select specific generic fragments to be used as R-groups
         fragmentsRG = self.selectRGroups()
 
+
+
+        nextAAM = self.numberOfAtomsInReactants
+        for frag in fragmentsRG.values():
+            for atom in frag.atomList:
+                nextAAM += 1
+
+        for frag in fragmentsRG.values():
+            for atom in frag.atomList:
+                if atom.aam == 0:
+                    #print "Setting aam %s" % str(nextAAM)
+                    atom.aam = nextAAM
+                    nextAAM += 1
+
+        #print "R-groups selected:"
+        #for v in fragmentsRG.values():
+        #    print " Choice:"
+        #    print str(v)
+
         # Substitute selected R-fragments into every reactant, agent, and product
         for molecule in self.reactants:
             reactionInst.addReactant(molecule.getInstance(fragmentsRG))
@@ -492,19 +585,21 @@ class Reaction:
             reactionInst.addProduct(molecule.getInstance(fragmentsRG))
 
         # To finish with R-groups, assign AAM numbers where necessary
-        # Note: it is enough to set AAM in reactants only, since they are
+        # Note: it is NOT enough to set AAM in reactants only, since they are
         # stored as references and will change across the entire reaction.
-        nextAAM = reactionInst.numberOfAtomsInReactants
-        for molecule in reactionInst.reactants:
-            for atom in molecule.atomList:
-                if atom.aam == 0:
-                    atom.aam = nextAAM
-                    nextAAM -= 1
+        # nextAAM = reactionInst.numberOfAtomsInReactants
+        # for molecule in reactionInst.reactants:
+        #     for atom in molecule.atomList:
+        #         if atom.aam == 0:
+        #             print "Setting aam %s" % str(nextAAM)
+        #             atom.aam = nextAAM
+        #             nextAAM += 1
 
+        #print str(reactionInst)
 
         # Up to this point, objects are separate.
         # R-groups have been substituted, but pseudoatoms are wrapped.
-        ### return reactionInst
+        ## return reactionInst
 
         # Now, unwrap the pseudoatoms.
         # In each reactant and agent, for each pseudoatom, generate a fragment
@@ -559,7 +654,7 @@ class Reaction:
 
 
         # Iterate through fragments and assign aam to all atoms
-        nextAAM = reactionInst.numberOfAtomsOverall + 1
+        #nextAAM = reactionInst.numberOfAtomsOverall + 1
         for frag in fragmentsPseudo.values():
             for atom in frag.atomList:
                 if atom.aam == 0:

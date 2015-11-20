@@ -343,8 +343,6 @@ class DistractorReaction:
             for bond in order_bonds_changed:
                 if bond in molecule.bondList:
 
-                    print "Looking at bond " + str(bond)
-
                     temp_molecule = copy.deepcopy(molecule)
 
                     temp_bond = None
@@ -369,8 +367,10 @@ class DistractorReaction:
 
                     # Place the new atom
                     atom = chem.Atom('C', u[0], u[1], 0, 0, reaction_aam_count, {}, reaction_aam_count)
-                    new_bond = chem.Bond(0, 1, atom, bond.toAtom)
-                    previous_bond = chem.Bond(0, bond.order, bond.fromAtom, atom)
+                    orders = [1, bond.order]
+                    random.shuffle(orders)
+                    new_bond = chem.Bond(0, orders[0], atom, bond.toAtom)
+                    previous_bond = chem.Bond(0, orders[1], bond.fromAtom, atom)
 
                     reaction_aam_count += 1
 
@@ -434,16 +434,26 @@ class DistractorReaction:
                                     molecule_copy.bondList.remove(bonds_order_greater_then_one[0])
                                     bonds_order_greater_then_one[0].order = 1
                                     molecule_copy.bindList.append(bonds_order_greater_then_one[0])
+                                    atom_copy = copy.deepcopy(atom_moved)
                                     bond_copy = copy.deepcopy(bond_disappeared)
+                                    bond_copy.fromAtom = atom_copy
                                     bond_copy.order = 2
+                                    bond_copy.toAtom = molecule_copy.get_atom_by_aam(bond_copy.toAtom.aam)
                                     molecule_copy.addBond(bond_copy)
                                     molecule_copy.addAtom(atom_moved)
+                                    molecule_copy.assign_xyz(atom_copy)
+
                                     results.append(molecule_copy)
 
                             molecule_copy = copy.deepcopy(molecule)
+                            atom_copy = copy.deepcopy(atom_moved)
                             bond_copy = copy.deepcopy(bond_disappeared)
+                            bond_copy.fromAtom = atom_copy
+                            bond_copy.toAtom = molecule_copy.get_atom_by_aam(bond_copy.toAtom.aam)
                             molecule_copy.addBond(bond_copy)
                             molecule_copy.addAtom(atom_moved)
+                            molecule_copy.assign_xyz(atom_copy)
+
                             results.append(molecule_copy)
 
                 elif bond_disappeared.toAtom.__eq__(atom_moved) and ATOM_VALENCE.get( bond_disappeared.toAtom.symbol ) != 1 and ATOM_VALENCE.get( bond_disappeared.fromAtom.symbol ) != 1:
@@ -468,16 +478,26 @@ class DistractorReaction:
                                     molecule_copy.bondList.remove(bonds_order_greater_then_one[0])
                                     bonds_order_greater_then_one[0].order = 1
                                     molecule_copy.bondList.append(bonds_order_greater_then_one[0])
+                                    atom_copy = copy.deepcopy(atom_moved)
                                     bond_copy = copy.deepcopy(bond_disappeared)
+                                    bond_copy.toAtom = atom_copy
                                     bond_copy.order = 2
+                                    bond_copy.fromAtom = molecule_copy.get_atom_by_aam(bond_copy.fromAtom.aam)
                                     molecule_copy.addBond(bond_copy)
-                                    molecule_copy.addAtom(atom_moved)
+                                    molecule_copy.addAtom(atom_copy)
+                                    molecule_copy.assign_xyz(atom_copy)
+
                                     results.append(molecule_copy)
 
                             molecule_copy = copy.deepcopy(molecule)
+                            atom_copy = copy.deepcopy(atom_moved)
                             bond_copy = copy.deepcopy(bond_disappeared)
+                            bond_copy.toAtom = atom_copy
+                            bond_copy.fromAtom = molecule_copy.get_atom_by_aam(bond_copy.fromAtom.aam)
                             molecule_copy.addBond(bond_copy)
-                            molecule_copy.addAtom(atom_moved)
+                            molecule_copy.addAtom(atom_copy)
+                            molecule_copy.assign_xyz(atom_copy)
+
                             results.append(molecule_copy)
         return results
 

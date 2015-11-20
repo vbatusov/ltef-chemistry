@@ -32,7 +32,7 @@ def build_indigo_reaction(reaction, indigo, layoutReac=False, layoutAgent=False,
     return ireaction
 
 
-def build_indigo_molecule(molecule, indigo, layout=False):
+def build_indigo_molecule(molecule, indigo, layout=False, show_stereo = False):
     # A map from real AAM to Indigo atom objects. The map is filled as Indigo atoms are created,
     # and is then used to create bonds between Indigo atoms.
     aam_to_iatom = {}
@@ -110,7 +110,8 @@ def build_indigo_molecule(molecule, indigo, layout=False):
         # Note: the function "addStereocenter" is not properly documented, so the usage here is based
         # on my best guess. See <https://groups.google.com/forum/#!topic/indigo-dev/oWTt3OSF8FM>.
         #print "STEREO DATA", str(pyramid)
-        imol.getAtom(stereo_index).addStereocenter(Indigo.ABS, pyramid[0], pyramid[1], pyramid[2], pyramid[3])
+        if show_stereo:
+            imol.getAtom(stereo_index).addStereocenter(Indigo.ABS, pyramid[0], pyramid[1], pyramid[2], pyramid[3])
 
     # Force layout, because if you don't, the stereo bonds will be rendered as flat.
     imol.layout()
