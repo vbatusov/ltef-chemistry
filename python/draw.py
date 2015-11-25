@@ -5,6 +5,7 @@ Module for drawing molecules and reactions.
 from indigo import *
 from indigo_renderer import *
 import math
+import time
 
 def get_indigo():
     """ Creates an Indigo object. According to authors, this is a cheap operation. """
@@ -331,7 +332,8 @@ class SVGRenderer:
             else:
                 self.names[symbol.attrib["id"]] = 0
 
-            rename_to[symbol.attrib["id"]] = "%s-%s" % (symbol.attrib["id"], str(self.names[symbol.attrib["id"]]))
+            timestamp = str(int(time.time() * 10000))
+            rename_to[symbol.attrib["id"]] = "%s-%s-%s" % (symbol.attrib["id"], str(self.names[symbol.attrib["id"]]), timestamp)
             #print "Will rename", symbol.attrib["id"], "to", rename_to[symbol.attrib["id"]]
 
             symbol.attrib["id"] = rename_to[symbol.attrib["id"]]
