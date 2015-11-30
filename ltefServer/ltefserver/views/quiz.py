@@ -336,14 +336,14 @@ def quiz_reactant_view(request):
         instance_question = copy.deepcopy(instance_full_reaction)
         molecule = chem.Molecule()
         molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
-        instance_full_reaction.reactants = [molecule]
+        instance_question.reactants = [molecule]
 
         # Initialize draw SVGRenderer object
         svg_reanderer = draw.SVGRenderer()
 
         # render instance question to image format svg
         question_svg = ""
-        question_svg = svg_reanderer.renderReactionToBuffer(instance_full_reaction, layout=False)
+        question_svg = svg_reanderer.renderReactionToBuffer(instance_question, layout=False)
         question_svg = update_svg_size(question_svg, '100%', '-1') # update svg size to width to 100%
 
         # get the correct_choices
@@ -491,7 +491,6 @@ def quiz_product_view(request):
 
     custom_scripts = []
     custom_scripts.append("/bootstrap/js/quiz_reactants.js")
-
     # Get the users security group
     group = group_security(request.authenticated_userid)
     if group["is_teacher"]:
@@ -607,14 +606,14 @@ def quiz_product_view(request):
         instance_question = copy.deepcopy(instance_full_reaction)
         molecule = chem.Molecule()
         molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
-        instance_full_reaction.products = [molecule]
+        instance_question.products = [molecule]
 
         # Initialize draw SVGRenderer object
         svg_reanderer = draw.SVGRenderer()
 
         # render instance question to image format svg
         question_svg = ""
-        question_svg = svg_reanderer.renderReactionToBuffer(instance_full_reaction, layout=False)
+        question_svg = svg_reanderer.renderReactionToBuffer(instance_question, layout=False)
         question_svg = update_svg_size(question_svg, '100%', '-1') # update svg size to width to 100%
 
         # get the correct_choices
@@ -709,7 +708,7 @@ def quiz_product_view(request):
             "message" : message,
             "result" : result,
             "is_admin" : group["is_admin"], "is_teacher" : group["is_teacher"], "is_student" : group["is_student"],
-            "state" : state,
+	    "state" : state,
             "owner_courses" : owner_courses,
             "enrolled_courses" : enrolled_courses,
             "logged_in" : request.authenticated_userid,
@@ -723,36 +722,52 @@ def quiz_product_view(request):
 @view_config(route_name='quiz_question', renderer='ltefserver:templates/new/quiz_question.pt', permission='study')
 def quiz_question_view(request):
 
+    # Retrieve the match dictonaries 
     course_name = request.matchdict["course"]
     student_username = request.matchdict["student"]
     quiz_type = request.matchdict["quiz"]
     chapter_name = request.matchdict["chapter"]
+    # Set the Instance variables 
     is_incorrect = False
     is_correct = False
     message = ""
     custom_scripts =[]
 
+    # Retrieve the current user and their group privileges
     current_user = DBSession.query(User).filter(User.username == request.authenticated_userid).first()
     group = group_security(request.authenticated_userid)
 
     owner_courses = []
     enrolled_courses = []
+    # Teacher group has the ability to retrieve it's students quiz history 
     if group["is_teacher"]:
+	# Check if the teacher has ownership to the course 
         owner_courses = Course.owner_courses(request.authenticated_userid)
+	# Retieve the course 
         course = DBSession.query(Course).filter(Course.name == course_name).filter(Course.owner == current_user.id).first()
+        # Retrieve the specific student the teacher is going to view 
         student = DBSession.query(User).filter(User.username == student_username).first()
+        # Retireve the Specific Chapter the teacher want's to view 
         chapter = DBSession.query(Chapter).filter(Chapter.title == chapter_name).filter(Chapter.course == course.id).first()
-
+	# Retireve the Specific Quiz the teacher want's to view 
         quiz = DBSession.query(Quiz_history).filter(Quiz_history.user== student.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.question_number == quiz_type).first()
+   # Student group has the ability to view only their own quiz history
     elif group["is_student"]:
+	# Check if the studet is enrolled to the Course 
         enrolled_courses = Enrolled.enrolled_courses(request.authenticated_userid)
-	course = DBSession.query(Course).filter(Course.name == course_name).filter(Course.id == Enrolled.courseid).filter(Enrolled.userid == current_user.id).first()
+	# Retrieve the Course 
+        course = DBSession.query(Course).filter(Course.name == course_name).filter(Course.id == Enrolled.courseid).filter(Enrolled.userid == current_user.id).first()
+        # Get the student's profile 
         student = DBSession.query(User).filter(User.username == student_username).first()
+        # Get the specific chapter the student's wants to view 
         chapter = DBSession.query(Chapter).filter(Chapter.title == chapter_name).filter(Chapter.course == course.id).first()
-        quiz = DBSession.query(Quiz_history).filter(Quiz_history.user== current_user.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.question_number == quiz_type).first()
+        # Get the specific Quiz the student want's to view 
+	quiz = DBSession.query(Quiz_history).filter(Quiz_history.user== current_user.id).filter(Quiz_history.course == course.id).filter(Quiz_history.chapter == chapter.id).filter(Quiz_history.question_number == quiz_type).first()
 
+    # The Quiz History object contains the choices generated 
     choices = quiz.choice_obj
 
+    # The Quiz History object contains if the question was answered correctly  
     if quiz.score == 0:
         message = "You have selected the incorrect answer"
         is_incorrect = True
@@ -761,27 +776,32 @@ def quiz_question_view(request):
         is_correct = True
 
 
-    # Draw the reaction in svg
+    # Quiz History contains the question 
     instance = quiz.reaction_obj
+    # Get the drawing SVG tool 
     render_draw = draw.SVGRenderer()
+    # Reaction Svg contains the whole Reaction including the the reactant and product 
     reaction_svg = render_draw.renderReactionToBuffer(instance, layout=False)
 
-    # Chop off the xml tag
+    # Chop off the xml tag because it's not needed 
     reaction_svg = reaction_svg[reaction_svg.find('\n') + 1:]
-    # Modify height and width of the svg tag
+    # Modify height and width of the svg tag 
     svgline = reaction_svg[:reaction_svg.find('\n')]
     svglineparts = re.split('width=".*?"', svgline)
     svgline = svglineparts[0] + 'width="100%"' + svglineparts[1]
     reaction_svg = svgline + "\n" + reaction_svg[reaction_svg.find('\n') + 1 :]
 
-
+    # Create a new Molecule to hide the reactant or product based on what question has been asked 
     molecule = chem.Molecule()
+    # Add a question mark 
     molecule.addAtom(chem.Atom("?", 0, 0, 0, 0, 0))
+    # Quiz History contains the quiz type to know which molecules to remove 
     if quiz.quiz_type == 'reactants':
-        instance.reactants = [molecule]
+       instance.reactants = [molecule]
     elif quiz.quiz_type == 'products':
-        instance.products = [molecule]
+      instance.products = [molecule]
 
+    # add the Question reaction svg image to question svg variable 
     question_svg = render_draw.renderReactionToBuffer(instance, layout=False)
 
     # Chop off the xml tag
